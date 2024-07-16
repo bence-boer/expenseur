@@ -1,2 +1,11 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+<script lang="ts">
+	import type { Tables } from '../types/supabase';
+
+	export let data: { units: Tables<'units'>[] };
+</script>
+
+<ul>
+	{#each data.units as unit}
+		<li>{unit.name}</li>
+	{/each}
+</ul>
