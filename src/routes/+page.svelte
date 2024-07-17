@@ -2,10 +2,10 @@
 	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import type { Tables } from '../types/supabase';
-	import { supabase } from '../supabaseClient';
+	import { supabase } from '../supabase-client';
 	import type { PostgrestSingleResponse } from '@supabase/supabase-js';
 
-	let authenticated = supabase.auth.getSession() !== null;
+	let authenticated = false;
 	supabase.auth.onAuthStateChange((_, session) => {
 		authenticated = session !== null;
 	});
@@ -27,15 +27,13 @@
 </script>
 
 {#if authenticated}
-	<Button variant="outline" on:click={logout}>Logout</Button>
 	<ul>
 		{#each state?.data ?? [] as unit}
 			<li>{unit.name}</li>
 		{/each}
 	</ul>
 {/if}
+
 {#if !authenticated}
-	<a href="/login">
-		<Button variant="outline">Login</Button>
-	</a>
+	<p>You need to login to access this page</p>
 {/if}
