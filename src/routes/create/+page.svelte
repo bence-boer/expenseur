@@ -55,7 +55,7 @@
 	let { form: form_data, enhance: _enhance } = form;
 	const enhance = (form_element: HTMLFormElement) => {
 		let x = _enhance(form_element);
-		console.log('enhance', typeof x, x);
+		// TODO: don't submit form on enter
 	};
 	const date_formatter = new DateFormatter('hu-HU');
 
@@ -118,4 +118,7 @@
 	</div>
 
 	<Form.Button type="submit">Create</Form.Button>
+	{#if browser}
+		<SuperDebug data={$form_data} />
+	{/if}
 </form>

@@ -9,6 +9,11 @@
 	let route = '/';
 	$: route = $page.url.pathname.split('/').filter(Boolean).pop() || '/';
 
+	const pages = [
+		{ name: 'Create', path: '/create' },
+		{ name: 'Data', path: '/data' }
+	];
+
 	const logout = () => {
 		supabase.auth.signOut().then(() => {
 			goto('/');
@@ -16,7 +21,7 @@
 	};
 </script>
 
-<div class="px-8 py-4 drop-shadow-[0_35px_35px_var(--background)]">
+<div class="px-4 py-4 drop-shadow-[0_35px_35px_var(--background)] md:px-8">
 	<div class="flex items-center justify-between">
 		<div class="flex items-center">
 			<img src={logo} alt="logo" class="mr-2 h-8 w-8" />
@@ -27,11 +32,10 @@
 		<div class="flex items-center">
 			{#if !authenticated && route !== 'login'}
 				<Button variant="outline" href="/login">Log In</Button>
-			{/if}
-			{#if authenticated}
-				{#if route !== 'create'}
-					<Button variant="link" href="/create">Create</Button>
-				{/if}
+			{:else if authenticated}
+				{#each pages as { name, path }}
+					<Button variant="link" href={path}>{name}</Button>
+				{/each}
 				<Button variant="outline" on:click={logout}>Log out</Button>
 			{/if}
 		</div>

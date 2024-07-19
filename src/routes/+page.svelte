@@ -10,15 +10,6 @@
 		authenticated = session !== null;
 	});
 
-	let state: Tables<'all_tables_view'>[] = [];
-	supabase
-		.from('all_tables_view')
-		.select('*')
-		.then((response) => {
-			if (response.error) throw response.error;
-			state = response.data;
-		});
-
 	const logout = () => {
 		supabase.auth.signOut().then(() => {
 			goto('/');
@@ -27,13 +18,9 @@
 </script>
 
 {#if authenticated}
-	<ul>
-		{#each state as purchase}
-			<li>{purchase.item}</li>
-		{/each}
-	</ul>
-{/if}
-
-{#if !authenticated}
+	<div class="h-full w-full text-center align-middle">
+		<p class="my-auto">You are logged in</p>
+	</div>
+{:else}
 	<p>You need to login to access this page</p>
 {/if}

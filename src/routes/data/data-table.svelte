@@ -1,0 +1,267 @@
+<script lang="ts">
+	import { Input } from '$lib/components/ui/input';
+	import { Button } from '$lib/components/ui/button';
+	import * as Table from '$lib/components/ui/table';
+	import ArrowUpDown from 'lucide-svelte/icons/arrow-up-down';
+	import { createRender, createTable, Render, Subscribe } from 'svelte-headless-table';
+	import {
+		addPagination,
+		addSortBy,
+		addTableFilter,
+		addHiddenColumns,
+		addSelectedRows
+	} from 'svelte-headless-table/plugins';
+	import { readable } from 'svelte/store';
+	import type { Tables } from '../../types/supabase';
+	import ChevronDown from 'lucide-svelte/icons/chevron-down';
+	import DataTableCheckbox from './data-table-checkbox.svelte';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+	import DataTableActions from './data-table-actions.svelte';
+
+	export let data: Tables<'all_tables_view'>[];
+
+	const table = createTable(readable(data), {
+		page: addPagination(),
+		sortBy: addSortBy(),
+		filter: addTableFilter({
+			fn: ({ filterValue, value }) => value.toLowerCase().includes(filterValue.toLowerCase())
+		}),
+		hide: addHiddenColumns(),
+		select: addSelectedRows()
+	});
+
+	type Column = keyof (typeof data)[number];
+	const right_aligned: Set<string> = new Set(['quantity', 'price']) as Set<Column>;
+	const sortable: Set<string> = new Set(['date', 'price']) as Set<Column>;
+	const filterable: Set<string> = new Set([
+		'item',
+		'details',
+		'brand',
+		'category',
+		'store'
+	]) as Set<Column>;
+	const hideable: Set<string> = new Set(['details', 'brand']) as Set<Column>;
+
+	const columns = table.createColumns([
+		table.column({
+			accessor: 'id',
+			header: (_, { pluginStates }) => {
+				const { allPageRowsSelected } = pluginStates.select;
+				return createRender(DataTableCheckbox, {
+					checked: allPageRowsSelected
+				});
+			},
+			cell: ({ row }, { pluginStates }) => {
+				const { getRowState } = pluginStates.select;
+				const { isSelected } = getRowState(row);
+
+				return createRender(DataTableCheckbox, {
+					checked: isSelected
+				});
+			},
+			plugins: {
+				sortBy: { disable: true },
+				filter: { exclude: true }
+			}
+		}),
+		table.column({
+			accessor: 'date',
+			header: 'Date',
+			cell: ({ value }) => new Date(value!).toLocaleDateString(),
+			plugins: {
+				sortBy: { disable: !sortable.has('date') },
+				filter: { exclude: !filterable.has('date') }
+			}
+		}),
+		table.column({
+			accessor: 'item',
+			header: 'Item',
+			plugins: {
+				sortBy: { disable: !sortable.has('item') },
+				filter: { exclude: !filterable.has('item') }
+			}
+		}),
+		table.column({
+			accessor: 'details',
+			header: 'Details',
+			cell: ({ value }) => value?.join(', ') || '-',
+			plugins: {
+				sortBy: { disable: !sortable.has('details') },
+				filter: { exclude: !filterable.has('details') }
+			}
+		}),
+		table.column({
+			accessor: 'brand',
+			header: 'Brand',
+			plugins: {
+				sortBy: { disable: !sortable.has('brand') },
+				filter: { exclude: !filterable.has('brand') }
+			}
+		}),
+		table.column({
+			accessor: 'category',
+			header: 'Category',
+			plugins: {
+				sortBy: { disable: !sortable.has('category') },
+				filter: { exclude: !filterable.has('category') }
+			}
+		}),
+		table.column({
+			accessor: 'quantity',
+			header: 'Quantity',
+			plugins: {
+				sortBy: { disable: !sortable.has('quantity') },
+				filter: { exclude: !filterable.has('quantity') }
+			}
+		}),
+		table.column({
+			accessor: 'unit',
+			header: 'Unit',
+			plugins: {
+				sortBy: { disable: !sortable.has('unit') },
+				filter: { exclude: !filterable.has('unit') }
+			}
+		}),
+		table.column({
+			accessor: 'price',
+			header: 'Price',
+			cell: ({ value }) =>
+				new Intl.NumberFormat('hu-HU', {
+					style: 'currency',
+					currency: 'HUF',
+					maximumFractionDigits: 0,
+					useGrouping: true
+				}).format(value!),
+			plugins: {
+				sortBy: { disable: !sortable.has('price') },
+				filter: { exclude: !filterable.has('price') }
+			}
+		}),
+		table.column({
+			accessor: 'store',
+			header: 'Store',
+			plugins: {
+				sortBy: { disable: !sortable.has('store') },
+				filter: { exclude: !filterable.has('store') }
+			}
+		}),
+		table.column({
+			accessor: ({ id }) => id,
+			header: '',
+			cell: ({ value }) => createRender(DataTableActions, { id: String(value) }),
+			plugins: {
+				sortBy: { disable: true },
+				filter: { exclude: true }
+			}
+		})
+	]);
+
+	const { headerRows, pageRows, tableAttrs, tableBodyAttrs, pluginStates, flatColumns, rows } =
+		table.createViewModel(columns);
+	const { hasNextPage, hasPreviousPage, pageIndex } = pluginStates.page;
+	const { filterValue } = pluginStates.filter;
+	const { hiddenColumnIds } = pluginStates.hide;
+	const { selectedDataIds } = pluginStates.select;
+
+	const ids = flatColumns.map((col) => col.id);
+	let hideForId = Object.fromEntries(ids.map((id) => [id, true]));
+
+	$: $hiddenColumnIds = Object.entries(hideForId)
+		.filter(([, hide]) => !hide)
+		.map(([id]) => id);
+</script>
+
+<div>
+	<div class="flex items-center py-4">
+		<Input
+			class="max-w-sm"
+			placeholder={'Filter by ' +
+				[...filterable]
+					.map((column) => column.charAt(0).toUpperCase() + column.slice(1))
+					.join(', ')}
+			type="text"
+			bind:value={$filterValue}
+		/>
+		<DropdownMenu.Root>
+			<DropdownMenu.Trigger asChild let:builder>
+				<Button variant="outline" class="ml-auto" builders={[builder]}>
+					Columns <ChevronDown class="ml-2 h-4 w-4" />
+				</Button>
+			</DropdownMenu.Trigger>
+			<DropdownMenu.Content>
+				{#each flatColumns as col}
+					{#if hideable.has(col.id)}
+						<DropdownMenu.CheckboxItem bind:checked={hideForId[col.id]}>
+							{col.header}
+						</DropdownMenu.CheckboxItem>
+					{/if}
+				{/each}
+			</DropdownMenu.Content>
+		</DropdownMenu.Root>
+	</div>
+	<div class="rounded-md border">
+		<Table.Root {...$tableAttrs}>
+			<Table.Header>
+				{#each $headerRows as headerRow}
+					<Subscribe rowAttrs={headerRow.attrs()}>
+						<Table.Row>
+							{#each headerRow.cells as cell (cell.id)}
+								<Subscribe attrs={cell.attrs()} let:attrs props={cell.props()} let:props>
+									<Table.Head {...attrs} class="[&:has([role=checkbox])]:pl-3">
+										{#if sortable.has(cell.id)}
+											<Button variant="ghost" on:click={props.sortBy.toggle}>
+												<div class={right_aligned.has(cell.id) ? 'text-right' : ''}>
+													<Render of={cell.render()} />
+												</div>
+												<ArrowUpDown class={'ml-2 h-4 w-4'} />
+											</Button>
+										{:else}
+											<div class={right_aligned.has(cell.id) ? 'text-right' : ''}>
+												<Render of={cell.render()} />
+											</div>
+										{/if}
+									</Table.Head>
+								</Subscribe>
+							{/each}
+						</Table.Row>
+					</Subscribe>
+				{/each}
+			</Table.Header>
+			<Table.Body {...$tableBodyAttrs}>
+				{#each $pageRows as row (row.id)}
+					<Subscribe rowAttrs={row.attrs()} let:rowAttrs>
+						<Table.Row {...rowAttrs} data-state={$selectedDataIds[row.id] && 'selected'}>
+							{#each row.cells as cell (cell.id)}
+								<Subscribe attrs={cell.attrs()} let:attrs>
+									<Table.Cell {...attrs}>
+										<div class={['quantity', 'price'].includes(cell.id) ? 'text-right' : ''}>
+											<Render of={cell.render()} />
+										</div>
+									</Table.Cell>
+								</Subscribe>
+							{/each}
+						</Table.Row>
+					</Subscribe>
+				{/each}
+			</Table.Body>
+		</Table.Root>
+	</div>
+	<div class="flex items-center justify-end space-x-4 py-4">
+		<div class="flex-1 text-sm text-muted-foreground">
+			{Object.keys($selectedDataIds).length} of{' '}
+			{$rows.length} row(s) selected.
+		</div>
+		<Button
+			variant="outline"
+			size="sm"
+			on:click={() => ($pageIndex = $pageIndex - 1)}
+			disabled={!$hasPreviousPage}>Previous</Button
+		>
+		<Button
+			variant="outline"
+			size="sm"
+			disabled={!$hasNextPage}
+			on:click={() => ($pageIndex = $pageIndex + 1)}>Next</Button
+		>
+	</div>
+</div>
