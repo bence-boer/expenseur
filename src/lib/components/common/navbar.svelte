@@ -16,7 +16,7 @@
 	};
 </script>
 
-<div class="px-8 py-4">
+<div class="px-8 py-4 drop-shadow-[0_35px_35px_var(--background)]">
 	<div class="flex items-center justify-between">
 		<div class="flex items-center">
 			<img src={logo} alt="logo" class="mr-2 h-8 w-8" />
@@ -26,11 +26,12 @@
 		</div>
 		<div class="flex items-center">
 			{#if !authenticated && route !== 'login'}
-				<a href="/login">
-					<Button variant="outline">Log In</Button>
-				</a>
+				<Button variant="outline" href="/login">Log In</Button>
 			{/if}
 			{#if authenticated}
+				{#if route !== 'create'}
+					<Button variant="link" href="/create">Create</Button>
+				{/if}
 				<Button variant="outline" on:click={logout}>Log out</Button>
 			{/if}
 		</div>

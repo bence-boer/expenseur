@@ -162,7 +162,21 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      all_tables_view: {
+        Row: {
+          brand: string | null
+          category: string | null
+          date: string | null
+          details: string[] | null
+          id: number | null
+          item: string | null
+          price: number | null
+          quantity: number | null
+          store: string | null
+          unit: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

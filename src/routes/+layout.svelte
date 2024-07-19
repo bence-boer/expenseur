@@ -11,7 +11,7 @@
 
 <div class="flex h-full flex-col">
 	<Navbar {authenticated} />
-	<div class="flex flex-1 flex-col px-8 py-4">
+	<div class="flex flex-1 flex-col overflow-y-auto px-8 py-4">
 		<slot></slot>
 	</div>
 </div>

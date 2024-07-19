@@ -10,13 +10,13 @@
 		authenticated = session !== null;
 	});
 
-	let state: PostgrestSingleResponse<Tables<'units'>[]>;
+	let state: Tables<'all_tables_view'>[] = [];
 	supabase
-		.from('units')
+		.from('all_tables_view')
 		.select('*')
 		.then((response) => {
 			if (response.error) throw response.error;
-			state = response;
+			state = response.data;
 		});
 
 	const logout = () => {
@@ -28,8 +28,8 @@
 
 {#if authenticated}
 	<ul>
-		{#each state?.data ?? [] as unit}
-			<li>{unit.name}</li>
+		{#each state as purchase}
+			<li>{purchase.item}</li>
 		{/each}
 	</ul>
 {/if}
