@@ -2,16 +2,15 @@
 	import { supabase } from './../../../supabase-client';
 	import { Button } from '$lib/components/ui/button';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
 	import logo from '$lib/resources/images/logo.svg';
 
-	export let authenticated;
-	let route = '/';
-	$: route = $page.url.pathname.split('/').filter(Boolean).pop() || '/';
+	export let authenticated: boolean;
+	export let route: string;
 
 	const pages = [
+		{ name: 'Data', path: '/data' },
 		{ name: 'Create', path: '/create' },
-		{ name: 'Data', path: '/data' }
+		{ name: 'TMP_CREATE', path: '/tmp-create' }
 	];
 
 	const logout = () => {
@@ -22,14 +21,14 @@
 </script>
 
 <div class="px-4 py-4 drop-shadow-[0_35px_35px_var(--background)] md:px-8">
-	<div class="flex items-center justify-between">
-		<div class="flex items-center">
-			<img src={logo} alt="logo" class="mr-2 h-8 w-8" />
+	<div class="flex items-center justify-between gap-2">
+		<div class="flex flex-none items-center gap-2">
+			<img src={logo} alt="logo" class="h-8 w-8" />
 			<a href="/">
 				<span class="text-gradient text-xl font-bold">Expenseur</span>
 			</a>
 		</div>
-		<div class="flex items-center">
+		<div class="flex flex-initial items-center overflow-x-auto">
 			{#if !authenticated && route !== 'login'}
 				<Button variant="outline" href="/login">Log In</Button>
 			{:else if authenticated}

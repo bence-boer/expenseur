@@ -12,6 +12,7 @@
 		goto('/');
 	};
 
+	let failed = false;
 	const login = () => {
 		supabase.auth
 			.signInWithPassword({
@@ -21,29 +22,36 @@
 			.then((response) => {
 				if (response.error) throw response.error;
 				goto('/');
+			})
+			.catch((error) => {
+				console.error('Login error:', error.message);
+				failed = true;
 			});
 	};
 </script>
 
-<div class="flex h-full items-center justify-center">
+<form class="flex h-full items-center justify-center">
 	<Card.Root class="w-72">
 		<Card.Header>
 			<Card.Title>Login</Card.Title>
 			<Card.Description>Log in to access database</Card.Description>
 		</Card.Header>
 		<Card.Content>
-			<form>
-				<div class="mb-2">
-					<Input type="email" placeholder="email" class="w-full" bind:value={email} />
-				</div>
-				<div class="mb-2">
-					<Input type="password" placeholder="password" class="w-full" bind:value={password} />
-				</div>
-			</form>
+			<div class="mb-2">
+				<Input type="email" placeholder="email" class="w-full" bind:value={email} />
+			</div>
+			<div>
+				<Input type="password" placeholder="password" class="w-full" bind:value={password} />
+			</div>
+			<div class="size h-2 text-right text-xs text-red-500">
+				{#if failed}
+					Login failed
+				{/if}
+			</div>
 		</Card.Content>
 		<Card.Footer class="justify-end gap-2">
-			<Button variant="outline" on:click={back}>Back</Button>
-			<Button variant="default" on:click={login}>Login</Button>
+			<Button variant="outline" on:click={back} type="reset">Back</Button>
+			<Button variant="default" on:click={login} type="submit">Login</Button>
 		</Card.Footer>
 	</Card.Root>
-</div>
+</form>

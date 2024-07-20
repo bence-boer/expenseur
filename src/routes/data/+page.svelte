@@ -5,6 +5,6 @@
 	export let data: { purchases: Tables<'all_tables_view'>[] };
 </script>
 
-<div class="container py-10">
+<div class="py-10 md:container">
 	<DataTable data={data.purchases} />
 </div>

@@ -3,7 +3,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Table from '$lib/components/ui/table';
 	import ArrowUpDown from 'lucide-svelte/icons/arrow-up-down';
-	import { createRender, createTable, Render, Subscribe } from 'svelte-headless-table';
+	import { createRender, createTable, FlatColumn, Render, Subscribe } from 'svelte-headless-table';
 	import {
 		addPagination,
 		addSortBy,
@@ -11,7 +11,7 @@
 		addHiddenColumns,
 		addSelectedRows
 	} from 'svelte-headless-table/plugins';
-	import { readable } from 'svelte/store';
+	import { readable, type Readable } from 'svelte/store';
 	import type { Tables } from '../../types/supabase';
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
 	import DataTableCheckbox from './data-table-checkbox.svelte';
@@ -19,8 +19,9 @@
 	import DataTableActions from './data-table-actions.svelte';
 
 	export let data: Tables<'all_tables_view'>[];
+	type Column = keyof (typeof data)[number];
 
-	const table = createTable(readable(data), {
+	const table = createTable(readable(data) as Readable<typeof data>, {
 		page: addPagination(),
 		sortBy: addSortBy(),
 		filter: addTableFilter({
@@ -30,17 +31,11 @@
 		select: addSelectedRows()
 	});
 
-	type Column = keyof (typeof data)[number];
-	const right_aligned: Set<string> = new Set(['quantity', 'price']) as Set<Column>;
-	const sortable: Set<string> = new Set(['date', 'price']) as Set<Column>;
-	const filterable: Set<string> = new Set([
-		'item',
-		'details',
-		'brand',
-		'category',
-		'store'
-	]) as Set<Column>;
-	const hideable: Set<string> = new Set(['details', 'brand']) as Set<Column>;
+	// TODO: remove unknown for proper type checking
+	const right_aligned: (Column | unknown)[] = ['quantity', 'price'];
+	const sortable: (Column | unknown)[] = ['date', 'price'];
+	const filterable: Column[] = ['item', 'details', 'brand', 'category', 'store'];
+	const hideable: Column[] = ['details', 'brand', 'category', 'quantity', 'unit', 'store'];
 
 	const columns = table.createColumns([
 		table.column({
@@ -69,16 +64,16 @@
 			header: 'Date',
 			cell: ({ value }) => new Date(value!).toLocaleDateString(),
 			plugins: {
-				sortBy: { disable: !sortable.has('date') },
-				filter: { exclude: !filterable.has('date') }
+				sortBy: { disable: !sortable.includes('date') },
+				filter: { exclude: !filterable.includes('date') }
 			}
 		}),
 		table.column({
 			accessor: 'item',
 			header: 'Item',
 			plugins: {
-				sortBy: { disable: !sortable.has('item') },
-				filter: { exclude: !filterable.has('item') }
+				sortBy: { disable: !sortable.includes('item') },
+				filter: { exclude: !filterable.includes('item') }
 			}
 		}),
 		table.column({
@@ -86,40 +81,40 @@
 			header: 'Details',
 			cell: ({ value }) => value?.join(', ') || '-',
 			plugins: {
-				sortBy: { disable: !sortable.has('details') },
-				filter: { exclude: !filterable.has('details') }
+				sortBy: { disable: !sortable.includes('details') },
+				filter: { exclude: !filterable.includes('details') }
 			}
 		}),
 		table.column({
 			accessor: 'brand',
 			header: 'Brand',
 			plugins: {
-				sortBy: { disable: !sortable.has('brand') },
-				filter: { exclude: !filterable.has('brand') }
+				sortBy: { disable: !sortable.includes('brand') },
+				filter: { exclude: !filterable.includes('brand') }
 			}
 		}),
 		table.column({
 			accessor: 'category',
 			header: 'Category',
 			plugins: {
-				sortBy: { disable: !sortable.has('category') },
-				filter: { exclude: !filterable.has('category') }
+				sortBy: { disable: !sortable.includes('category') },
+				filter: { exclude: !filterable.includes('category') }
 			}
 		}),
 		table.column({
 			accessor: 'quantity',
 			header: 'Quantity',
 			plugins: {
-				sortBy: { disable: !sortable.has('quantity') },
-				filter: { exclude: !filterable.has('quantity') }
+				sortBy: { disable: !sortable.includes('quantity') },
+				filter: { exclude: !filterable.includes('quantity') }
 			}
 		}),
 		table.column({
 			accessor: 'unit',
 			header: 'Unit',
 			plugins: {
-				sortBy: { disable: !sortable.has('unit') },
-				filter: { exclude: !filterable.has('unit') }
+				sortBy: { disable: !sortable.includes('unit') },
+				filter: { exclude: !filterable.includes('unit') }
 			}
 		}),
 		table.column({
@@ -133,16 +128,16 @@
 					useGrouping: true
 				}).format(value!),
 			plugins: {
-				sortBy: { disable: !sortable.has('price') },
-				filter: { exclude: !filterable.has('price') }
+				sortBy: { disable: !sortable.includes('price') },
+				filter: { exclude: !filterable.includes('price') }
 			}
 		}),
 		table.column({
 			accessor: 'store',
 			header: 'Store',
 			plugins: {
-				sortBy: { disable: !sortable.has('store') },
-				filter: { exclude: !filterable.has('store') }
+				sortBy: { disable: !sortable.includes('store') },
+				filter: { exclude: !filterable.includes('store') }
 			}
 		}),
 		table.column({
@@ -163,18 +158,18 @@
 	const { hiddenColumnIds } = pluginStates.hide;
 	const { selectedDataIds } = pluginStates.select;
 
-	const ids = flatColumns.map((col) => col.id);
-	let hideForId = Object.fromEntries(ids.map((id) => [id, true]));
+	const ids: Column[] = flatColumns.map((column) => column.id);
+	let id_hidden = Object.fromEntries(ids.map((id) => [id, true]));
 
-	$: $hiddenColumnIds = Object.entries(hideForId)
+	$: $hiddenColumnIds = Object.entries(id_hidden)
 		.filter(([, hide]) => !hide)
 		.map(([id]) => id);
 </script>
 
 <div>
-	<div class="flex items-center py-4">
+	<div class="flex items-center gap-4 py-4">
 		<Input
-			class="max-w-sm"
+			class="max-w-sm text-ellipsis"
 			placeholder={'Filter by ' +
 				[...filterable]
 					.map((column) => column.charAt(0).toUpperCase() + column.slice(1))
@@ -190,8 +185,8 @@
 			</DropdownMenu.Trigger>
 			<DropdownMenu.Content>
 				{#each flatColumns as col}
-					{#if hideable.has(col.id)}
-						<DropdownMenu.CheckboxItem bind:checked={hideForId[col.id]}>
+					{#if hideable.includes(col.id)}
+						<DropdownMenu.CheckboxItem bind:checked={id_hidden[col.id]}>
 							{col.header}
 						</DropdownMenu.CheckboxItem>
 					{/if}
@@ -208,18 +203,16 @@
 							{#each headerRow.cells as cell (cell.id)}
 								<Subscribe attrs={cell.attrs()} let:attrs props={cell.props()} let:props>
 									<Table.Head {...attrs} class="[&:has([role=checkbox])]:pl-3">
-										{#if sortable.has(cell.id)}
-											<Button variant="ghost" on:click={props.sortBy.toggle}>
-												<div class={right_aligned.has(cell.id) ? 'text-right' : ''}>
+										<div class={right_aligned.includes(cell.id) ? 'text-right' : ''}>
+											{#if sortable.includes(cell.id)}
+												<Button variant="ghost" on:click={props.sortBy.toggle}>
 													<Render of={cell.render()} />
-												</div>
-												<ArrowUpDown class={'ml-2 h-4 w-4'} />
-											</Button>
-										{:else}
-											<div class={right_aligned.has(cell.id) ? 'text-right' : ''}>
+													<ArrowUpDown class={'ml-2 h-4 w-4'} />
+												</Button>
+											{:else}
 												<Render of={cell.render()} />
-											</div>
-										{/if}
+											{/if}
+										</div>
 									</Table.Head>
 								</Subscribe>
 							{/each}
