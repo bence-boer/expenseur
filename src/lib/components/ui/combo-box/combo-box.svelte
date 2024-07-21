@@ -22,6 +22,7 @@
 
 	export let placeholder: string = 'Please select an option';
 	export let create: (label: string) => Promise<void>;
+	export let disabled: boolean = false;
 
 	$: {
 		if (selected_changed) {
@@ -37,7 +38,6 @@
 	let search_expression: string;
 
 	let open: boolean = false;
-	let disabled: boolean = false;
 
 	const close_and_focus_trigger = (triggerId: string) => {
 		open = false;
@@ -53,7 +53,7 @@
 			role="combobox"
 			aria-expanded={open}
 			{disabled}
-			class="w-[200px] justify-between"
+			class={cn('w-[200px] justify-between', !value && 'font-normal text-muted-foreground')}
 		>
 			{selected?.label ?? placeholder}
 			<ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />

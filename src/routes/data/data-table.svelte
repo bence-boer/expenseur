@@ -31,6 +31,8 @@
 		select: addSelectedRows()
 	});
 
+	export let delete_item: ((id: number) => void) | ((id: string) => void);
+
 	// TODO: remove unknown for proper type checking
 	const right_aligned: (Column | unknown)[] = ['quantity', 'price'];
 	const sortable: (Column | unknown)[] = ['date', 'price'];
@@ -143,7 +145,11 @@
 		table.column({
 			accessor: ({ id }) => id,
 			header: '',
-			cell: ({ value }) => createRender(DataTableActions, { id: String(value) }),
+			cell: ({ value }) =>
+				createRender(DataTableActions, {
+					id: value!,
+					delete_item
+				}),
 			plugins: {
 				sortBy: { disable: true },
 				filter: { exclude: true }

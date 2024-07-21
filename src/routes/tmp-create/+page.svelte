@@ -1,30 +1,16 @@
 <script lang="ts">
-	import ComboBox from './../../lib/components/ui/combo-box/combo-box.svelte';
-	import type { Tables } from '../../types/supabase';
-	import * as Form from '$lib/components/ui/form';
 	import { Input } from '$lib/components/ui/input';
+	import type { Tables, TablesInsert } from '../../types/supabase';
+	import ComboBox from './../../lib/components/ui/combo-box/combo-box.svelte';
 
-	import CalendarIcon from 'svelte-radix/Calendar.svelte';
-	import {
-		CalendarDate,
-		DateFormatter,
-		type DateValue,
-		getLocalTimeZone,
-		parseDate,
-		today
-	} from '@internationalized/date';
-	import { toast } from 'svelte-sonner';
-	import { browser } from '$app/environment';
-	import { cn } from '$lib/utils.js';
-	import { Button, buttonVariants } from '$lib/components/ui/button';
-	import { Calendar } from '$lib/components/ui/calendar';
-	import * as Popover from '$lib/components/ui/popover';
+	import { Button } from '$lib/components/ui/button';
+	import DatePicker from '$lib/components/ui/date-picker/date-picker.svelte';
 	import { Separator } from '$lib/components/ui/separator';
-	import Table from '$lib/components/ui/table/table.svelte';
-	import Check from 'lucide-svelte/icons/check';
-	import ChevronsUpDown from 'lucide-svelte/icons/chevrons-up-down';
-	import * as Command from '$lib/components/ui/command';
-	import { tick } from 'svelte';
+	import { type DateValue, getLocalTimeZone, today } from '@internationalized/date';
+	import Plus from 'lucide-svelte/icons/plus';
+	import Copy from 'lucide-svelte/icons/copy';
+	import X from 'lucide-svelte/icons/x';
+	import { toast } from 'svelte-sonner';
 	import { supabase } from '../../supabase-client';
 
 	const label_value_transform = (data: { id: number; name: string }) => ({
@@ -42,9 +28,25 @@
 
 	type FormSchema = {
 		date: string;
-		store_id: string;
-		items: Tables<'items'>[];
+		store_id: number;
+		purchases: {
+			item_id?: number;
+			details?: string;
+			brand_id?: number;
+			quantity?: number;
+			price?: number;
+		}[];
 	};
+
+	const empty_purchase = (): FormSchema['purchases'][number] => ({
+		item_id: undefined,
+		details: undefined,
+		brand_id: undefined,
+		quantity: undefined,
+		price: undefined
+	});
+
+	let purchases: FormSchema['purchases'] = [empty_purchase()];
 
 	/* STORE SELECTOR */
 	/******************/
@@ -68,101 +70,150 @@
 	};
 	/******************/
 
-	const date_formatter = new DateFormatter('hu-HU');
+	/* DATE PICKER */
+	let date: DateValue | undefined;
+	/******************/
 
-	let value: DateValue | undefined;
+	/* ITEM SELECTOR */
+	/******************/
+	let selectable_items = data.items.map(label_value_transform);
 
-	let placeholder: DateValue = today(getLocalTimeZone());
+	const create_item = async (label: string) => {
+		toast.error('Feature not implemented yet!');
+		throw new Error('Feature not implemented yet!');
+	};
+
+	/* BRAND SELECTOR */
+	/******************/
+	let selectable_brands = data.brands.map(label_value_transform);
+
+	const create_brand = async (label: string) => {
+		// TODO: implement
+		toast.error('Feature not implemented yet!');
+		throw new Error('Feature not implemented yet!');
+
+		// const { data, error } = await supabase
+		// 	.from('brands')
+		// 	.insert({ name: label })
+		// 	.select('*')
+		// 	.single();
+
+		// if (error) {
+		// 	toast.error(error.message);
+		// 	return;
+		// }
+
+		// selectable_brands = [...selectable_brands, { label, value: data!.id }];
+		// selected_brand = data!.id;
+	};
+
+	const duplicate_row = (index: number) =>
+		(purchases = [
+			...purchases.slice(0, index + 1),
+			structuredClone(purchases[index]),
+			...purchases.slice(index + 1)
+		]);
+
+	const delete_row = (index: number) =>
+		(purchases = [...purchases.slice(0, index), ...purchases.slice(index + 1)]);
+
+	const add_row = () => (purchases = [...purchases, empty_purchase()]);
 
 	const handle_submit = (event: Event) => {
 		event.preventDefault();
 
-		// if (!data.data.valid) return;
+		if (!date || !selected_store) {
+			toast.error('Please fill out all fields.');
+			return false;
+		}
+		for (const purchase of purchases) {
+			if (!purchase.item_id || !purchase.quantity || !purchase.price) {
+				toast.error('Please fill out all fields.');
+				return false;
+			}
+		}
+
+		const formatted_date = date.toString();
+		const data: TablesInsert<'purchases'>[] = purchases.map((purchase) => ({
+			...(purchase as any),
+			brand_id: purchase.brand_id ?? null,
+			details:
+				purchase.details
+					?.split(', ')
+					.map((detail) => detail.trim())
+					.filter(Boolean) ?? null,
+			date: formatted_date,
+			store_id: selected_store
+		}));
+
+		supabase
+			.from('purchases' as any)
+			.insert(data)
+			.then(({ error }) => {
+				if (error) {
+					toast.error(error.message);
+					return;
+				}
+
+				purchases = [empty_purchase()];
+				toast.success('Purchase registered successfully!');
+			});
 	};
 </script>
 
 <h1 class="mb-4 text-4xl font-bold">Register Purchase</h1>
 <Separator class="mb-8" />
-<div>
+<div class="mb-4 flex flex-row flex-wrap gap-4">
 	<ComboBox
 		data={selectable_stores}
 		bind:value={selected_store}
 		placeholder="Select store..."
 		create={create_store}
 	></ComboBox>
-	Selected id: {selected_store}
+	<DatePicker
+		bind:value={date}
+		title="Pick date..."
+		placeholder={today(getLocalTimeZone())}
+		class="min-w-48 max-w-64 flex-1"
+	></DatePicker>
 </div>
-<!-- 
-<Popover.Root bind:open={store_selector_open} let:ids>
-	<Popover.Trigger asChild let:builder>
-		<Button
-			builders={[builder]}
-			variant="outline"
-			role="combobox"
-			aria-expanded={store_selector_open}
-			class="w-[200px] justify-between"
-		>
-			{selected_store_label}
-			<ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-		</Button>
-	</Popover.Trigger>
-	<Popover.Content class="w-[200px] p-0">
-		<Command.Root>
-			<Command.Input placeholder="Search framework..." bind:value={store_search} />
-			<Command.Empty>
-				<div class="flex h-4 flex-row justify-between px-8">
-					<span>{store_search}</span>
-					<span class="text-xs text-muted-foreground">Add</span>
-				</div>
-			</Command.Empty>
-			<Command.Group>
-				{#each selectable_stores as store}
-					<Command.Item
-						value={store.value}
-						onSelect={(value) => {
-							selected_store_value = value;
-							close_and_focus_trigger(ids.trigger);
-						}}
-					>
-						<Check
-							class={cn('mr-2 h-4 w-4', selected_store_value !== store.value && 'text-transparent')}
-						/>
-						{store.label}
-					</Command.Item>
-				{/each}
-			</Command.Group>
-		</Command.Root>
-	</Popover.Content>
-</Popover.Root> -->
-<!-- 
-<Form.Label>Store</Form.Label>
-<Input {...attrs} bind:value={$form_data.store} />
+{#each purchases as purchase, index}
+	<div class="mb-4 flex justify-between gap-4">
+		<ComboBox
+			data={selectable_items}
+			bind:value={purchase.item_id}
+			placeholder="Select item..."
+			create={create_item}
+		></ComboBox>
+		<Input placeholder="Details" bind:value={purchase.details} class="min-w-24 flex-1"></Input>
+		<ComboBox
+			data={selectable_brands}
+			bind:value={purchase.brand_id}
+			placeholder="Select brand..."
+			create={create_brand}
+		></ComboBox>
+		<Input
+			placeholder={`Quantity ${purchase.item_id ? '(' + data.units.find((unit) => unit.id === data.items.find((item) => item.id === purchase.item_id)?.id)?.name + ')' : ''}`}
+			bind:value={purchase.quantity}
+			class="min-w-24 max-w-48"
+			type="number"
+		></Input>
+		<Input placeholder="Price" bind:value={purchase.price} class="min-w-24 max-w-48" type="number"
+		></Input>
+		<div class="flex flex-initial flex-row">
+			<Button class="p-2" size="icon" on:click={() => duplicate_row(index)} variant="ghost">
+				<Copy class="h-4 w-4 text-muted-foreground" />
+			</Button>
+			<Button class="p-2" size="icon" on:click={() => delete_row(index)} variant="ghost">
+				<X class="h-4 w-4 text-red-600" />
+			</Button>
+		</div>
+	</div>
+{/each}
 
-<Popover.Root>
-	<Popover.Trigger
-		{...attrs}
-		class={cn(
-			buttonVariants({ variant: 'outline' }),
-			'w-full justify-start pl-4 text-left font-normal',
-			!value && 'text-muted-foreground'
-		)}
-	>
-		{value ? date_formatter.format(value.toDate(getLocalTimeZone())) : 'Pick a date'}
-		<CalendarIcon class="ml-auto h-4 w-4 opacity-50" />
-	</Popover.Trigger>
-	<Popover.Content class="w-auto p-0" side="top">
-		<Calendar
-			{value}
-			bind:placeholder
-			minValue={new CalendarDate(2000, 1, 1)}
-			maxValue={today(getLocalTimeZone())}
-			calendarLabel="Purchase Date"
-			initialFocus
-			onValueChange={(v) => ($form_data.date = v?.toString() ?? '')}
-		/>
-	</Popover.Content>
-</Popover.Root>
-
-<input hidden value={$form_data.date} name={attrs.name} />
-
-<Form.Button type="submit">Create</Form.Button> -->
+<div class="flex justify-between">
+	<Button class="p-2" size="icon" on:click={add_row} variant="outline">
+		<Plus class="h-4 w-4 text-muted-foreground" />
+	</Button>
+	<Button type="submit" class="w-24" on:click={handle_submit}>Submit</Button>
+</div>
