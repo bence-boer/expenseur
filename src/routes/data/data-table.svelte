@@ -1,27 +1,28 @@
 <script lang="ts">
-	import { Input } from '$lib/components/ui/input';
 	import { Button } from '$lib/components/ui/button';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+	import { Input } from '$lib/components/ui/input';
 	import * as Table from '$lib/components/ui/table';
 	import ArrowUpDown from 'lucide-svelte/icons/arrow-up-down';
-	import { createRender, createTable, FlatColumn, Render, Subscribe } from 'svelte-headless-table';
-	import {
-		addPagination,
-		addSortBy,
-		addTableFilter,
-		addHiddenColumns,
-		addSelectedRows
-	} from 'svelte-headless-table/plugins';
-	import { readable, type Readable } from 'svelte/store';
-	import type { Tables } from '../../types/supabase';
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
-	import DataTableCheckbox from './data-table-checkbox.svelte';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+	import { createRender, createTable, Render, Subscribe } from 'svelte-headless-table';
+	import {
+		addHiddenColumns,
+		addPagination,
+		addSelectedRows,
+		addSortBy,
+		addTableFilter
+	} from 'svelte-headless-table/plugins';
+	import { writable } from 'svelte/store';
+	import type { Tables } from '../../types/supabase';
 	import DataTableActions from './data-table-actions.svelte';
+	import DataTableCheckbox from './data-table-checkbox.svelte';
 
 	export let data: Tables<'all_tables_view'>[];
+	const _data = writable(data);
 	type Column = keyof (typeof data)[number];
 
-	const table = createTable(readable(data) as Readable<typeof data>, {
+	const table = createTable(_data, {
 		page: addPagination(),
 		sortBy: addSortBy(),
 		filter: addTableFilter({
@@ -31,7 +32,12 @@
 		select: addSelectedRows()
 	});
 
-	export let delete_item: ((id: number) => void) | ((id: string) => void);
+	export let delete_item: ((id: number) => Promise<void>) | ((id: string) => Promise<void>);
+	// TODO: fix fucked up function types
+	const _delete_item = async (id: number): Promise<void> => {
+		await (delete_item as any)(id);
+		_data.update((data) => data.filter((row) => row.id !== id));
+	};
 
 	// TODO: remove unknown for proper type checking
 	const right_aligned: (Column | unknown)[] = ['quantity', 'price'];
@@ -148,7 +154,7 @@
 			cell: ({ value }) =>
 				createRender(DataTableActions, {
 					id: value!,
-					delete_item
+					delete_item: _delete_item
 				}),
 			plugins: {
 				sortBy: { disable: true },

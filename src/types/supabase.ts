@@ -108,21 +108,21 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "purchases_brand_id_fkey"
+            foreignKeyName: "purchases_duplicate_brand_id_fkey"
             columns: ["brand_id"]
             isOneToOne: false
             referencedRelation: "brands"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "purchases_item_id_fkey"
+            foreignKeyName: "purchases_duplicate_item_id_fkey"
             columns: ["item_id"]
             isOneToOne: false
             referencedRelation: "items"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "purchases_store_id_fkey"
+            foreignKeyName: "purchases_duplicate_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
@@ -179,13 +179,23 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      item_details: {
+        Args: {
+          item_id: number
+        }
+        Returns: Record<string, unknown>
+      }
     }
     Enums: {
       [_ in never]: never
     }
     CompositeTypes: {
-      [_ in never]: never
+      item_details: {
+        id: number | null
+        name: string | null
+        unit: string | null
+        category: string | null
+      }
     }
   }
 }

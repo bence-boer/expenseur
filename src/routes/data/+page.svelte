@@ -5,8 +5,8 @@
 	import DataTable from './data-table.svelte';
 
 	export let data: { purchases: Tables<'all_tables_view'>[] };
-	const delete_item = (id: number) => {
-		supabase
+	const delete_item = async (id: number): Promise<void> => {
+		return supabase
 			.from('purchases')
 			.delete()
 			.eq('id', id)
@@ -15,6 +15,7 @@
 					toast.error(error.message);
 					return;
 				}
+				toast.success('Item deleted successfully');
 				data.purchases = data.purchases.filter((purchase) => purchase.id !== id);
 			});
 	};
