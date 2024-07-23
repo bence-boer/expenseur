@@ -9,8 +9,8 @@
 
 	const pages = [
 		{ name: 'Data', path: '/data' },
-		{ name: 'Create', path: '/create' },
-		{ name: 'TMP_CREATE', path: '/tmp-create' }
+		{ name: 'Create', path: '/create' }
+		// { name: 'CREATE_OLD', path: '/create-old' }
 	];
 
 	const logout = () => {

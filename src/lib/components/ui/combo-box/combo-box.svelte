@@ -2,22 +2,22 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Command from '$lib/components/ui/command';
 	import * as Popover from '$lib/components/ui/popover';
+	import type { LabelValue } from '$lib/types';
 	import { cn } from '$lib/utils.js';
 	import Check from 'lucide-svelte/icons/check';
 	import ChevronsUpDown from 'lucide-svelte/icons/chevrons-up-down';
 	import { tick } from 'svelte';
+	import { createEventDispatcher } from 'svelte';
 
-	type CollectionType = ({ label: string; value: number } | { label: string; value: string })[];
-	type ItemType = CollectionType[number];
-
-	export let data: CollectionType;
-	let data_map: Map<ItemType['value'], ItemType>;
+	export let data: LabelValue[];
+	data ??= [];
+	let data_map: Map<LabelValue['value'], LabelValue>;
 	// TODO: more efficient update instead of recreating the map
-	$: data_map = new Map(data.map((item) => [item.value, item]));
+	$: data_map = new Map(data?.map((item) => [item.value, item]));
 
-	export let value: ItemType['value'] | undefined = undefined;
+	export let value: LabelValue['value'] | undefined = undefined;
 	let label_as_value_binded_to_form: string;
-	let selected: ItemType | undefined = undefined;
+	let selected: LabelValue | undefined = undefined;
 	let selected_changed: boolean = false;
 
 	export let placeholder: string = 'Please select an option';
@@ -38,6 +38,9 @@
 	let search_expression: string;
 
 	let open: boolean = false;
+
+	const dispatch = createEventDispatcher();
+	const dispatch_change_event = (value: LabelValue['value']) => dispatch('change', { value });
 
 	const close_and_focus_trigger = (triggerId: string) => {
 		open = false;
@@ -99,6 +102,7 @@
 							selected = item;
 							selected_changed = true;
 							close_and_focus_trigger(ids.trigger);
+							dispatch_change_event(item.value);
 						}}
 					>
 						<Check

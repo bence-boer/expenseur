@@ -183,19 +183,29 @@ export type Database = {
         Args: {
           item_id: number
         }
-        Returns: Record<string, unknown>
+        Returns: {
+          id: number
+          name: string
+          unit: string
+          category: string
+        }[]
+      }
+      spendings_by_category: {
+        Args: {
+          start_date: string
+          end_date: string
+        }
+        Returns: {
+          category: string
+          total: number
+        }[]
       }
     }
     Enums: {
       [_ in never]: never
     }
     CompositeTypes: {
-      item_details: {
-        id: number | null
-        name: string | null
-        unit: string | null
-        category: string | null
-      }
+      [_ in never]: never
     }
   }
 }

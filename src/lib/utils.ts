@@ -2,6 +2,7 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
+import type { LabelValue } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -60,3 +61,8 @@ export const flyAndScale = (
 		easing: cubicOut
 	};
 };
+
+export const label_value_transform = (data: { id: number; name: string }): LabelValue => ({
+	label: data.name,
+	value: data.id
+});

@@ -87,7 +87,7 @@
 		table.column({
 			accessor: 'details',
 			header: 'Details',
-			cell: ({ value }) => value?.join(', ') || '-',
+			cell: ({ value }) => value?.join(', ') ?? '-',
 			plugins: {
 				sortBy: { disable: !sortable.includes('details') },
 				filter: { exclude: !filterable.includes('details') }
@@ -96,6 +96,7 @@
 		table.column({
 			accessor: 'brand',
 			header: 'Brand',
+			cell: ({ value }) => value ?? '-',
 			plugins: {
 				sortBy: { disable: !sortable.includes('brand') },
 				filter: { exclude: !filterable.includes('brand') }

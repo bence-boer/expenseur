@@ -1,0 +1,138 @@
+<script lang="ts">
+	import * as service from './../../lib/service';
+	import ComboBox from './../../lib/components/ui/combo-box/combo-box.svelte';
+	import { Button, buttonVariants } from '$lib/components/ui/button/index.js';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import { Input } from '$lib/components/ui/input/index.js';
+	import { Label } from '$lib/components/ui/label/index.js';
+	import { label_value_transform } from '$lib/utils';
+	import type { LabelValue } from '$lib/types';
+	import { toast } from 'svelte-sonner';
+
+	export let open = false;
+	export let name = '';
+	export let on_item_created: (item_id: number) => void;
+
+	let dialog_disabled = false;
+
+	let category: number | undefined;
+	let categories: LabelValue[];
+
+	let unit: number | undefined;
+	let units: LabelValue[];
+
+	service.get_categories().then((data) => (categories = data.map(label_value_transform)));
+	service.get_units().then((data) => (units = data.map(label_value_transform)));
+
+	const reset_form = () => {
+		name = '';
+		category = undefined;
+		unit = undefined;
+	};
+
+	const create_category = async (label: string) => {
+		dialog_disabled = true;
+		service
+			.create_category(label)
+			.then((data) => {
+				categories = [...categories, { label, value: data.id }];
+				category = data.id;
+			})
+			.catch((error) => {
+				toast.error(error.message);
+				throw error;
+			})
+			.finally(() => {
+				dialog_disabled = false;
+			});
+	};
+
+	const create_unit = async (label: string) => {
+		dialog_disabled = true;
+		return service
+			.create_unit(label)
+			.then((data) => {
+				units = [...units, { label, value: data.id }];
+				unit = data.id;
+			})
+			.catch((error) => {
+				toast.error(error.message);
+				throw error;
+			})
+			.finally(() => {
+				dialog_disabled = false;
+			});
+	};
+
+	const create_item = async () => {
+		if (!name) {
+			toast.error('Name is required');
+			return;
+		}
+
+		if (!category) {
+			toast.error('Category is required');
+			return;
+		}
+
+		if (!unit) {
+			toast.error('Unit is required');
+			return;
+		}
+
+		dialog_disabled = true;
+
+		service
+			.create_item({ name, category_id: category, unit_id: unit })
+			.then((data) => {
+				on_item_created(data.id);
+				open = false;
+				reset_form();
+			})
+			.catch((error) => {
+				toast.error(error.message);
+				throw error;
+			})
+			.finally(() => {
+				dialog_disabled = false;
+			});
+	};
+</script>
+
+<Dialog.Root bind:open closeOnEscape={!dialog_disabled} closeOnOutsideClick={!dialog_disabled}>
+	<Dialog.Content class="sm:max-w-[425px]">
+		<Dialog.Header>
+			<Dialog.Title>Create Item</Dialog.Title>
+			<Dialog.Description>Enter the details of the item you want to create.</Dialog.Description>
+		</Dialog.Header>
+		<div class="grid gap-4 py-4">
+			<div class="grid grid-cols-4 items-center gap-4">
+				<Label for="name" class="text-right">Name</Label>
+				<Input id="name" bind:value={name} disabled={dialog_disabled} class="col-span-3" />
+			</div>
+			<div class="grid grid-cols-4 items-center gap-4">
+				<Label for="category" class="text-right">Category</Label>
+				<ComboBox
+					data={categories}
+					bind:value={category}
+					placeholder="Select category..."
+					create={create_category}
+					disabled={dialog_disabled}
+				></ComboBox>
+			</div>
+			<div class="grid grid-cols-4 items-center gap-4">
+				<Label for="unit" class="text-right">Unit</Label>
+				<ComboBox
+					data={units}
+					bind:value={unit}
+					placeholder="Select unit..."
+					create={create_unit}
+					disabled={dialog_disabled}
+				></ComboBox>
+			</div>
+		</div>
+		<Dialog.Footer>
+			<Button type="submit" on:click={create_item} disabled={dialog_disabled}>Create</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
