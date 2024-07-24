@@ -15,10 +15,15 @@ export const date_formatter = new DateFormatter('hu-HU');
 
 export const number_formatter = new Intl.NumberFormat('hu-HU', {
     style: 'decimal',
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 3,
     useGrouping: true
 });
 
-export const number_parser = (value: string) => {
-    return parseInt(value.replace(/\D/g, ''));
+export const number_parser = (value: string): number => {
+    return parseFloat(value
+        .replace(/[^\d,.]/g, '') // remove non-numeric characters, except comma and dot
+        .replace(',', '.') // replace comma with dot
+        .replace(/(\.\d{3})\d$/, '$1') // remove digits after the third decimal place
+    );
 };

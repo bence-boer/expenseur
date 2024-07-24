@@ -3,6 +3,7 @@ import { superValidate } from "sveltekit-superforms";
 import { form_schema } from "./form-schema";
 import { zod } from "sveltekit-superforms/adapters";
 import { supabase } from "../../supabase-client";
+import * as service from "$lib/service";
 
 export const load: PageLoad = async () => {
     if (supabase.auth.getSession() === null) return {};
@@ -15,20 +16,20 @@ export const load: PageLoad = async () => {
         items,
         data
     ] = await Promise.all([
-        supabase.from('brands').select('*'),
-        supabase.from('categories').select('*'),
-        supabase.from('stores').select('*'),
-        supabase.from('units').select('*'),
-        supabase.from('items').select('*'),
+        service.get_brands(),
+        service.get_categories(),
+        service.get_stores(),
+        service.get_units(),
+        service.get_items(),
         superValidate(zod(form_schema))
     ]);
 
     return {
-        brands: brands.data,
-        categories: categories.data,
-        stores: stores.data,
-        units: units.data,
-        items: items.data,
+        brands: brands,
+        categories: categories,
+        stores: stores,
+        units: units,
+        items: items,
         data
     };
 };

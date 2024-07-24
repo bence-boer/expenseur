@@ -30,6 +30,10 @@
 		unit = undefined;
 	};
 
+	const onOpenChange = (open: boolean) => {
+		if (!open) on_item_created(undefined as any as number);
+	};
+
 	const create_category = async (label: string) => {
 		dialog_disabled = true;
 		service
@@ -99,7 +103,12 @@
 	};
 </script>
 
-<Dialog.Root bind:open closeOnEscape={!dialog_disabled} closeOnOutsideClick={!dialog_disabled}>
+<Dialog.Root
+	bind:open
+	closeOnEscape={!dialog_disabled}
+	closeOnOutsideClick={!dialog_disabled}
+	{onOpenChange}
+>
 	<Dialog.Content class="sm:max-w-[425px]">
 		<Dialog.Header>
 			<Dialog.Title>Create Item</Dialog.Title>

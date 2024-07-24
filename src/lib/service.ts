@@ -1,11 +1,13 @@
 import { supabase } from "../supabase-client";
-import type { FunctionName, FunctionParameters, FunctionReturns, Tables } from "./types";
+import { memory_cache } from "./cache";
+import type { FunctionName, FunctionParameters, FunctionReturns, QueryParameters, ServiceCache, Tables, Views } from "./types";
 
-const cache: Map<string, unknown> = new Map();
+const cache: ServiceCache = memory_cache
 
 const get_function = async <Function extends FunctionName>(key: Function, args: FunctionParameters[Function]): Promise<FunctionReturns[Function]> => {
     const cache_key = JSON.stringify([key, args]);
-    if (cache.has(cache_key)) return cache.get(cache_key) as FunctionReturns[Function];
+    const cached_data = cache.get<FunctionReturns[Function]>(cache_key);
+    if (cached_data) return Promise.resolve(cached_data);
 
     return supabase
         .rpc(key, args)
@@ -17,13 +19,41 @@ const get_function = async <Function extends FunctionName>(key: Function, args: 
         });
 };
 
+const get_view = async <View extends keyof Views>(view: View, parameters: QueryParameters<typeof view>): Promise<Views[View]['Row'][]> => {
+    const cache_key = JSON.stringify([view, parameters]);
+    const cached_data = cache.get<Views[View]['Row'][]>(cache_key);
+    if (cached_data) return Promise.resolve(cached_data);
+
+    let request = supabase
+        .from(view)
+        .select('*');
+
+    if (parameters?.order?.length) {
+        for (const { by, direction } of parameters.order) {
+            request = request.order(by, { ascending: direction === 'ascending' });
+        }
+    };
+
+    return request.then(({ data, error }: { data: unknown, error: unknown }) => {
+        if (error) return Promise.reject(error);
+
+        cache.set(cache_key, data);
+        return Promise.resolve(data as Views[View]['Row'][]);
+    });
+}
+
 const get_table = async <Table extends keyof Tables>(table: Table): Promise<Tables[Table]['Row'][]> => {
+    const cache_key = JSON.stringify(table);
+    const cached_data = cache.get<Tables[Table]['Row'][]>(cache_key);
+    if (cached_data) return Promise.resolve(cached_data);
+
     return supabase
         .from(table)
         .select('*')
         .then(({ data, error }: { data: unknown, error: unknown }) => {
             if (error) return Promise.reject(error);
 
+            cache.set(cache_key, data);
             return Promise.resolve(data as Tables[Table]['Row'][]);
         });
 };
@@ -40,10 +70,24 @@ const create_single = async <Table extends keyof Tables>(
         .then(({ data, error }: { data: unknown, error: unknown }) => {
             if (error) return Promise.reject(error);
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const cache_key = JSON.stringify([table, (data as any).id]);
-            cache.set(cache_key, data);
+            cache.clear(table);
             return Promise.resolve(data as Tables[Table]['Row']);
+        });
+}
+
+const delete_single = async <Table extends keyof Tables>(
+    table: Table,
+    id: number
+) => {
+    return supabase
+        .from(table)
+        .delete()
+        .eq('id', id)
+        .then(({ error }: { error: unknown }) => {
+            if (error) return Promise.reject(error);
+
+            cache.clear(table);
+            return Promise.resolve();
         });
 }
 
@@ -94,4 +138,14 @@ export const create_category = async (category_name: string): Promise<Tables['ca
 
 export const create_unit = async (unit_name: string): Promise<Tables['units']['Row']> => {
     return create_single('units', { name: unit_name });
+}
+
+export const delete_purchase = async (purchase_id: number) => {
+    return delete_single('purchases', purchase_id);
+}
+
+export const get_detailed_purchases = async (): Promise<Views['all_tables_view']['Row'][]> => {
+    return get_view('all_tables_view', {
+        order: [{ by: 'date', direction: 'descending' }]
+    });
 }

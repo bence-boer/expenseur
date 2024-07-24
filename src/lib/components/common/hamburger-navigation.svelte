@@ -13,7 +13,7 @@
 </script>
 
 <Sheet.Root bind:open>
-	<Sheet.Trigger class="sm:hidden">
+	<Sheet.Trigger>
 		<GanttChart size="36" />
 	</Sheet.Trigger>
 	<Sheet.Content side="left">

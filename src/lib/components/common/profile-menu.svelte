@@ -29,7 +29,7 @@
 
 <DropdownMenu.Root>
 	<DropdownMenu.Trigger>
-		<Avatar.Root>
+		<Avatar.Root class="h-8 w-8">
 			<Avatar.Image src="https://github.com/shadcn.png" alt="@shadcn" />
 			<Avatar.Fallback>{initials}</Avatar.Fallback>
 		</Avatar.Root>

@@ -17,7 +17,9 @@
 
 <div class="px-4 py-4 drop-shadow-[0_35px_35px_var(--background)] md:px-8">
 	<div class="flex items-center justify-between gap-2">
-		<HamburgerNavigation {routes} />
+		<span class="flex sm:hidden">
+			<HamburgerNavigation {routes} />
+		</span>
 		<div class="flex flex-none items-center gap-2 max-sm:hidden">
 			<img src={logo} alt="logo" class="h-8 w-8" />
 			<a href="/">
@@ -31,7 +33,7 @@
 				{#each routes as { name, path }}
 					<Button variant="link" href={path} class="max-sm:hidden">{name}</Button>
 				{/each}
-				<span class="pl-2">
+				<span class="flex items-center pl-2">
 					<ProfileMenu />
 				</span>
 			{/if}

@@ -4,8 +4,8 @@
 	import { cn } from '$lib/utils.js';
 
 	type $$Props = HTMLInputAttributes & {
-		formatter?: Intl.NumberFormat | Intl.DateTimeFormat;
-		parser?: (value: string) => string | number | Date;
+		formatter?: Intl.NumberFormat;
+		parser?: (value: string) => number;
 	};
 	type $$Events = InputEvents;
 
@@ -13,11 +13,22 @@
 	export let value: $$Props['value'] = undefined;
 	export { className as class };
 
+	let node: HTMLInputElement;
+	$: if (node && value) node.value = formatter ? formatter.format(value) : value;
+
 	const input = (event: Event) => {
 		const target = event.target as HTMLInputElement;
+		const string_value = target.value;
 
 		if (!parser || !formatter) {
-			value = target.value;
+			value = string_value;
+			return;
+		}
+
+		const last_character_decimal = /(^[^.,]*[.,]$)|(^[^.,]*\d[.,]$)/.test(string_value);
+		if (last_character_decimal) {
+			let string_without_decimal = formatter.format(parser(string_value));
+			target.value = string_without_decimal.replace(/(.*\d)(\D*)$/, '$1,$2');
 			return;
 		}
 		let _value;
@@ -33,7 +44,6 @@
 				0,
 				isNaN(parseInt(target.value.charAt(target.value.length - 1))) ? -1 : value2.length
 			);
-			console.log(_value);
 
 			if (_value === '') {
 				value = undefined;
@@ -45,6 +55,7 @@
 		}
 
 		value = parser(_value);
+
 		target.value = formatter.format(value);
 
 		if (target.value === 'NaN') {
@@ -83,4 +94,5 @@
 	on:wheel|passive
 	{...$$restProps}
 	type={formatter ? 'text' : $$restProps.type}
+	bind:this={node}
 />

@@ -4,20 +4,22 @@
 	import type { Tables } from '../../types/supabase';
 	import DataTable from './data-table.svelte';
 	import { Separator } from '$lib/components/ui/separator';
+	import * as service from '$lib/service';
+	import Skeleton from '$lib/components/ui/skeleton/skeleton.svelte';
 
-	export let data: { purchases: Tables<'all_tables_view'>[] };
+	let purchases: Tables<'all_tables_view'>[];
+	service.get_detailed_purchases().then((data) => {
+		purchases = data;
+	});
 	const delete_item = async (id: number): Promise<void> => {
-		return supabase
-			.from('purchases')
-			.delete()
-			.eq('id', id)
-			.then(({ error }) => {
-				if (error) {
-					toast.error(error.message);
-					return;
-				}
+		return service
+			.delete_purchase(id)
+			.then(() => {
 				toast.success('Item deleted successfully');
-				data.purchases = data.purchases.filter((purchase) => purchase.id !== id);
+				purchases = purchases.filter((purchase) => purchase.id !== id);
+			})
+			.catch((error) => {
+				toast.error(error.message);
 			});
 	};
 </script>
@@ -25,5 +27,9 @@
 <div class="sm:container sm:py-10">
 	<h1 class="mb-4 text-2xl font-bold sm:text-4xl">Data</h1>
 	<Separator class="sm:mb-8" />
-	<DataTable data={data.purchases} {delete_item} />
+	{#if purchases}
+		<DataTable data={purchases} {delete_item} />
+	{:else}
+		<Skeleton class="h-full w-full flex-1" />
+	{/if}
 </div>

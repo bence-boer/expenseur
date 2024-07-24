@@ -7,10 +7,17 @@
 
 	let email: string;
 	let password: string;
+	let authentificated = false;
 
 	const back = () => {
 		goto('/');
 	};
+
+	supabase.auth.getUser().then(({ data }) => {
+		authentificated = !!data.user;
+	});
+
+	$: authentificated && goto('/');
 
 	let failed = false;
 	const login = () => {

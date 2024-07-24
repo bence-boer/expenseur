@@ -4,7 +4,12 @@
 	import { Input } from '$lib/components/ui/input';
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
 	import { Separator } from '$lib/components/ui/separator';
-	import { currency_formatter, number_formatter, number_parser } from '$lib/consts';
+	import {
+		currency_formatter,
+		currency_parser,
+		number_formatter,
+		number_parser
+	} from '$lib/consts';
 	import * as service from '$lib/service';
 	import type { FunctionReturns } from '$lib/types';
 	import { label_value_transform } from '$lib/utils';
@@ -15,14 +20,17 @@
 	import type { Tables, TablesInsert } from '../../types/supabase';
 	import ComboBox from './../../lib/components/ui/combo-box/combo-box.svelte';
 	import CreateItemDialog from './create-item-dialog.svelte';
+	import { number } from 'zod';
 
 	const item_details: FunctionReturns['item_details'] = [];
+	const formatters: Intl.NumberFormat[] = [];
 	const update_item_detail = ({ detail }: CustomEvent<{ value: number }>) => {
 		if (item_details[detail.value]) return;
 
-		service
-			.get_item_details(detail.value)
-			.then((details) => (item_details[detail.value] = details!));
+		service.get_item_details(detail.value).then((details) => {
+			item_details[detail.value] = details!;
+			formatters[detail.value] = formatter_for_unit(details!.unit);
+		});
 	};
 
 	export let data: {
@@ -84,7 +92,7 @@
 
 		return new Promise<void>((resolve) => {
 			on_item_created = (item_id: number) => {
-				selectable_items = [...selectable_items, { label, value: item_id }];
+				if (item_id) selectable_items = [...selectable_items, { label, value: item_id }];
 				resolve();
 			};
 		});
@@ -155,6 +163,11 @@
 				toast.success('Purchase registered successfully!');
 			});
 	};
+
+	const formatter_for_unit = (unit: string) =>
+		({
+			format: (value: number) => `${number_formatter.format(value)} ${unit}`
+		}) as Intl.NumberFormat;
 </script>
 
 <h1 class="text-2xl font-bold sm:text-4xl">Register Purchase</h1>
@@ -208,7 +221,9 @@
 					bind:value={purchase.quantity}
 					class="min-w-24 max-w-48"
 					type="number"
-					formatter={number_formatter}
+					formatter={purchase.item_id && item_details[purchase.item_id]
+						? formatters[purchase.item_id]
+						: number_formatter}
 					parser={number_parser}
 				></Input>
 				<Input
@@ -217,7 +232,7 @@
 					class="min-w-24 max-w-48"
 					type="number"
 					formatter={currency_formatter}
-					parser={number_parser}
+					parser={currency_parser}
 				></Input>
 			</div>
 		</div>

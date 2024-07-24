@@ -7,6 +7,7 @@
 	import { Check, ChevronsUpDown } from 'lucide-svelte';
 	import { tick } from 'svelte';
 	import { createEventDispatcher } from 'svelte';
+	import { commandScore } from './command-score';
 
 	export let data: LabelValue[];
 	data ??= [];
@@ -24,15 +25,11 @@
 	export let disabled: boolean = false;
 
 	$: {
-		console.log(selected_changed);
-
 		if (selected_changed) {
 			label_as_value_binded_to_form = selected?.label ?? '';
 			value = selected?.value;
 			selected_changed = false;
 		} else {
-			console.log('value', value, data_map.get(value!));
-
 			selected = data_map.get(value!);
 			label_as_value_binded_to_form = selected?.label ?? '';
 		}
@@ -66,7 +63,11 @@
 		</Button>
 	</Popover.Trigger>
 	<Popover.Content class="w-48 p-0">
-		<Command.Root bind:value={label_as_value_binded_to_form} aria-disabled={disabled}>
+		<Command.Root
+			bind:value={label_as_value_binded_to_form}
+			aria-disabled={disabled}
+			filter={commandScore}
+		>
 			<Command.Input {placeholder} bind:value={search_expression} />
 			<Command.Empty class="py-2">
 				<div
