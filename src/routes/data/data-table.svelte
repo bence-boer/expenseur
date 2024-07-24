@@ -16,7 +16,7 @@
 	import type { Tables } from '../../types/supabase';
 	import DataTableActions from './data-table-actions.svelte';
 	import DataTableCheckbox from './data-table-checkbox.svelte';
-	import { currency_formatter } from '$lib/consts';
+	import { currency_formatter, number_formatter } from '$lib/consts';
 
 	export let data: Tables<'all_tables_view'>[];
 	const _data = writable(data);
@@ -113,6 +113,7 @@
 		table.column({
 			accessor: 'quantity',
 			header: 'Quantity',
+			cell: ({ value }) => number_formatter.format(value!),
 			plugins: {
 				sortBy: { disable: !sortable.includes('quantity') },
 				filter: { exclude: !filterable.includes('quantity') }
