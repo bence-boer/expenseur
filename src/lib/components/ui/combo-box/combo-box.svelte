@@ -4,8 +4,7 @@
 	import * as Popover from '$lib/components/ui/popover';
 	import type { LabelValue } from '$lib/types';
 	import { cn } from '$lib/utils.js';
-	import Check from 'lucide-svelte/icons/check';
-	import ChevronsUpDown from 'lucide-svelte/icons/chevrons-up-down';
+	import { Check, ChevronsUpDown } from 'lucide-svelte';
 	import { tick } from 'svelte';
 	import { createEventDispatcher } from 'svelte';
 
@@ -25,11 +24,15 @@
 	export let disabled: boolean = false;
 
 	$: {
+		console.log(selected_changed);
+
 		if (selected_changed) {
 			label_as_value_binded_to_form = selected?.label ?? '';
 			value = selected?.value;
 			selected_changed = false;
 		} else {
+			console.log('value', value, data_map.get(value!));
+
 			selected = data_map.get(value!);
 			label_as_value_binded_to_form = selected?.label ?? '';
 		}
@@ -56,13 +59,13 @@
 			role="combobox"
 			aria-expanded={open}
 			{disabled}
-			class={cn('w-[200px] justify-between', !value && 'font-normal text-muted-foreground')}
+			class={cn('w-full justify-between sm:w-48', !value && 'font-normal text-muted-foreground')}
 		>
 			{selected?.label ?? placeholder}
 			<ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
 		</Button>
 	</Popover.Trigger>
-	<Popover.Content class="w-[200px] p-0">
+	<Popover.Content class="w-48 p-0">
 		<Command.Root bind:value={label_as_value_binded_to_form} aria-disabled={disabled}>
 			<Command.Input {placeholder} bind:value={search_expression} />
 			<Command.Empty class="py-2">
@@ -87,6 +90,7 @@
 								console.error(e);
 							}
 							placeholder = placeholder_backup;
+
 							disabled = false;
 						}}
 					>

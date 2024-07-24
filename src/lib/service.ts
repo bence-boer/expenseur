@@ -52,8 +52,16 @@ export const get_item_details = async (item_id: FunctionParameters['item_details
     return get_function('item_details', { item_id }).then(data => data[0]);
 }
 
-export const get_items = async (): Promise<Tables['items']['Row'][]> => {
-    return get_table('items');
+export const get_spendings_by_category = async (start_date: string, end_date: string): Promise<FunctionReturns['spendings_by_category']> => {
+    return get_function('spendings_by_category', { start_date, end_date });
+}
+
+export const get_brands = async (): Promise<Tables['brands']['Row'][]> => {
+    return get_table('brands');
+}
+
+export const get_categories = async (): Promise<Tables['categories']['Row'][]> => {
+    return get_table('categories');
 }
 
 export const get_stores = async (): Promise<Tables['stores']['Row'][]> => {
@@ -64,8 +72,8 @@ export const get_units = async (): Promise<Tables['units']['Row'][]> => {
     return get_table('units');
 }
 
-export const get_categories = async (): Promise<Tables['categories']['Row'][]> => {
-    return get_table('categories');
+export const get_items = async (): Promise<Tables['items']['Row'][]> => {
+    return get_table('items');
 }
 
 export const create_item = async (item: Tables['items']['Insert']): Promise<Tables['items']['Row']> => {

@@ -1,5 +1,6 @@
-import type { PageLoad } from "./$types";
+import * as service from "$lib/service";
 import { supabase } from "../../supabase-client";
+import type { PageLoad } from "./$types";
 
 export const load: PageLoad = async () => {
     if (supabase.auth.getSession() === null) return {};
@@ -11,18 +12,12 @@ export const load: PageLoad = async () => {
         units,
         items,
     ] = await Promise.all([
-        supabase.from('brands').select('*'),
-        supabase.from('categories').select('*'),
-        supabase.from('stores').select('*'),
-        supabase.from('units').select('*'),
-        supabase.from('items').select('*'),
+        service.get_brands(),
+        service.get_categories(),
+        service.get_stores(),
+        service.get_units(),
+        service.get_items(),
     ]);
 
-    return {
-        brands: brands.data,
-        categories: categories.data,
-        stores: stores.data,
-        units: units.data,
-        items: items.data,
-    };
+    return { brands, categories, stores, units, items };
 };

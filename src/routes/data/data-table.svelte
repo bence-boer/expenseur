@@ -3,8 +3,7 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { Input } from '$lib/components/ui/input';
 	import * as Table from '$lib/components/ui/table';
-	import ArrowUpDown from 'lucide-svelte/icons/arrow-up-down';
-	import ChevronDown from 'lucide-svelte/icons/chevron-down';
+	import { ArrowUpDown, ChevronDown } from 'lucide-svelte';
 	import { createRender, createTable, Render, Subscribe } from 'svelte-headless-table';
 	import {
 		addHiddenColumns,
@@ -17,6 +16,7 @@
 	import type { Tables } from '../../types/supabase';
 	import DataTableActions from './data-table-actions.svelte';
 	import DataTableCheckbox from './data-table-checkbox.svelte';
+	import { currency_formatter } from '$lib/consts';
 
 	export let data: Tables<'all_tables_view'>[];
 	const _data = writable(data);
@@ -129,13 +129,7 @@
 		table.column({
 			accessor: 'price',
 			header: 'Price',
-			cell: ({ value }) =>
-				new Intl.NumberFormat('hu-HU', {
-					style: 'currency',
-					currency: 'HUF',
-					maximumFractionDigits: 0,
-					useGrouping: true
-				}).format(value!),
+			cell: ({ value }) => currency_formatter.format(value!),
 			plugins: {
 				sortBy: { disable: !sortable.includes('price') },
 				filter: { exclude: !filterable.includes('price') }

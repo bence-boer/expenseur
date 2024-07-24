@@ -2,18 +2,18 @@
 	import { Button } from '$lib/components/ui/button';
 	import DatePicker from '$lib/components/ui/date-picker/date-picker.svelte';
 	import { Input } from '$lib/components/ui/input';
+	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
 	import { Separator } from '$lib/components/ui/separator';
+	import { currency_formatter, number_formatter, number_parser } from '$lib/consts';
 	import * as service from '$lib/service';
 	import type { FunctionReturns } from '$lib/types';
+	import { label_value_transform } from '$lib/utils';
 	import { type DateValue, getLocalTimeZone, today } from '@internationalized/date';
-	import Copy from 'lucide-svelte/icons/copy';
-	import Plus from 'lucide-svelte/icons/plus';
-	import X from 'lucide-svelte/icons/x';
+	import { Copy, Plus, X } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
 	import { supabase } from '../../supabase-client';
 	import type { Tables, TablesInsert } from '../../types/supabase';
 	import ComboBox from './../../lib/components/ui/combo-box/combo-box.svelte';
-	import { label_value_transform } from '$lib/utils';
 	import CreateItemDialog from './create-item-dialog.svelte';
 
 	const item_details: FunctionReturns['item_details'] = [];
@@ -58,6 +58,14 @@
 	let selectable_stores = data.stores.map(label_value_transform);
 	let selected_store: number | undefined;
 
+	let date: DateValue | undefined;
+	let selectable_items = data.items.map(label_value_transform);
+	let selectable_brands = data.brands.map(label_value_transform);
+
+	let create_item_dialog_open = false;
+	let create_item_label: string;
+	let on_item_created: (item_id: number) => void;
+
 	const create_store = async (label: string) =>
 		service
 			.create_store(label)
@@ -69,14 +77,6 @@
 				toast.error(error.message);
 				throw error;
 			});
-
-	let date: DateValue | undefined;
-	let selectable_items = data.items.map(label_value_transform);
-	let selectable_brands = data.brands.map(label_value_transform);
-
-	let create_item_dialog_open = false;
-	let create_item_label: string;
-	let on_item_created: (item_id: number) => void;
 
 	const create_item = async (label: string) => {
 		create_item_dialog_open = true;
@@ -90,8 +90,8 @@
 		});
 	};
 
-	const create_brand = async (label: string) => {
-		return service
+	const create_brand = async (label: string) =>
+		service
 			.create_brand(label)
 			.then((brand) => {
 				selectable_brands = [...selectable_brands, { label, value: brand.id }];
@@ -100,7 +100,6 @@
 				toast.error(error.message);
 				throw error;
 			});
-	};
 
 	const duplicate_row = (index: number) =>
 		(purchases = [
@@ -158,10 +157,10 @@
 	};
 </script>
 
-<h1 class="mb-4 text-4xl font-bold">Register Purchase</h1>
-<Separator class="mb-8" />
+<h1 class="text-2xl font-bold sm:text-4xl">Register Purchase</h1>
+<Separator />
 
-<div class="mb-4 flex flex-row flex-wrap gap-4">
+<div class="flex flex-row flex-wrap gap-4">
 	<ComboBox
 		data={selectable_stores}
 		bind:value={selected_store}
@@ -172,43 +171,58 @@
 		bind:value={date}
 		title="Pick date..."
 		placeholder={today(getLocalTimeZone())}
-		class="min-w-48 max-w-64 flex-1"
+		class="flex-1 sm:min-w-48 sm:max-w-64"
 	></DatePicker>
 </div>
-{#each purchases as purchase, index}
-	<div class="mb-4 flex justify-between gap-4">
-		<ComboBox
-			data={selectable_items}
-			bind:value={purchase.item_id}
-			placeholder="Select item..."
-			create={create_item}
-			on:change={update_item_detail}
-		></ComboBox>
-		<Input placeholder="Details" bind:value={purchase.details} class="min-w-24 flex-1"></Input>
-		<ComboBox
-			data={selectable_brands}
-			bind:value={purchase.brand_id}
-			placeholder="Select brand..."
-			create={create_brand}
-		></ComboBox>
-		<Input
-			placeholder={`Quantity ${purchase.item_id && item_details[purchase.item_id] ? '(' + item_details[purchase.item_id]?.unit + ')' : ''}`}
-			bind:value={purchase.quantity}
-			class="min-w-24 max-w-48"
-			type="number"
-		></Input>
-		<Input placeholder="Price" bind:value={purchase.price} class="min-w-24 max-w-48" type="number"
-		></Input>
-		<div class="flex flex-initial flex-row">
-			<Button class="p-2" size="icon" on:click={() => duplicate_row(index)} variant="ghost">
-				<Copy class="h-4 w-4 text-muted-foreground" />
-			</Button>
-			<Button class="p-2" size="icon" on:click={() => delete_row(index)} variant="ghost">
-				<X class="h-4 w-4 text-red-600" />
-			</Button>
+<ScrollArea class="flex-auto rounded-md border p-4" orientation="vertical">
+	{#each purchases as purchase, index}
+		{#if index > 0}
+			<Separator class="mb-4 mt-2"></Separator>
+		{/if}
+		<div class="flex flex-col gap-2">
+			<div class="flex flex-row">
+				<ComboBox
+					data={selectable_items}
+					bind:value={purchase.item_id}
+					placeholder="Select item..."
+					create={create_item}
+					on:change={update_item_detail}
+				></ComboBox>
+				<Button class="ml-2" size="icon" on:click={() => duplicate_row(index)} variant="ghost">
+					<Copy class="h-4 w-4 text-muted-foreground" />
+				</Button>
+				<Button size="icon" on:click={() => delete_row(index)} variant="ghost">
+					<X class="h-4 w-4 text-red-600" />
+				</Button>
+			</div>
+			<Input placeholder="Details" bind:value={purchase.details} class="w-full sm:w-48"></Input>
+			<ComboBox
+				data={selectable_brands}
+				bind:value={purchase.brand_id}
+				placeholder="Select brand..."
+				create={create_brand}
+			></ComboBox>
+			<div class="flex flex-row flex-nowrap gap-2">
+				<Input
+					placeholder={`Quantity ${purchase.item_id && item_details[purchase.item_id] ? '(' + item_details[purchase.item_id]?.unit + ')' : ''}`}
+					bind:value={purchase.quantity}
+					class="min-w-24 max-w-48"
+					type="number"
+					formatter={number_formatter}
+					parser={number_parser}
+				></Input>
+				<Input
+					placeholder="Price"
+					bind:value={purchase.price}
+					class="min-w-24 max-w-48"
+					type="number"
+					formatter={currency_formatter}
+					parser={number_parser}
+				></Input>
+			</div>
 		</div>
-	</div>
-{/each}
+	{/each}
+</ScrollArea>
 
 <div class="flex justify-between">
 	<Button class="p-2" size="icon" on:click={add_row} variant="outline">

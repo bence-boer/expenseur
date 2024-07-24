@@ -10,7 +10,6 @@
 	import CalendarIcon from 'svelte-radix/Calendar.svelte';
 	import {
 		CalendarDate,
-		DateFormatter,
 		type DateValue,
 		getLocalTimeZone,
 		parseDate,
@@ -25,6 +24,7 @@
 	import { Calendar } from '$lib/components/ui/calendar';
 	import * as Popover from '$lib/components/ui/popover';
 	import Separator from '$lib/components/ui/separator/separator.svelte';
+	import { date_formatter } from '$lib/consts';
 
 	const label_value_transform = <T extends { id: string; name: string }>(data: T) => ({
 		label: data.name,
@@ -57,7 +57,6 @@
 		let x = _enhance(form_element);
 		// TODO: don't submit form on enter
 	};
-	const date_formatter = new DateFormatter('hu-HU');
 
 	let value: DateValue | undefined;
 	$: value = $form_data.date ? parseDate($form_data.date) : undefined;

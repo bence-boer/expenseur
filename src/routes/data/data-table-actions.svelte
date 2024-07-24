@@ -1,7 +1,5 @@
 <script lang="ts">
-	import Ellipsis from 'lucide-svelte/icons/ellipsis';
-	import Trash from 'lucide-svelte/icons/trash-2';
-	import Pencil from 'lucide-svelte/icons/pencil';
+	import { Ellipsis, Trash2, Pencil } from 'lucide-svelte';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import * as AlertDialog from '$lib/components/ui/alert-dialog';
 	import { Button } from '$lib/components/ui/button';
@@ -39,7 +37,7 @@
 		<DropdownMenu.Item>
 			<AlertDialog.Root>
 				<AlertDialog.Trigger class="flex flex-row justify-center text-red-600">
-					<Trash class="mr-2 h-4 w-4" />
+					<Trash2 class="mr-2 h-4 w-4" />
 					Delete
 				</AlertDialog.Trigger>
 				<AlertDialog.Content>
