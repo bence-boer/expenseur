@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
-	import DatePicker from '$lib/components/ui/date-picker/date-picker.svelte';
-	import { Input } from '$lib/components/ui/input';
+	import DatePicker from '$lib/components/ui-custom/date-picker/date-picker.svelte';
+	import { Input } from '$lib/components/ui-custom/input';
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
 	import { Separator } from '$lib/components/ui/separator';
 	import {
@@ -12,15 +12,13 @@
 	} from '$lib/consts';
 	import * as service from '$lib/service';
 	import type { FunctionReturns } from '$lib/types';
-	import { label_value_transform } from '$lib/utils';
+	import { label_value_transform, sanitize_string } from '$lib/utils';
 	import { type DateValue, getLocalTimeZone, today } from '@internationalized/date';
 	import { Copy, Plus, X } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
-	import { supabase } from '../../supabase-client';
 	import type { Tables, TablesInsert } from '../../types/supabase';
-	import ComboBox from './../../lib/components/ui/combo-box/combo-box.svelte';
+	import ComboBox from '../../lib/components/ui-custom/combo-box/combo-box.svelte';
 	import CreateItemDialog from './create-item-dialog.svelte';
-	import { number } from 'zod';
 
 	const item_details: FunctionReturns['item_details'] = [];
 	const formatters: Intl.NumberFormat[] = [];
@@ -66,7 +64,7 @@
 	let selectable_stores = data.stores.map(label_value_transform);
 	let selected_store: number | undefined;
 
-	let date: DateValue | undefined;
+	let date: DateValue | undefined; // TODO: REFACTOR INTO SCHEMA OBJECT
 	let selectable_items = data.items.map(label_value_transform);
 	let selectable_brands = data.brands.map(label_value_transform);
 
@@ -74,8 +72,14 @@
 	let create_item_label: string;
 	let on_item_created: (item_id: number) => void;
 
-	const create_store = async (label: string) =>
-		service
+	const create_store = async (label: string | null): Promise<void> => {
+		label = sanitize_string(label);
+		if (!label) {
+			toast.error('Store name should contain characters other than whitespaces!');
+			return Promise.reject();
+		}
+
+		return service
 			.create_store(label)
 			.then((store) => {
 				selectable_stores = [...selectable_stores, { label, value: store.id }];
@@ -85,8 +89,15 @@
 				toast.error(error.message);
 				throw error;
 			});
+	};
 
-	const create_item = async (label: string) => {
+	const create_item = async (label: string | null): Promise<void> => {
+		label = sanitize_string(label);
+		if (!label) {
+			toast.error('Item name should contain characters other than whitespaces!');
+			return Promise.reject();
+		}
+
 		create_item_dialog_open = true;
 		create_item_label = label;
 
@@ -98,7 +109,13 @@
 		});
 	};
 
-	const create_brand = async (label: string) =>
+	const create_brand = async (label: string | null) => {
+		label = sanitize_string(label);
+		if (!label) {
+			toast.error('Store name should contain characters other than whitespaces!');
+			return Promise.reject();
+		}
+
 		service
 			.create_brand(label)
 			.then((brand) => {
@@ -108,6 +125,7 @@
 				toast.error(error.message);
 				throw error;
 			});
+	};
 
 	const duplicate_row = (index: number) =>
 		(purchases = [
@@ -119,48 +137,53 @@
 	const delete_row = (index: number) =>
 		(purchases = [...purchases.slice(0, index), ...purchases.slice(index + 1)]);
 
-	const add_row = () => (purchases = [...purchases, empty_purchase()]);
+	const add_row = () => purchases.push(empty_purchase());
 
 	const handle_submit = (event: Event) => {
 		event.preventDefault();
 
-		if (!date || !selected_store) {
-			toast.error('Please fill out all fields.');
+		const errors: string[] = [];
+		if (!date) errors.push('Date is required!');
+		if (!selected_store) errors.push('Store is required!');
+
+		if (purchases.some((purchase) => !purchase.item_id))
+			errors.push('Each purchase should have an item chosen!');
+		if (purchases.some((purchase) => !purchase.quantity))
+			errors.push('Each purchase should have a qunatity specified!');
+		if (purchases.some((purchase) => !purchase.price))
+			errors.push('Each purchase should have a price specified!');
+
+		if (errors.length > 0) {
+			errors.forEach((message) => toast.error(message));
 			return false;
 		}
-		for (const purchase of purchases) {
-			if (!purchase.item_id || !purchase.quantity || !purchase.price) {
-				toast.error('Please fill out all fields.');
-				return false;
-			}
-		}
 
-		const formatted_date = date.toString();
+		const formatted_date = date!.toString();
 		const data: TablesInsert<'purchases'>[] = purchases.map((purchase) => ({
 			...(purchase as any),
 			brand_id: purchase.brand_id ?? null,
 			details:
 				purchase.details
 					?.split(', ')
-					.map((detail) => detail.trim())
+					.map((detail) => sanitize_string(detail))
 					.filter(Boolean) ?? null,
 			date: formatted_date,
 			store_id: selected_store
 		}));
 
-		supabase
-			.from('purchases' as any)
-			.insert(data)
-			.then(({ error }) => {
-				if (error) {
-					toast.error(error.message);
-					return;
-				}
+		service
+			.create_purchases(data)
+			.then((data) => {
+				console.log('data received from create', data);
 
+				// TODO: CUSTOM INPUTS DON'T UPDATE!!!
 				purchases = [empty_purchase()];
 				date = undefined;
 				selected_store = undefined;
 				toast.success('Purchase registered successfully!');
+			})
+			.catch((error) => {
+				toast.error(error.message);
 			});
 	};
 

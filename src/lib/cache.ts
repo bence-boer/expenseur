@@ -1,6 +1,8 @@
 import type { ServiceCache } from "./types";
 
 export const session_storage_cache: ServiceCache = {
+    name: 'Session Storage Cache',
+
     get: <Data>(key: string): Data | null => {
         const data = sessionStorage.getItem(key);
         if (!data) return null;
@@ -18,6 +20,8 @@ export const session_storage_cache: ServiceCache = {
 };
 
 export const local_storage_cache: ServiceCache = {
+    name: 'Local Storage Cache',
+
     get: <Data>(key: string): Data | null => {
         const data = localStorage.getItem(key);
         if (!data) return null;
@@ -36,6 +40,8 @@ export const local_storage_cache: ServiceCache = {
 
 const storage: Map<string, unknown> = new Map();
 export const memory_cache: ServiceCache = {
+    name: 'In-Memory Storage Cache',
+
     get: <Data>(key: string): Data | null => {
         if (!storage.has(key)) return null;
         return storage.get(key) as Data;

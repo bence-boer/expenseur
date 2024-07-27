@@ -17,6 +17,7 @@ export type Route = {
 }
 
 export type ServiceCache = {
+    name: string;
     get: <Data>(key: string) => Data | null;
     set: (key: string, data: unknown) => void;
     clear: (key?: string) => void;

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { Input } from '$lib/components/ui/input';
+	import { Input } from '$lib/components/ui-custom/input';
 	import * as Table from '$lib/components/ui/table';
 	import { ArrowUpDown, ChevronDown } from 'lucide-svelte';
 	import { createRender, createTable, Render, Subscribe } from 'svelte-headless-table';
@@ -13,12 +13,12 @@
 		addTableFilter
 	} from 'svelte-headless-table/plugins';
 	import { writable } from 'svelte/store';
-	import type { Tables } from '../../types/supabase';
+	import type { Views } from '../../../types';
 	import DataTableActions from './data-table-actions.svelte';
 	import DataTableCheckbox from './data-table-checkbox.svelte';
 	import { currency_formatter, number_formatter } from '$lib/consts';
 
-	export let data: Tables<'all_tables_view'>[];
+	export let data: Views['all_tables_view']['Row'][];
 	const _data = writable(data);
 	type Column = keyof (typeof data)[number];
 
@@ -44,6 +44,8 @@
 	const sortable: (Column | unknown)[] = ['date', 'price'];
 	const filterable: Column[] = ['item', 'details', 'brand', 'category', 'store'];
 	const hideable: Column[] = ['details', 'brand', 'category', 'quantity', 'unit', 'store'];
+
+	
 
 	const columns = table.createColumns([
 		table.column({

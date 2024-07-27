@@ -2,22 +2,20 @@
 	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
-	import { Input } from '$lib/components/ui/input';
+	import { Input } from '$lib/components/ui-custom/input';
 	import { supabase } from '../../supabase-client';
+	import { browser } from '$app/environment';
 
 	let email: string;
 	let password: string;
-	let authentificated = false;
 
 	const back = () => {
-		goto('/');
+		if (browser) goto('/');
 	};
 
 	supabase.auth.getUser().then(({ data }) => {
-		authentificated = !!data.user;
+		!!data.user && back();
 	});
-
-	$: authentificated && goto('/');
 
 	let failed = false;
 	const login = () => {

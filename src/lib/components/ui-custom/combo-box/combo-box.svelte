@@ -2,12 +2,12 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Command from '$lib/components/ui/command';
 	import * as Popover from '$lib/components/ui/popover';
+	import { commandScore } from './command-score';
 	import type { LabelValue } from '$lib/types';
 	import { cn } from '$lib/utils.js';
 	import { Check, ChevronsUpDown } from 'lucide-svelte';
 	import { tick } from 'svelte';
 	import { createEventDispatcher } from 'svelte';
-	import { commandScore } from './command-score';
 
 	export let data: LabelValue[];
 	data ??= [];
@@ -87,8 +87,8 @@
 							disabled = true;
 							try {
 								await create(search_expression);
-							} catch (e) {
-								console.error(e);
+							} catch (error) {
+								console.error(error);
 							}
 							placeholder = placeholder_backup;
 

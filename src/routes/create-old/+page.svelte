@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Tables } from '../../types/supabase';
 	import * as Form from '$lib/components/ui/form';
-	import { Input } from '$lib/components/ui/input';
+	import { Input } from '$lib/components/ui-custom/input';
 	import { form_schema, type FormSchema } from './form-schema';
 	import { getFormControl } from 'formsnap';
 	import { type SuperValidated, type Infer, type SuperFormEvents } from 'sveltekit-superforms';

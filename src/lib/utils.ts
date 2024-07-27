@@ -66,3 +66,10 @@ export const label_value_transform = (data: { id: number; name: string }): Label
 	label: data.name,
 	value: data.id
 });
+
+export const sanitize_string = (string?: string | null): string | null => {
+	if (!string) return null;
+
+	string = string.replaceAll(/\s+/g, ' ').trim();
+	return string === '' ? null : string;
+}

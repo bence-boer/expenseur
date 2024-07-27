@@ -2,10 +2,10 @@
 	import { toast } from 'svelte-sonner';
 	import { supabase } from '../../supabase-client';
 	import type { Tables } from '../../types/supabase';
-	import DataTable from './data-table.svelte';
 	import { Separator } from '$lib/components/ui/separator';
 	import * as service from '$lib/service';
 	import Skeleton from '$lib/components/ui/skeleton/skeleton.svelte';
+	import DataTable from '$lib/components/ui-custom/data-table';
 
 	let purchases: Tables<'all_tables_view'>[];
 	service.get_detailed_purchases().then((data) => {
