@@ -36,11 +36,11 @@
 
 	const create_category = async (label: string) => {
 		dialog_disabled = true;
-		service
+		return service
 			.create_category(label)
 			.then((data) => {
 				categories = [...categories, { label, value: data.id }];
-				category = data.id;
+				return data.id;
 			})
 			.catch((error) => {
 				toast.error(error.message);
@@ -57,7 +57,7 @@
 			.create_unit(label)
 			.then((data) => {
 				units = [...units, { label, value: data.id }];
-				unit = data.id;
+				return data.id;
 			})
 			.catch((error) => {
 				toast.error(error.message);

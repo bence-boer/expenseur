@@ -17,7 +17,7 @@
 		<GanttChart size="36" />
 	</Sheet.Trigger>
 	<Sheet.Content side="left">
-		<Sheet.Header>
+		<Sheet.Header class="mb-12">
 			<Sheet.Title class="flex flex-none items-center gap-2" on:click={close}>
 				<img src={logo} alt="logo" class="h-8 w-8" />
 				<a href="/">
@@ -26,14 +26,14 @@
 			</Sheet.Title>
 		</Sheet.Header>
 
-		<Separator class="my-4" />
-
-		<div class="flex flex-col gap-2">
+		<div class="flex flex-col">
 			{#each routes as { name, path }}
-				<Button variant="link" href={path} on:click={close} class="justify-start sm:hidden">
+				<Separator />
+				<Button variant="link" href={path} on:click={close} class="my-1 justify-start sm:hidden">
 					{name}
 				</Button>
 			{/each}
+			<Separator />
 		</div>
 	</Sheet.Content>
 </Sheet.Root>

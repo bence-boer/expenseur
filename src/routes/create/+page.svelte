@@ -72,7 +72,11 @@
 	let create_item_label: string;
 	let on_item_created: (item_id: number) => void;
 
-	const create_store = async (label: string | null): Promise<void> => {
+	$: total = currency_formatter.format(
+		purchases.reduce((total, purchase) => total + (purchase.price ?? 0), 0)
+	);
+
+	const create_store = async (label: string | null): Promise<number> => {
 		label = sanitize_string(label);
 		if (!label) {
 			toast.error('Store name should contain characters other than whitespaces!');
@@ -83,7 +87,7 @@
 			.create_store(label)
 			.then((store) => {
 				selectable_stores = [...selectable_stores, { label, value: store.id }];
-				selected_store = store.id;
+				return store.id;
 			})
 			.catch((error) => {
 				toast.error(error.message);
@@ -91,7 +95,7 @@
 			});
 	};
 
-	const create_item = async (label: string | null): Promise<void> => {
+	const create_item = async (label: string | null): Promise<number> => {
 		label = sanitize_string(label);
 		if (!label) {
 			toast.error('Item name should contain characters other than whitespaces!');
@@ -101,25 +105,27 @@
 		create_item_dialog_open = true;
 		create_item_label = label;
 
-		return new Promise<void>((resolve) => {
+		return new Promise((resolve) => {
 			on_item_created = (item_id: number) => {
 				if (item_id) selectable_items = [...selectable_items, { label, value: item_id }];
-				resolve();
+				// TODO: refresh units and items
+				resolve(item_id);
 			};
 		});
 	};
 
-	const create_brand = async (label: string | null) => {
+	const create_brand = async (label: string | null): Promise<number> => {
 		label = sanitize_string(label);
 		if (!label) {
 			toast.error('Store name should contain characters other than whitespaces!');
 			return Promise.reject();
 		}
 
-		service
+		return service
 			.create_brand(label)
 			.then((brand) => {
 				selectable_brands = [...selectable_brands, { label, value: brand.id }];
+				return brand.id;
 			})
 			.catch((error) => {
 				toast.error(error.message);
@@ -137,7 +143,7 @@
 	const delete_row = (index: number) =>
 		(purchases = [...purchases.slice(0, index), ...purchases.slice(index + 1)]);
 
-	const add_row = () => purchases.push(empty_purchase());
+	const add_row = () => (purchases = [...purchases, empty_purchase()]);
 
 	const handle_submit = (event: Event) => {
 		event.preventDefault();
@@ -174,13 +180,10 @@
 		service
 			.create_purchases(data)
 			.then((data) => {
-				console.log('data received from create', data);
-
-				// TODO: CUSTOM INPUTS DON'T UPDATE!!!
 				purchases = [empty_purchase()];
 				date = undefined;
 				selected_store = undefined;
-				toast.success('Purchase registered successfully!');
+				toast.success(`Purchase registered successfully!\n(${data.length} entries registered)`);
 			})
 			.catch((error) => {
 				toast.error(error.message);
@@ -260,12 +263,16 @@
 			</div>
 		</div>
 	{/each}
+
+	<div class="flex justify-end py-2">
+		<Button class="p-2" size="icon" on:click={add_row} variant="outline">
+			<Plus class="h-4 w-4 text-muted-foreground" />
+		</Button>
+	</div>
 </ScrollArea>
 
-<div class="flex justify-between">
-	<Button class="p-2" size="icon" on:click={add_row} variant="outline">
-		<Plus class="h-4 w-4 text-muted-foreground" />
-	</Button>
+<div class="flex items-end justify-between">
+	<span class="text-muted-foreground">Total: {total}</span>
 	<Button type="submit" class="w-24" on:click={handle_submit}>Submit</Button>
 </div>
 

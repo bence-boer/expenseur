@@ -21,7 +21,7 @@
 	let selected_changed: boolean = false;
 
 	export let placeholder: string = 'Please select an option';
-	export let create: (label: string) => Promise<void>;
+	export let create: (label: string) => Promise<LabelValue['value']>;
 	export let disabled: boolean = false;
 
 	$: {
@@ -86,7 +86,7 @@
 							placeholder = search_expression;
 							disabled = true;
 							try {
-								await create(search_expression);
+								value = await create(search_expression);
 							} catch (error) {
 								console.error(error);
 							}

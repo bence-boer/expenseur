@@ -91,7 +91,7 @@ const get_view = async <View extends keyof Views>(view: View, parameters: QueryP
 }
 
 const get_table = async <Table extends keyof Tables>(table: Table): Promise<Tables[Table]['Row'][]> => {
-    const cache_key = JSON.stringify(table);
+    const cache_key = table;
     const cached_data = cache.get<Tables[Table]['Row'][]>(cache_key);
     if (cached_data) return Promise.resolve(cached_data);
 
@@ -113,6 +113,8 @@ const create_single = async <Table extends keyof Tables>(
     table: Table,
     data: Tables[Table]['Insert']
 ): Promise<Tables[Table]['Row']> => {
+    const cache_key = table;
+
     return supabase
         .from(table)
         .insert(data as never)
@@ -124,7 +126,7 @@ const create_single = async <Table extends keyof Tables>(
                 return Promise.reject(error);
             }
 
-            cache.clear(table);
+            cache.clear(cache_key);
             return Promise.resolve(data as Tables[Table]['Row']);
         });
 }
