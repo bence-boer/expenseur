@@ -14,8 +14,8 @@
 	export { className as class };
 
 	let node: HTMLInputElement;
-	// TODO: 0-nál valami fura
-	$: if (node) node.value = value && formatter ? formatter.format(value) : value ? value : '';
+	$: if (node)
+		node.value = (value || value === 0) && formatter ? formatter.format(value) : value ? value : '';
 
 	const input = (event: Event) => {
 		const target = event.target as HTMLInputElement;

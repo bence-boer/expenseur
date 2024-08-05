@@ -9,7 +9,7 @@ export type FunctionReturns = { [K in keyof Functions]: Database['public']['Func
 
 export type Views = Database['public']['Views'];
 
-export type LabelValue = { label: string; value: string | number };
+export type LabelValue<Value extends string | number = string | number> = { label: string; value: Value };
 
 export type Route = {
     name: string;

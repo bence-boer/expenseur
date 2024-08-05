@@ -7,7 +7,7 @@
 	import { CalendarDate, getLocalTimeZone, today, type DateValue } from '@internationalized/date';
 	import { CalendarIcon } from 'lucide-svelte';
 
-	export let value: DateValue | undefined = undefined;
+	export let value: DateValue | undefined;
 	export let title = 'Date Picker';
 	export let placeholder: DateValue = today(getLocalTimeZone());
 	export let min: DateValue = new CalendarDate(1900, 1, 1);

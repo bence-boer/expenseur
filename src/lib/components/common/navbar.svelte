@@ -10,6 +10,7 @@
 
 	const routes: Route[] = [
 		{ name: 'Dashboard', path: '/' },
+		{ name: 'Statistics', path: '/statistics' },
 		{ name: 'Data', path: '/data' },
 		{ name: 'Create', path: '/create' }
 	];

@@ -1,54 +1,105 @@
 <script lang="ts">
-	import DatePicker from '$lib/components/ui-custom/date-picker/date-picker.svelte';
+	import DonutChart from '$lib/components/charts/donut-chart.svelte';
 	import { Button } from '$lib/components/ui/button';
+	import * as Select from '$lib/components/ui/select';
 	import { Separator } from '$lib/components/ui/separator';
 	import * as Table from '$lib/components/ui/table';
 	import * as service from '$lib/service';
-	import type { FunctionReturns } from '$lib/types';
+	import type { FunctionReturns, LabelValue } from '$lib/types';
+	import * as Collapsible from '$lib/components/ui/collapsible';
 	import {
+		CalendarDate,
 		endOfMonth,
+		endOfYear,
 		getLocalTimeZone,
 		startOfMonth,
+		startOfYear,
 		today,
 		type DateValue
 	} from '@internationalized/date';
-	import { VisNestedDonut, VisSingleContainer } from '@unovis/svelte';
-	import type {
-		GenericAccessor,
-		NestedDonutLayerSettings,
-		NumericAccessor,
-		StringAccessor
-	} from '@unovis/ts';
 	import { Eye, EyeOff } from 'lucide-svelte';
 	import { supabase } from '../supabase-client';
 	import { currency_formatter } from './../lib/consts';
+	import DatePicker from '$lib/components/ui-custom/date-picker/date-picker.svelte';
+	import type { DonutDataPoint } from '$lib/components/charts/types';
 
-	let start_date: DateValue = startOfMonth(today(getLocalTimeZone()));
-	let end_date: DateValue = endOfMonth(today(getLocalTimeZone()));
+	const TODAY = today(getLocalTimeZone());
+
+	type Period = {
+		label: string;
+		value: {
+			start: CalendarDate;
+			end: CalendarDate;
+		};
+	};
+	let custom_period: Period = {
+		label: 'Custom',
+		value: {
+			start: startOfMonth(TODAY),
+			end: endOfMonth(TODAY)
+		}
+	};
+	$: console.log(custom_period);
+
+	const [year, month] = [TODAY.year, TODAY.month];
+	const available_periods: Period[] = [
+		{
+			label: 'This month',
+			value: {
+				start: startOfMonth(TODAY),
+				end: endOfMonth(TODAY)
+			}
+		},
+		{
+			label: 'Last month',
+			value: {
+				start: new CalendarDate(year, (month + 12 - 1) % 12, 1),
+				end: endOfMonth(new CalendarDate(year, (month + 12 - 1) % 12, 1))
+			}
+		},
+		{
+			label: 'This year',
+			value: {
+				start: startOfYear(TODAY),
+				end: endOfYear(TODAY)
+			}
+		},
+		{
+			label: 'Last year',
+			value: {
+				start: new CalendarDate(year - 1, 1, 1),
+				end: endOfYear(new CalendarDate(year - 1, 1, 1))
+			}
+		}
+	];
+
+	let period: Period = available_periods[0];
+	$: console.log(period);
 
 	let spendings_by_category: (FunctionReturns['spendings_by_category'][number] & {
 		hidden: boolean;
 	})[];
-	let diagram_data: FunctionReturns['spendings_by_category'];
+	let diagram_data: DonutDataPoint[];
+	// 	export type DonutDataPoint = {
+	//     label: string;
+	//     value: number;
+	//     backgroundColor: string;
+	//     hoverBackgroundColor: string;
+	// };
 
-	const update_statistics = (start_date: DateValue, end_date: DateValue) =>
-		service.get_spendings_by_category(start_date.toString(), end_date.toString()).then((data) => {
+	const iso_date = (date: DateValue): string => `${date.year}-${date.month}-${date.day}`;
+
+	const update_statistics = (start_date: CalendarDate, end_date: CalendarDate) =>
+		service.get_spendings_by_category(iso_date(start_date), iso_date(end_date)).then((data) => {
 			spendings_by_category = data.map((item) => ({ ...item, hidden: false }));
-			diagram_data = data;
+			diagram_data = data.map(({ category, total }) => ({
+				label: category,
+				value: total,
+				backgroundColor: '#FFFFFF44',
+				hoverBackgroundColor: '#FFFFFF88'
+			}));
 		});
-	$: update_statistics(start_date, end_date);
-
-	const layers: StringAccessor<FunctionReturns['spendings_by_category'][number]>[] = [
-		({ category }) => category
-	];
-
-	const value_accessor: NumericAccessor<FunctionReturns['spendings_by_category'][number]> = ({
-		total
-	}) => total;
-
-	const layerSettings: GenericAccessor<NestedDonutLayerSettings, number> = (d, i) => ({
-		backgroundColor: '#FFFFFF'
-	});
+	$: update_statistics(period.value.start, period.value.end);
 
 	let authenticated = false;
 	supabase.auth.onAuthStateChange((_, session) => {
@@ -75,9 +126,11 @@
 					<Table.Body>
 						{#each spendings_by_category as { category, total, hidden }}
 							<Table.Row>
-								<Table.Cell>{category}</Table.Cell>
-								<Table.Cell class="text-right">{currency_formatter.format(total)}</Table.Cell>
-								<Table.Cell class="w-2">
+								<Table.Cell class={hidden ? 'text-muted-foreground' : ''}>{category}</Table.Cell>
+								<Table.Cell class="text-right {hidden ? 'text-muted-foreground' : ''}"
+									>{currency_formatter.format(total)}</Table.Cell
+								>
+								<Table.Cell class="w-2 {hidden ? 'text-muted-foreground' : ''}">
 									<Button
 										size="icon"
 										variant="ghost"
@@ -85,7 +138,12 @@
 											hidden = !hidden;
 											diagram_data = spendings_by_category
 												.filter((category) => !category.hidden)
-												.map(({ category, total }) => ({ category, total }));
+												.map(({ category, total }) => ({
+													label: category,
+													value: total,
+													backgroundColor: '#FFFFFF44',
+													hoverBackgroundColor: '#FFFFFF88'
+												}));
 										}}
 									>
 										{#if hidden}
@@ -102,7 +160,10 @@
 							<Table.Cell class="font-bold">Total</Table.Cell>
 							<Table.Cell class="text-right font-bold">
 								{currency_formatter.format(
-									spendings_by_category.reduce((acc, { total }) => acc + total, 0)
+									spendings_by_category.reduce(
+										(acc, { hidden, total }) => (hidden ? acc : acc + total),
+										0
+									)
 								)}
 							</Table.Cell>
 						</Table.Row>
@@ -111,18 +172,39 @@
 			</div>
 			<div class="flex max-w-96 flex-1 flex-col gap-4">
 				<div class="flex flex-row gap-2">
-					<DatePicker
-						bind:value={start_date}
-						title="Start date"
-						placeholder={start_date}
-						class="flex-1"
-					></DatePicker>
-					<DatePicker bind:value={end_date} title="End date" placeholder={end_date} class="flex-1"
-					></DatePicker>
+					<Select.Root bind:selected={period}>
+						<Select.Trigger class="w-full">
+							<Select.Value placeholder="Period" />
+						</Select.Trigger>
+						<Select.Content>
+							{#each available_periods as { label, value }}
+								<Select.Item {value}>
+									{label}
+								</Select.Item>
+							{/each}
+							<Select.Item value={custom_period} on:click={() => void 0}>
+								<Collapsible.Root>
+									<Collapsible.Trigger class="pb-2">Custom</Collapsible.Trigger>
+									<Collapsible.Content class="flex gap-2">
+										<DatePicker
+											bind:value={custom_period.value.start}
+											title="Start date"
+											placeholder={TODAY}
+											class="flex-1"
+										></DatePicker>
+										<DatePicker
+											bind:value={custom_period.value.end}
+											title="End date"
+											placeholder={TODAY}
+											class="flex-1"
+										></DatePicker>
+									</Collapsible.Content>
+								</Collapsible.Root>
+							</Select.Item>
+						</Select.Content>
+					</Select.Root>
 				</div>
-				<VisSingleContainer data={diagram_data} class="aspect-square max-w-96 flex-1">
-					<VisNestedDonut {layers} {layerSettings} value={value_accessor} cornerRadius={10} />
-				</VisSingleContainer>
+				<DonutChart data={diagram_data} />
 			</div>
 		</div>
 	{/if}

@@ -60,14 +60,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "items_category_id_fkey"
+            foreignKeyName: "items_duplicate_category_id_fkey"
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "items_unit_id_fkey"
+            foreignKeyName: "items_duplicate_unit_id_fkey"
             columns: ["unit_id"]
             isOneToOne: false
             referencedRelation: "units"
@@ -115,17 +115,17 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "purchases_duplicate_item_id_fkey"
-            columns: ["item_id"]
-            isOneToOne: false
-            referencedRelation: "items"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "purchases_duplicate_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchases_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
             referencedColumns: ["id"]
           },
         ]
@@ -177,6 +177,38 @@ export type Database = {
         }
         Relationships: []
       }
+      details_by_item: {
+        Row: {
+          details: string[] | null
+          frequency: number | null
+          item_id: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchases_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quantity_by_item: {
+        Row: {
+          frequency: number | null
+          item_id: number | null
+          quantity: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchases_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       item_details: {
@@ -198,6 +230,17 @@ export type Database = {
         Returns: {
           category: string
           total: number
+        }[]
+      }
+      spendings_by_category_interval: {
+        Args: {
+          start_date: string
+          end_date: string
+          days_interval: number
+        }
+        Returns: {
+          date: string
+          result: Json
         }[]
       }
     }

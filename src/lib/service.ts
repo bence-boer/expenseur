@@ -178,6 +178,10 @@ export const get_spendings_by_category = async (start_date: string, end_date: st
     return get_function('spendings_by_category', { start_date, end_date });
 }
 
+export const get_spendings_by_category_interval = async (start_date: string, end_date: string, days_interval: number): Promise<FunctionReturns['spendings_by_category_interval']> => {
+    return get_function('spendings_by_category_interval', { start_date, end_date, days_interval });
+}
+
 export const get_brands = async (): Promise<Tables['brands']['Row'][]> => {
     return get_table('brands');
 }

@@ -27,9 +27,5 @@
 <div class="sm:container sm:py-10">
 	<h1 class="mb-4 text-2xl font-bold sm:text-4xl">Data</h1>
 	<Separator class="sm:mb-8" />
-	{#if purchases}
-		<DataTable data={purchases} {delete_item} />
-	{:else}
-		<Skeleton class="h-full w-full flex-1" />
-	{/if}
+	<DataTable data={purchases} {delete_item} loading={!purchases} />
 </div>

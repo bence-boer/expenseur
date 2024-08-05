@@ -154,7 +154,12 @@
 
 		if (purchases.some((purchase) => !purchase.item_id))
 			errors.push('Each purchase should have an item chosen!');
-		if (purchases.some((purchase) => !purchase.quantity))
+
+		if (
+			purchases.some(
+				(purchase) => (!purchase.quantity && purchase.quantity !== 0) || purchase.quantity < 0
+			)
+		)
 			errors.push('Each purchase should have a qunatity specified!');
 		if (purchases.some((purchase) => !purchase.price))
 			errors.push('Each purchase should have a price specified!');
@@ -205,6 +210,7 @@
 		bind:value={selected_store}
 		placeholder="Select store..."
 		create={create_store}
+		class="sm:w-48"
 	></ComboBox>
 	<DatePicker
 		bind:value={date}
@@ -226,6 +232,7 @@
 					placeholder="Select item..."
 					create={create_item}
 					on:change={update_item_detail}
+					class="sm:w-48"
 				></ComboBox>
 				<Button class="ml-2" size="icon" on:click={() => duplicate_row(index)} variant="ghost">
 					<Copy class="h-4 w-4 text-muted-foreground" />
@@ -240,6 +247,7 @@
 				bind:value={purchase.brand_id}
 				placeholder="Select brand..."
 				create={create_brand}
+				class="sm:w-48"
 			></ComboBox>
 			<div class="flex flex-row flex-nowrap gap-2">
 				<Input
@@ -272,7 +280,7 @@
 </ScrollArea>
 
 <div class="flex items-end justify-between">
-	<span class="text-muted-foreground">Total: {total}</span>
+	<span class="text-sm text-muted-foreground">Total: {total}</span>
 	<Button type="submit" class="w-24" on:click={handle_submit}>Submit</Button>
 </div>
 

@@ -8,21 +8,32 @@
 	import { Check, ChevronsUpDown } from 'lucide-svelte';
 	import { tick } from 'svelte';
 	import { createEventDispatcher } from 'svelte';
+	import { item } from '@unovis/ts/components/bullet-legend/style';
+
+	let clazz: string = '';
 
 	export let data: LabelValue[];
+	export let max_results: number = 10;
+	export { clazz as class };
+	export let value: LabelValue['value'] | undefined = undefined;
+	export let placeholder: string = 'Please select an option';
+	export let create: (label: string) => Promise<LabelValue['value']>;
+	export let disabled: boolean = false;
+
 	data ??= [];
 	let data_map: Map<LabelValue['value'], LabelValue>;
 	// TODO: more efficient update instead of recreating the map
 	$: data_map = new Map(data?.map((item) => [item.value, item]));
+	$: shown_results = data
+		.map((item) => ({ ...item, score: commandScore(item.label, search_expression ?? '') }))
+		.filter((item) => item.score)
+		.toSorted((a, b) => b.score - a.score)
+		.slice(0, max_results);
 
-	export let value: LabelValue['value'] | undefined = undefined;
 	let label_as_value_binded_to_form: string;
 	let selected: LabelValue | undefined = undefined;
 	let selected_changed: boolean = false;
-
-	export let placeholder: string = 'Please select an option';
-	export let create: (label: string) => Promise<LabelValue['value']>;
-	export let disabled: boolean = false;
+	$: if (value === undefined) search_expression = '';
 
 	$: {
 		if (selected_changed) {
@@ -56,7 +67,7 @@
 			role="combobox"
 			aria-expanded={open}
 			{disabled}
-			class={cn('w-full justify-between sm:w-48', !value && 'font-normal text-muted-foreground')}
+			class={cn('w-full justify-between', !value && 'font-normal text-muted-foreground', clazz)}
 		>
 			{selected?.label ?? placeholder}
 			<ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -66,14 +77,14 @@
 		<Command.Root
 			bind:value={label_as_value_binded_to_form}
 			aria-disabled={disabled}
-			filter={commandScore}
+			shouldFilter={false}
 		>
 			<Command.Input {placeholder} bind:value={search_expression} />
-			<Command.Empty class="py-2">
+			<Command.Empty class="pb-0 pt-2">
 				<div
-					class="relative flex w-full cursor-default select-none items-center justify-between gap-4 px-2 pl-8 text-sm aria-selected:bg-accent aria-selected:text-accent-foreground"
+					class="relative flex w-48 grow-0 cursor-default select-none items-center justify-between gap-4 pl-8 pr-2 text-sm aria-selected:bg-accent aria-selected:text-accent-foreground"
 				>
-					<span class="flex-initial overflow-ellipsis align-middle text-muted-foreground">
+					<span class="max-w-36 grow-0 overflow-ellipsis align-middle text-muted-foreground">
 						"{search_expression}"
 					</span>
 					<Button
@@ -100,7 +111,7 @@
 				</div>
 			</Command.Empty>
 			<Command.Group>
-				{#each data as item}
+				{#each shown_results as item}
 					<Command.Item
 						value={item.label}
 						onSelect={() => {

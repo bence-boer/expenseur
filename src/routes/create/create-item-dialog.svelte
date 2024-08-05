@@ -127,6 +127,7 @@
 					placeholder="Select category..."
 					create={create_category}
 					disabled={dialog_disabled}
+					class="col-span-3"
 				></ComboBox>
 			</div>
 			<div class="grid grid-cols-4 items-center gap-4">
@@ -137,6 +138,7 @@
 					placeholder="Select unit..."
 					create={create_unit}
 					disabled={dialog_disabled}
+					class="col-span-3"
 				></ComboBox>
 			</div>
 		</div>
