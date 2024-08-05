@@ -10,7 +10,6 @@
 	const format_set = new Set(Object.keys(data[0] ?? {}));
 	format_set.delete('x');
 	const formats = [...format_set];
-	console.log('formats', formats);
 
 	type Label = {
 		label: string;

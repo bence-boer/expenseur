@@ -33,9 +33,8 @@
 		acc.datasets[0].data.push(value);
 		(acc.datasets[0].backgroundColor as string[]).push(backgroundColor);
 		(acc.datasets[0].hoverBackgroundColor as string[]).push(hoverBackgroundColor);
-		acc.datasets[0].animations = {};
 		return acc;
-	}, donut_default);
+	}, structuredClone(donut_default));
 
 	ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale);
 </script>

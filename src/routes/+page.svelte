@@ -39,7 +39,6 @@
 			end: endOfMonth(TODAY)
 		}
 	};
-	$: console.log(custom_period);
 
 	const [year, month] = [TODAY.year, TODAY.month];
 	const available_periods: Period[] = [
@@ -74,29 +73,22 @@
 	];
 
 	let period: Period = available_periods[0];
-	$: console.log(period);
 
 	let spendings_by_category: (FunctionReturns['spendings_by_category'][number] & {
 		hidden: boolean;
 	})[];
 	let diagram_data: DonutDataPoint[];
-	// 	export type DonutDataPoint = {
-	//     label: string;
-	//     value: number;
-	//     backgroundColor: string;
-	//     hoverBackgroundColor: string;
-	// };
 
 	const iso_date = (date: DateValue): string => `${date.year}-${date.month}-${date.day}`;
 
 	const update_statistics = (start_date: CalendarDate, end_date: CalendarDate) =>
 		service.get_spendings_by_category(iso_date(start_date), iso_date(end_date)).then((data) => {
 			spendings_by_category = data.map((item) => ({ ...item, hidden: false }));
-			diagram_data = data.map(({ category, total }) => ({
+			diagram_data = data.map(({ category, total, color }) => ({
 				label: category,
 				value: total,
-				backgroundColor: '#FFFFFF44',
-				hoverBackgroundColor: '#FFFFFF88'
+				backgroundColor: color,
+				hoverBackgroundColor: '#FFFFFF'
 			}));
 		});
 	$: update_statistics(period.value.start, period.value.end);
@@ -138,11 +130,11 @@
 											hidden = !hidden;
 											diagram_data = spendings_by_category
 												.filter((category) => !category.hidden)
-												.map(({ category, total }) => ({
+												.map(({ category, total, color }) => ({
 													label: category,
 													value: total,
-													backgroundColor: '#FFFFFF44',
-													hoverBackgroundColor: '#FFFFFF88'
+													backgroundColor: color,
+													hoverBackgroundColor: '#FFFFFF'
 												}));
 										}}
 									>

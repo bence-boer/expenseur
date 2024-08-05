@@ -26,14 +26,17 @@ export type Database = {
       }
       categories: {
         Row: {
+          color: string
           id: number
           name: string
         }
         Insert: {
+          color?: string
           id?: number
           name: string
         }
         Update: {
+          color?: string
           id?: number
           name?: string
         }
@@ -230,6 +233,7 @@ export type Database = {
         Returns: {
           category: string
           total: number
+          color: string
         }[]
       }
       spendings_by_category_interval: {
