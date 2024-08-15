@@ -8,7 +8,6 @@
 	import { Check, ChevronsUpDown } from 'lucide-svelte';
 	import { tick } from 'svelte';
 	import { createEventDispatcher } from 'svelte';
-	import { item } from '@unovis/ts/components/bullet-legend/style';
 
 	let clazz: string = '';
 

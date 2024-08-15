@@ -108,7 +108,12 @@ function commandScoreInner(string: string, abbreviation: string, lowerString: st
 }
 function formatInput(string: string) {
     // convert all valid space characters to space so they match each other
-    return string.toLowerCase().replace(COUNT_SPACE_REGEXP, ' ');
+    // replace all diacritics with their base character
+    return string
+        .toLowerCase()
+        .replace(COUNT_SPACE_REGEXP, ' ')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
 }
 export function commandScore(string: string, abbreviation: string) {
     /* NOTE:

@@ -1,4 +1,6 @@
-import { DateFormatter } from "@internationalized/date";
+import { DateFormatter, getLocalTimeZone, today } from "@internationalized/date";
+
+export const TODAY = today(getLocalTimeZone());
 
 export const currency_formatter = new Intl.NumberFormat('hu-HU', {
     style: 'currency',
