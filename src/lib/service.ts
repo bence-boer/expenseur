@@ -86,8 +86,8 @@ const get_view = async <View extends keyof Views>(view: View, parameters: QueryP
                 request = request.eq(by, value);
                 break;
             }
-            if (min) request = request.gt(by, min);
-            if (max) request = request.lt(by, max);
+            if (min) request = request.gte(by, min);
+            if (max) request = request.lte(by, max);
         }
     }
 

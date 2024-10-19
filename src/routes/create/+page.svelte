@@ -185,10 +185,12 @@
 		service
 			.create_purchases(data)
 			.then((data) => {
+				const sum = total;
 				purchases = [empty_purchase()];
 				date = undefined;
 				selected_store = undefined;
-				toast.success(`Purchase registered successfully!\n(${data.length} entries registered)`);
+
+				toast.success(`Purchase of ${sum} registered successfully!`);
 			})
 			.catch((error) => {
 				toast.error(error.message);
