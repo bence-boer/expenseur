@@ -1,10 +1,7 @@
 import * as service from "$lib/service";
-import { supabase } from "../../supabase-client";
 import type { PageLoad } from "./$types";
 
 export const load: PageLoad = async () => {
-    if (supabase.auth.getSession() === null) return {};
-
     const [
         brands,
         categories,
@@ -21,3 +18,5 @@ export const load: PageLoad = async () => {
 
     return { brands, categories, stores, units, items };
 };
+
+export const prerender = false;

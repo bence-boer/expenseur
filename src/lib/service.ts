@@ -10,7 +10,8 @@ import type { SpendingsInInterval } from "./DTO";
 const cache: ServiceCache = memory_cache;
 console.log('Using cache:', cache.name);
 
-const user: User = (await supabase.auth.getUser()).data.user!;
+
+const user_promise: Promise<User> = supabase.auth.getUser().then(response => response.data.user!);
 
 
 /*
@@ -73,6 +74,7 @@ const get_view = async <View extends keyof Views>(view: View, parameters: QueryP
     const cached_data = cache.get<Views[View]['Row'][]>(cache_key);
     if (cached_data) return Promise.resolve(cached_data);
 
+    const user: User = await user_promise;
     let request = supabase
         .from(view)
         .select()
@@ -111,10 +113,11 @@ const get_table = async <Table extends keyof Tables>(table: Table): Promise<Tabl
     const cached_data = cache.get<Tables[Table]['Row'][]>(cache_key);
     if (cached_data) return Promise.resolve(cached_data);
 
+    const user: User = await user_promise;
     return supabase
         .from(table)
         .select()
-        .eq('user_id', user?.id ?? 0)
+        .eq('user_id', user?.id)
         .then(({ data, error }: { data: unknown, error: unknown }) => {
             if (error) {
                 console.error(error);
