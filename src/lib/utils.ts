@@ -4,6 +4,7 @@ import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
 import type { LabelValue } from "./types";
 import type Color from "colorjs.io";
+import { date_formatter } from "./consts";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -103,4 +104,9 @@ export const color_triangle = (
 	arr_c_a.pop();
 
 	return [...arr_a_b, ...arr_b_c, ...arr_c_a];
+}
+
+export const format_date = (date: Date | string): string => {
+	if (typeof date === 'string') date = new Date(date);
+	return date_formatter.format(date);
 }

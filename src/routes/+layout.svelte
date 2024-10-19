@@ -6,6 +6,7 @@
 	import { supabase } from '../supabase-client';
 
 	$: route = $page.url.pathname.split('/').filter(Boolean).pop() || '/';
+	const unauthenticated_routes = ['login', 'register'];
 
 	let loading_text = 'Loading...';
 	const loading_text_interval = setInterval(() => {
@@ -26,7 +27,7 @@
 	<Navbar bind:authenticated bind:route />
 
 	<div class="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-4 sm:container md:px-8">
-		{#if authenticated || route === 'login'}
+		{#if authenticated || unauthenticated_routes.includes(route)}
 			<slot></slot>
 		{:else if !loaded}
 			<div class="flex h-full flex-col">

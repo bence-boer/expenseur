@@ -1,12 +1,16 @@
+import type { User } from "@supabase/supabase-js";
 import { supabase } from "../supabase-client";
-import { memory_cache, session_storage_cache } from "./cache";
+import { memory_cache } from "./cache";
 import type { FunctionName, FunctionParameters, FunctionReturns, QueryParameters, ServiceCache, Tables, Views } from "./types";
-import { browser } from '$app/environment';
+import type { CalendarDate } from "@internationalized/date";
+import type { SpendingsInInterval } from "./DTO";
 
 // import type { PostgrestSingleResponse } from '@supabase/supabase-js'
 
-const cache: ServiceCache = browser ? session_storage_cache : memory_cache;
+const cache: ServiceCache = memory_cache;
 console.log('Using cache:', cache.name);
+
+const user: User = (await supabase.auth.getUser()).data.user!;
 
 
 /*
@@ -71,7 +75,19 @@ const get_view = async <View extends keyof Views>(view: View, parameters: QueryP
 
     let request = supabase
         .from(view)
-        .select('*');
+        .select()
+        .eq('user_id', user.id);
+
+    if (parameters?.filter?.length) {
+        for (const { by, value, min, max } of parameters.filter) {
+            if (value) {
+                request = request.eq(by, value);
+                break;
+            }
+            if (min) request = request.gt(by, min);
+            if (max) request = request.lt(by, max);
+        }
+    }
 
     if (parameters?.order?.length) {
         for (const { by, direction } of parameters.order) {
@@ -97,7 +113,8 @@ const get_table = async <Table extends keyof Tables>(table: Table): Promise<Tabl
 
     return supabase
         .from(table)
-        .select('*')
+        .select()
+        .eq('user_id', user?.id ?? 0)
         .then(({ data, error }: { data: unknown, error: unknown }) => {
             if (error) {
                 console.error(error);
@@ -118,7 +135,7 @@ const create_single = async <Table extends keyof Tables>(
     return supabase
         .from(table)
         .insert(data as never)
-        .select('*')
+        .select()
         .single()
         .then(({ data, error }: { data: unknown, error: unknown }) => {
             if (error) {
@@ -178,8 +195,8 @@ export const get_spendings_by_category = async (start_date: string, end_date: st
     return get_function('spendings_by_category', { start_date, end_date });
 }
 
-export const get_spendings_by_category_interval = async (start_date: string, end_date: string, days_interval: number): Promise<FunctionReturns['spendings_by_category_interval']> => {
-    return get_function('spendings_by_category_interval', { start_date, end_date, days_interval });
+export const get_spendings_by_category_interval = async (start_date: string, end_date: string, days_interval: number): Promise<SpendingsInInterval> => {
+    return get_function('spendings_by_category_interval', { start_date, end_date, days_interval }) as Promise<SpendingsInInterval>;
 }
 
 export const get_brands = async (): Promise<Tables['brands']['Row'][]> => {
@@ -230,8 +247,9 @@ export const delete_purchase = async (purchase_id: number) => {
     return delete_single('purchases', purchase_id);
 }
 
-export const get_detailed_purchases = async (): Promise<Views['all_tables_view']['Row'][]> => {
+export const get_detailed_purchases = async (start_date: CalendarDate, end_date: CalendarDate): Promise<Views['all_tables_view']['Row'][]> => {
     return get_view('all_tables_view', {
+        filter: [{ by: 'date', min: start_date.toString(), max: end_date.toString() }],
         order: [{ by: 'date', direction: 'descending' }]
     });
 }

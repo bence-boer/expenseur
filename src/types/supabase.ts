@@ -13,14 +13,17 @@ export type Database = {
         Row: {
           id: number
           name: string
+          user_id: string
         }
         Insert: {
           id?: number
           name: string
+          user_id?: string
         }
         Update: {
           id?: number
           name?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -29,16 +32,19 @@ export type Database = {
           color: string
           id: number
           name: string
+          user_id: string
         }
         Insert: {
           color?: string
           id?: number
           name: string
+          user_id?: string
         }
         Update: {
           color?: string
           id?: number
           name?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -48,18 +54,21 @@ export type Database = {
           id: number
           name: string
           unit_id: number
+          user_id: string
         }
         Insert: {
           category_id: number
           id?: number
           name: string
           unit_id: number
+          user_id?: string
         }
         Update: {
           category_id?: number
           id?: number
           name?: string
           unit_id?: number
+          user_id?: string
         }
         Relationships: [
           {
@@ -88,6 +97,7 @@ export type Database = {
           price: number
           quantity: number
           store_id: number
+          user_id: string
         }
         Insert: {
           brand_id?: number | null
@@ -98,6 +108,7 @@ export type Database = {
           price: number
           quantity: number
           store_id: number
+          user_id?: string
         }
         Update: {
           brand_id?: number | null
@@ -108,6 +119,7 @@ export type Database = {
           price?: number
           quantity?: number
           store_id?: number
+          user_id?: string
         }
         Relationships: [
           {
@@ -137,14 +149,17 @@ export type Database = {
         Row: {
           id: number
           name: string
+          user_id: string
         }
         Insert: {
           id?: number
           name: string
+          user_id?: string
         }
         Update: {
           id?: number
           name?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -152,14 +167,17 @@ export type Database = {
         Row: {
           id: number
           name: string
+          user_id: string
         }
         Insert: {
           id?: number
           name: string
+          user_id?: string
         }
         Update: {
           id?: number
           name?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -177,6 +195,7 @@ export type Database = {
           quantity: number | null
           store: string | null
           unit: string | null
+          user_id: string | null
         }
         Relationships: []
       }
@@ -242,10 +261,7 @@ export type Database = {
           end_date: string
           days_interval: number
         }
-        Returns: {
-          date: string
-          result: Json
-        }[]
+        Returns: Json
       }
     }
     Enums: {
@@ -337,4 +353,19 @@ export type Enums<
   ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
     ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof PublicSchema["CompositeTypes"]
+    | { schema: keyof Database },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
+    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never

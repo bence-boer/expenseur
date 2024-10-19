@@ -24,6 +24,11 @@ export type ServiceCache = {
 }
 
 export type QueryParameters<View extends keyof Views> = {
+    filter?: ({ by: keyof Views[View]['Row'] extends string ? keyof Views[View]['Row'] : never } & (
+        | { value: string, min?: never, max?: never }
+        | { value?: never, min: string, max?: string }
+        | { value?: never, min?: string, max: string }
+    ))[],
     order?: {
         by: keyof Views[View]['Row'] extends string ? keyof Views[View]['Row'] : never;
         direction: 'ascending' | 'descending';

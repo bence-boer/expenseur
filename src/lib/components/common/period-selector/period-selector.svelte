@@ -6,7 +6,11 @@
 	import { CalendarDate } from '@internationalized/date';
 	import { periods } from './consts';
 	import type { Period, PeriodWithLabel } from './types';
+	import { cn } from '$lib/utils';
 
+	let clazz: string = '';
+	export let select: (period: Period) => void;
+	export { clazz as class };
 	let selected: PeriodWithLabel;
 
 	const empty_period = (): Period => ({
@@ -19,7 +23,6 @@
 		value: empty_period()
 	};
 
-	export let select: (period: Period) => void;
 	$: if (
 		selected?.label === custom_period.label &&
 		custom_period.value.start &&
@@ -30,7 +33,7 @@
 </script>
 
 <Select.Root bind:selected>
-	<Select.Trigger class="flex-1">
+	<Select.Trigger class={cn('flex-1', clazz)}>
 		<Select.Value placeholder="Period" />
 	</Select.Trigger>
 	<Select.Content>

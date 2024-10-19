@@ -25,7 +25,7 @@
 	export let data: Views['all_tables_view']['Row'][];
 	export let loading: boolean = false;
 	export let skeleton_rows: number = 8;
-	export let columns_default: ColumnOptions;
+	export let columns_default: ColumnOptions = {} as ColumnOptions;
 	export let delete_item: ((id: number) => Promise<void>) | ((id: string) => Promise<void>);
 
 	$: columns_default = { ...default_columns_default, ...columns_default };

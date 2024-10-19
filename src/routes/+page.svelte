@@ -12,25 +12,27 @@
 	import * as service from '$lib/service';
 	import type { FunctionReturns } from '$lib/types';
 	import { CalendarDate, type DateValue } from '@internationalized/date';
-	import { Eye, EyeOff } from 'lucide-svelte';
+	import { ChevronDown, ChevronUp, Eye, EyeOff } from 'lucide-svelte';
 	import { supabase } from '../supabase-client';
 	import { currency_formatter } from './../lib/consts';
+	import { cn } from '$lib/utils';
+	import * as Collapsible from '$lib/components/ui/collapsible';
 
 	let period: Period = default_period.value;
 	const select_period = (value: Period) => {
 		period = value;
-		console.log(value);
 	};
 
 	let spendings_by_category: (FunctionReturns['spendings_by_category'][number] & {
 		hidden: boolean;
+		open: boolean;
 	})[];
 	let diagram_data: DonutDataPoint[];
 	$: total_spendings = spendings_by_category?.reduce((acc, { total }) => acc + total, 0) ?? 0;
 
 	const update_statistics = (start_date: CalendarDate, end_date: CalendarDate) =>
 		service.get_spendings_by_category(start_date.toString(), end_date.toString()).then((data) => {
-			spendings_by_category = data.map((item) => ({ ...item, hidden: false }));
+			spendings_by_category = data.map((item) => ({ ...item, hidden: false, open: false }));
 			diagram_data = data.map(({ category, total, color }) => ({
 				label: category,
 				value: total,
@@ -63,9 +65,22 @@
 						</Table.Row>
 					</Table.Header>
 					<Table.Body>
-						{#each spendings_by_category as { category, total, hidden }}
+						{#each spendings_by_category as { category, total, hidden, open }}
 							<Table.Row>
-								<Table.Cell class={hidden ? 'text-muted-foreground' : ''}>{category}</Table.Cell>
+								<Table.Cell class={cn(hidden ? 'text-muted-foreground' : '')}>
+									<div class="flex-row whitespace-nowrap">
+										<span>
+											{#if open}
+												<ChevronUp size="1em" />
+											{:else}
+												<ChevronDown size="1em" />
+											{/if}
+										</span>
+										<span>
+											{category}
+										</span>
+									</div>
+								</Table.Cell>
 								<Table.Cell class="text-right {hidden ? 'text-muted-foreground' : ''}"
 									>{currency_formatter.format(total)}</Table.Cell
 								>
