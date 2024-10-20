@@ -3,6 +3,7 @@ export type DonutDataPoint = {
     value: number;
     backgroundColor: string;
     hoverBackgroundColor: string;
+    hidden?: boolean;
 };
 
 export type LineChartData = {
@@ -13,5 +14,6 @@ export type LineChartData = {
 export type SingleDataSeries = {
     label: string;
     color: string;
+    hidden?: boolean;
     values: number[];
 };

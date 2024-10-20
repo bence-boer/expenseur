@@ -68,17 +68,13 @@
 						{#each spendings_by_category as { category, total, hidden, open }}
 							<Table.Row>
 								<Table.Cell class={cn(hidden ? 'text-muted-foreground' : '')}>
-									<div class="flex-row whitespace-nowrap">
-										<span>
-											{#if open}
-												<ChevronUp size="1em" />
-											{:else}
-												<ChevronDown size="1em" />
-											{/if}
-										</span>
-										<span>
-											{category}
-										</span>
+									<div class="flex flex-row flex-nowrap items-center gap-2">
+										{#if open}
+											<ChevronUp size="1em" />
+										{:else}
+											<ChevronDown size="1em" />
+										{/if}
+										{category}
 									</div>
 								</Table.Cell>
 								<Table.Cell class="text-right {hidden ? 'text-muted-foreground' : ''}"
@@ -90,14 +86,13 @@
 										variant="ghost"
 										on:click={() => {
 											hidden = !hidden;
-											diagram_data = spendings_by_category
-												.filter((category) => !category.hidden)
-												.map(({ category, total, color }) => ({
-													label: category,
-													value: total,
-													backgroundColor: color,
-													hoverBackgroundColor: '#FFFFFF'
-												}));
+											diagram_data = spendings_by_category.map(({ category, total, color }) => ({
+												label: category,
+												value: total,
+												backgroundColor: color,
+												hoverBackgroundColor: '#FFFFFF',
+												hidden
+											}));
 										}}
 									>
 										{#if hidden}

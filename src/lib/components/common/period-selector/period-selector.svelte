@@ -18,6 +18,7 @@
 		end: undefined as any as CalendarDate
 	});
 
+	// TODO: implement custom period selection
 	let custom_period: PeriodWithLabel = {
 		label: 'Custom',
 		value: empty_period()
