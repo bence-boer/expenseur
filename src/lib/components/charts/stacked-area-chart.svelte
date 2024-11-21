@@ -23,28 +23,30 @@
 	let chart_data: Line['$$prop_def']['data'];
 	$: chart_data = {
 		labels: data.column_labels,
-		datasets: data.lines.map((line) => ({
-			label: line.label,
-			data: line.values,
-			fill: 'origin',
-			hidden: line.hidden,
-			backgroundColor: line.color,
-			borderColor: line.color,
-			borderCapStyle: 'butt',
-			borderDash: [],
-			borderDashOffset: 0.0,
-			borderJoinStyle: 'miter',
-			lineTension: 0.3,
-			pointBorderColor: line.color,
-			pointBackgroundColor: line.color,
-			pointBorderWidth: 0,
-			pointHoverRadius: 5,
-			pointHoverBackgroundColor: '#000000',
-			pointHoverBorderColor: 'rgba(220, 220, 220,1)',
-			pointHoverBorderWidth: 2,
-			pointRadius: 1,
-			pointHitRadius: 10
-		}))
+		datasets: data.lines
+			.toSorted((a, b) => Math.max(...a.values) - Math.max(...b.values))
+			.map((line) => ({
+				label: line.label,
+				data: line.values,
+				fill: 'origin',
+				hidden: line.hidden,
+				backgroundColor: line.color,
+				borderColor: line.color,
+				borderCapStyle: 'butt',
+				borderDash: [],
+				borderDashOffset: 0.0,
+				borderJoinStyle: 'miter',
+				lineTension: 0.3,
+				pointBorderColor: line.color,
+				pointBackgroundColor: line.color,
+				pointBorderWidth: 0,
+				pointHoverRadius: 5,
+				pointHoverBackgroundColor: '#000000',
+				pointHoverBorderColor: 'rgba(220, 220, 220,1)',
+				pointHoverBorderWidth: 2,
+				pointRadius: 1,
+				pointHitRadius: 10
+			}))
 	};
 
 	const options: Line['$$prop_def']['options'] = {
