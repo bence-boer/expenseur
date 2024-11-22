@@ -23,15 +23,24 @@
 	let data_map: Map<LabelValue['value'], LabelValue>;
 	// TODO: more efficient update instead of recreating the map
 	$: data_map = new Map(data?.map((item) => [item.value, item]));
-	$: shown_results = data
-		.map((item) => ({ ...item, score: commandScore(item.label, search_expression ?? '') }))
-		.filter((item) => item.score)
-		.toSorted((a, b) => b.score - a.score)
-		.slice(0, max_results);
+
+	let shown_results: (LabelValue & { score: number })[] = [];
+	$: {
+		const search = search_expression?.trim() ?? '';
+		shown_results = data
+			.map((item) => ({ ...item, score: commandScore(item.label, search ?? '') }))
+			.filter((item) => item.score)
+			.toSorted((a, b) => b.score - a.score)
+			.slice(0, max_results);
+	}
 
 	let label_as_value_binded_to_form: string;
 	let selected: LabelValue | undefined = undefined;
 	let selected_changed: boolean = false;
+
+	let search_expression: string;
+	let open: boolean = false;
+
 	$: if (value === undefined) search_expression = '';
 
 	$: {
@@ -44,10 +53,6 @@
 			label_as_value_binded_to_form = selected?.label ?? '';
 		}
 	}
-
-	let search_expression: string;
-
-	let open: boolean = false;
 
 	const dispatch = createEventDispatcher();
 	const dispatch_change_event = (value: LabelValue['value']) => dispatch('change', { value });
