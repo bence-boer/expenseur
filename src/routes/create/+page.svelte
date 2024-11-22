@@ -87,6 +87,7 @@
 			.create_store(label)
 			.then((store) => {
 				selectable_stores = [...selectable_stores, { label, value: store.id }];
+				toast.success(`Store "${label}" created successfully!`);
 				return store.id;
 			})
 			.catch((error) => {
@@ -109,6 +110,7 @@
 			on_item_created = (item_id: number) => {
 				if (item_id) selectable_items = [...selectable_items, { label, value: item_id }];
 				// TODO: refresh units and items
+				toast.success(`Item "${label}" created successfully!`);
 				resolve(item_id);
 			};
 		});
@@ -125,6 +127,7 @@
 			.create_brand(label)
 			.then((brand) => {
 				selectable_brands = [...selectable_brands, { label, value: brand.id }];
+				toast.success(`Brand "${label}" created successfully!`);
 				return brand.id;
 			})
 			.catch((error) => {
