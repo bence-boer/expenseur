@@ -133,12 +133,15 @@
 			});
 	};
 
-	const duplicate_row = (index: number) =>
-		(purchases = [
+	const duplicate_item = (index: number) => {
+		purchases = [
 			...purchases.slice(0, index + 1),
 			structuredClone(purchases[index]),
 			...purchases.slice(index + 1)
-		]);
+		];
+		const message: string = `Item ${selectable_items.find((item) => item.value === purchases[index].item_id)?.label ?? ''} duplicated!`;
+		toast.success(message);
+	};
 
 	const delete_row = (index: number) =>
 		(purchases = [...purchases.slice(0, index), ...purchases.slice(index + 1)]);
@@ -236,7 +239,7 @@
 					on:change={update_item_detail}
 					class="sm:w-48"
 				></ComboBox>
-				<Button class="ml-2" size="icon" on:click={() => duplicate_row(index)} variant="ghost">
+				<Button class="ml-2" size="icon" on:click={() => duplicate_item(index)} variant="ghost">
 					<Copy class="h-4 w-4 text-muted-foreground" />
 				</Button>
 				<Button size="icon" on:click={() => delete_row(index)} variant="ghost">
