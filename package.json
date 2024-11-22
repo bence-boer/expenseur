@@ -5,7 +5,10 @@
 	"scripts": {
 		"dev": "vite dev",
 		"generate-types": "npx supabase gen types --lang=typescript --project-id \"atmchajrexboccdgntma\" --schema public > src/types/supabase.ts",
+		"clean": "rimraf build",
+		"prebuild": "npm run clean",
 		"build": "vite build",
+		"release": "npm run build && firebase deploy",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
