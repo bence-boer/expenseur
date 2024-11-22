@@ -23,7 +23,7 @@
 	let spendings_by_category: (FunctionReturns['spendings_by_category'][number] & {
 		hidden: boolean;
 		open: boolean;
-	})[];
+	})[] = [];
 	let diagram_data: DonutDataPoint[];
 	$: total_spendings = spendings_by_category?.reduce((acc, { total }) => acc + total, 0) ?? 0;
 
@@ -51,70 +51,74 @@
 	<h1 class="text-2xl font-bold sm:text-4xl">Dashboard</h1>
 	<Separator class="mb-4 sm:mb-8" />
 
-	<div class="flex flex-row justify-center gap-2 max-sm:flex-wrap-reverse sm:gap-8">
+	<div class="flex flex-row justify-center gap-2 max-sm:flex-col-reverse sm:gap-8">
 		<div class="flex flex-1 flex-col gap-2 sm:max-w-64">
-			{#if spendings_by_category}
-				<Table.Root class="sm:w-64">
-					<Table.Caption>Spread of spendings by category</Table.Caption>
-					<Table.Header>
-						<Table.Row>
-							<Table.Head>Category</Table.Head>
-							<Table.Head class="text-right">Amount</Table.Head>
-							<Table.Head class="w-auto"></Table.Head>
-						</Table.Row>
-					</Table.Header>
-					<Table.Body>
-						{#each spendings_by_category as { category, total, hidden, open }}
-							<Table.Row>
-								<Table.Cell class={cn(hidden ? 'text-muted-foreground' : '')}>
-									<div class="flex flex-row flex-nowrap items-center gap-2">
-										{#if open}
-											<ChevronUp size="1em" />
-										{:else}
-											<ChevronDown size="1em" />
-										{/if}
-										{category}
-									</div>
-								</Table.Cell>
-								<Table.Cell class="text-right {hidden ? 'text-muted-foreground' : ''}"
-									>{currency_formatter.format(total)}</Table.Cell
+			<Table.Root class="sm:w-64">
+				<Table.Caption>Spread of spendings by category</Table.Caption>
+				<Table.Header>
+					<Table.Row>
+						<Table.Head>Category</Table.Head>
+						<Table.Head class="text-right">Amount</Table.Head>
+						<Table.Head class="w-[28.68px] p-0"></Table.Head>
+					</Table.Row>
+				</Table.Header>
+				<Table.Body>
+					{#each spendings_by_category as { category, total, hidden, open }}
+						<Table.Row class={hidden ? 'text-muted-foreground' : ''}>
+							<Table.Cell>
+								<div class="flex flex-row flex-nowrap items-center gap-2">
+									{#if open}
+										<ChevronUp size="1em" />
+									{:else}
+										<ChevronDown size="1em" />
+									{/if}
+									{category}
+								</div>
+							</Table.Cell>
+							<Table.Cell class="text-right">
+								{currency_formatter.format(total)}
+							</Table.Cell>
+							<Table.Cell class="h-12 w-12 p-0 text-center">
+								<Button
+									size="icon"
+									variant="ghost"
+									on:click={() => {
+										hidden = !hidden;
+										diagram_data = spendings_by_category.map(({ category, total, color }) => ({
+											label: category,
+											value: total,
+											backgroundColor: color,
+											hoverBackgroundColor: '#FFFFFF',
+											hidden
+										}));
+									}}
 								>
-								<Table.Cell class="w-2 {hidden ? 'text-muted-foreground' : ''}">
-									<Button
-										size="icon"
-										variant="ghost"
-										on:click={() => {
-											hidden = !hidden;
-											diagram_data = spendings_by_category.map(({ category, total, color }) => ({
-												label: category,
-												value: total,
-												backgroundColor: color,
-												hoverBackgroundColor: '#FFFFFF',
-												hidden
-											}));
-										}}
-									>
-										{#if hidden}
-											<EyeOff size="1em" />
-										{:else}
-											<Eye size="1em" />
-										{/if}
-									</Button>
+									{#if hidden}
+										<EyeOff size="1em" />
+									{:else}
+										<Eye size="1em" />
+									{/if}
+								</Button>
+							</Table.Cell>
+						</Table.Row>
+					{:else}
+						{#each Array(6) as _}
+							<Table.Row>
+								<Table.Cell class="w-full" colspan={3}>
+									<Skeleton class="h-4 m-2" />
 								</Table.Cell>
 							</Table.Row>
 						{/each}
+					{/each}
 
-						<Table.Row>
-							<Table.Cell class="font-bold">Total</Table.Cell>
-							<Table.Cell class="text-right font-bold">
-								{currency_formatter.format(total_spendings)}
-							</Table.Cell>
-						</Table.Row>
-					</Table.Body>
-				</Table.Root>
-			{:else}
-				<Skeleton class="h-full sm:w-64" />
-			{/if}
+					<Table.Row>
+						<Table.Cell class="font-bold">Total</Table.Cell>
+						<Table.Cell class="text-right font-bold">
+							{currency_formatter.format(total_spendings)}
+						</Table.Cell>
+					</Table.Row>
+				</Table.Body>
+			</Table.Root>
 		</div>
 		<div class="flex max-w-96 flex-1 flex-col gap-4">
 			<div class="flex flex-row gap-4">
@@ -124,10 +128,13 @@
 					{currency_formatter.format(total_spendings)}
 				</p>
 			</div>
-			{#if spendings_by_category}
+			{#if spendings_by_category.length}
 				<DonutChart data={diagram_data} />
 			{:else}
-				<Skeleton class="h-96" />
+				<div class="flex aspect-square w-full flex-col gap-4 px-4">
+					<Skeleton class="h-12" />
+					<Skeleton class="h-60" />
+				</div>
 			{/if}
 		</div>
 	</div>
