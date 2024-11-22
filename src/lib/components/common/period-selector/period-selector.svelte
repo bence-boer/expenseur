@@ -4,14 +4,15 @@
 	import * as Select from '$lib/components/ui/select';
 	import { TODAY } from '$lib/consts';
 	import { CalendarDate } from '@internationalized/date';
-	import { periods } from './consts';
+	import { default_period, periods } from './consts';
 	import type { Period, PeriodWithLabel } from './types';
 	import { cn } from '$lib/utils';
 
 	let clazz: string = '';
-	export let select: (period: Period) => void;
 	export { clazz as class };
-	let selected: PeriodWithLabel;
+	export let select: (period: Period) => void;
+
+	let selected: PeriodWithLabel = default_period;
 
 	const empty_period = (): Period => ({
 		start: undefined as any as CalendarDate,
@@ -24,13 +25,7 @@
 		value: empty_period()
 	};
 
-	$: if (
-		selected?.label === custom_period.label &&
-		custom_period.value.start &&
-		custom_period.value.end
-	) {
-		select(custom_period.value);
-	}
+	$: if (selected.value.start && selected.value.end) select(selected.value);
 </script>
 
 <Select.Root bind:selected>

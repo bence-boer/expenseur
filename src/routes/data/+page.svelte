@@ -1,9 +1,5 @@
 <script lang="ts">
-	import {
-		default_period,
-		PeriodSelector,
-		type Period
-	} from '$lib/components/common/period-selector';
+	import { PeriodSelector, type Period } from '$lib/components/common/period-selector';
 	import DataTable from '$lib/components/ui-custom/data-table';
 	import { Separator } from '$lib/components/ui/separator';
 	import * as service from '$lib/service';
@@ -22,8 +18,9 @@
 			});
 	};
 
-	let period: Period = default_period.value;
-	const select_period = (value: Period) => {
+	let period: Period;
+
+	const select_period = (value: Period): void => {
 		period = value;
 	};
 
@@ -35,8 +32,8 @@
 </script>
 
 <div class="sm:container sm:py-10">
-	<h1 class="mb-4 flex justify-between text-2xl font-bold sm:text-4xl">
-		<span>Data</span>
+	<h1 class="mb-4 flex justify-between">
+		<span class="text-2xl font-bold sm:text-4xl">Data</span>
 		<PeriodSelector select={select_period} class="max-w-36" />
 	</h1>
 	<Separator class="sm:mb-8" />
