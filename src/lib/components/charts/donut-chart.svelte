@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { Doughnut } from 'svelte-chartjs';
-
 	import {
+		DoughnutController,
 		Chart as ChartJS,
 		Title,
 		Tooltip,
@@ -12,6 +11,14 @@
 	} from 'chart.js';
 	import type { DonutDataPoint } from './types';
 
+	ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale, DoughnutController);
+
+	export let data: DonutDataPoint[];
+
+	let canvas: HTMLCanvasElement;
+	let chart: ChartJS;
+	let chart_data: ChartData<'doughnut', number[], string>;
+
 	const donut_default: ChartData<'doughnut', number[], string> = {
 		labels: [],
 		datasets: [
@@ -19,16 +26,15 @@
 				data: [],
 				backgroundColor: [],
 				hoverBackgroundColor: [],
-				borderJoinStyle: 'round',
 				borderColor: '#020817',
-				borderWidth: 4
+				borderJoinStyle: 'round',
+				borderWidth: 4,
+				borderRadius: 10
 			}
 		]
 	};
 
-	export let data: DonutDataPoint[];
-
-	$: dataset = data.reduce((acc, { label, value, backgroundColor, hoverBackgroundColor }) => {
+	$: chart_data = data.reduce((acc, { label, value, backgroundColor, hoverBackgroundColor }) => {
 		acc.labels!.push(label);
 		acc.datasets[0].data.push(value);
 		(acc.datasets[0].backgroundColor as string[]).push(backgroundColor);
@@ -36,7 +42,17 @@
 		return acc;
 	}, structuredClone(donut_default));
 
-	ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale);
+	$: if (canvas && data) {
+		if (chart) {
+			chart.data = chart_data;
+			chart.update();
+		} else {
+			chart = new ChartJS(canvas, {
+				type: 'doughnut',
+				data: chart_data
+			});
+		}
+	}
 </script>
 
-<Doughnut data={dataset} options={{ responsive: true }} />
+<canvas bind:this={canvas} />
