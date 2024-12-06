@@ -13,11 +13,14 @@
 
 	ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale, DoughnutController);
 
-	export let data: DonutDataPoint[];
+	interface Props {
+		data: DonutDataPoint[];
+	}
 
-	let canvas: HTMLCanvasElement;
-	let chart: ChartJS;
-	let chart_data: ChartData<'doughnut', number[], string>;
+	let { data }: Props = $props();
+
+	let canvas: HTMLCanvasElement | undefined = $state();
+	let chart: ChartJS | undefined = $state();
 
 	const donut_default: ChartData<'doughnut', number[], string> = {
 		labels: [],
@@ -34,25 +37,29 @@
 		]
 	};
 
-	$: chart_data = data.reduce((acc, { label, value, backgroundColor, hoverBackgroundColor }) => {
-		acc.labels!.push(label);
-		acc.datasets[0].data.push(value);
-		(acc.datasets[0].backgroundColor as string[]).push(backgroundColor);
-		(acc.datasets[0].hoverBackgroundColor as string[]).push(hoverBackgroundColor);
-		return acc;
-	}, structuredClone(donut_default));
+	const chart_data: ChartData<'doughnut', number[], string> = $derived(
+		data.reduce((acc, { label, value, backgroundColor, hoverBackgroundColor }) => {
+			acc.labels!.push(label);
+			acc.datasets[0].data.push(value);
+			(acc.datasets[0].backgroundColor as string[]).push(backgroundColor);
+			(acc.datasets[0].hoverBackgroundColor as string[]).push(hoverBackgroundColor);
+			return acc;
+		}, structuredClone(donut_default))
+	);
 
-	$: if (canvas && data) {
-		if (chart) {
-			chart.data = chart_data;
-			chart.update();
-		} else {
-			chart = new ChartJS(canvas, {
-				type: 'doughnut',
-				data: chart_data
-			});
+	$effect.pre(() => {
+		if (canvas && data) {
+			if (chart) {
+				chart.data = chart_data;
+				chart.update();
+			} else {
+				chart = new ChartJS(canvas, {
+					type: 'doughnut',
+					data: chart_data
+				});
+			}
 		}
-	}
+	});
 </script>
 
-<canvas bind:this={canvas} />
+<canvas bind:this={canvas}></canvas>

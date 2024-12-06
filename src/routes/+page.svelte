@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import DonutChart from '$lib/components/charts/donut-chart.svelte';
 	import type { DonutDataPoint } from '$lib/components/charts/types';
 	import { PeriodSelector, type Period } from '$lib/components/common/period-selector';
@@ -7,14 +9,13 @@
 	import * as Table from '$lib/components/ui/table';
 	import * as service from '$lib/service';
 	import type { FunctionReturns } from '$lib/types';
-	import { cn } from '$lib/utils';
 	import { CalendarDate } from '@internationalized/date';
 	import { ChevronDown, ChevronUp, Eye, EyeOff } from 'lucide-svelte';
 	import { supabase } from '../supabase-client';
 	import { currency_formatter } from './../lib/consts';
 	import { Skeleton } from '$lib/components/ui/skeleton';
 
-	let period: Period;
+	let period: Period | undefined = $state();
 
 	const select_period = (value: Period): void => {
 		period = value;
@@ -23,9 +24,11 @@
 	let spendings_by_category: (FunctionReturns['spendings_by_category'][number] & {
 		hidden: boolean;
 		open: boolean;
-	})[] = [];
-	let diagram_data: DonutDataPoint[];
-	$: total_spendings = spendings_by_category?.reduce((acc, { total }) => acc + total, 0) ?? 0;
+	})[] = $state([]);
+	let diagram_data: DonutDataPoint[] = $state([]);
+	let total_spendings = $derived(
+		spendings_by_category?.reduce((acc, { total }) => acc + total, 0) ?? 0
+	);
 
 	const update_statistics = (start_date: CalendarDate, end_date: CalendarDate): void => {
 		service.get_spendings_by_category(start_date.toString(), end_date.toString()).then((data) => {
@@ -39,9 +42,11 @@
 		});
 	};
 
-	$: if (period) update_statistics(period.start, period.end);
+	run(() => {
+		if (period) update_statistics(period.start, period.end);
+	});
 
-	let authenticated: boolean = false;
+	let authenticated: boolean = $state(false);
 	supabase.auth.onAuthStateChange((_, session) => {
 		authenticated = session !== null;
 	});
@@ -63,7 +68,7 @@
 					</Table.Row>
 				</Table.Header>
 				<Table.Body>
-					{#each spendings_by_category as { category, total, hidden, open }}
+					{#each spendings_by_category as { category, total, hidden, open }, index}
 						<Table.Row class={hidden ? 'text-muted-foreground' : ''}>
 							<Table.Cell>
 								<div class="flex flex-row flex-nowrap items-center gap-2">
@@ -82,8 +87,8 @@
 								<Button
 									size="icon"
 									variant="ghost"
-									on:click={() => {
-										hidden = !hidden;
+									onclick={() => {
+										spendings_by_category[index].hidden = !hidden;
 										diagram_data = spendings_by_category.map(({ category, total, color }) => ({
 											label: category,
 											value: total,

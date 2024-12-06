@@ -20,24 +20,28 @@
 	import ComboBox from '../../lib/components/ui-custom/combo-box/combo-box.svelte';
 	import CreateItemDialog from './create-item-dialog.svelte';
 
-	const item_details: FunctionReturns['item_details'] = [];
-	const formatters: Intl.NumberFormat[] = [];
-	const update_item_detail = ({ detail }: CustomEvent<{ value: number }>) => {
-		if (item_details[detail.value]) return;
+	const item_details: FunctionReturns['item_details'] = $state([]);
+	const formatters: Intl.NumberFormat[] = $state([]);
+	const update_item_detail = (index: number) => {
+		if (item_details[index]) return;
 
-		service.get_item_details(detail.value).then((details) => {
-			item_details[detail.value] = details!;
-			formatters[detail.value] = formatter_for_unit(details!.unit);
+		service.get_item_details(index).then((details) => {
+			item_details[index] = details!;
+			formatters[index] = formatter_for_unit(details!.unit);
 		});
 	};
 
-	export let data: {
-		brands: Tables<'brands'>[];
-		categories: Tables<'categories'>[];
-		stores: Tables<'stores'>[];
-		units: Tables<'units'>[];
-		items: Tables<'items'>[];
-	};
+	interface Props {
+		data: {
+			brands: Tables<'brands'>[];
+			categories: Tables<'categories'>[];
+			stores: Tables<'stores'>[];
+			units: Tables<'units'>[];
+			items: Tables<'items'>[];
+		};
+	}
+
+	let { data }: Props = $props();
 
 	type FormSchema = {
 		date: string;
@@ -59,21 +63,23 @@
 		price: undefined
 	});
 
-	let purchases: FormSchema['purchases'] = [empty_purchase()];
+	let purchases: FormSchema['purchases'] = $state([empty_purchase()]);
 
-	let selectable_stores = data.stores.map(label_value_transform);
-	let selected_store: number | undefined;
+	let selectable_stores = $state(data.stores.map(label_value_transform));
+	let selected_store: number | undefined = $state();
 
-	let date: DateValue | undefined; // TODO: REFACTOR INTO SCHEMA OBJECT
-	let selectable_items = data.items.map(label_value_transform);
-	let selectable_brands = data.brands.map(label_value_transform);
+	let date: DateValue | undefined = $state(); // TODO: REFACTOR INTO SCHEMA OBJECT
+	let selectable_items = $state(data.items.map(label_value_transform));
+	let selectable_brands = $state(data.brands.map(label_value_transform));
 
-	let create_item_dialog_open = false;
-	let create_item_label: string;
-	let on_item_created: (item_id: number) => void;
+	let create_item_dialog_open = $state(false);
+	let create_item_label: string | undefined = $state();
+	let on_item_created: (item_id: number) => void = $state(() => void 0);
 
-	$: total = currency_formatter.format(
-		purchases.reduce((total, purchase) => total + (purchase.price ?? 0), 0)
+	const total = $derived(
+		currency_formatter.format(
+			purchases.reduce((total, purchase) => total + (purchase.price ?? 0), 0)
+		)
 	);
 
 	const create_store = async (label: string | null): Promise<number> => {
@@ -239,13 +245,13 @@
 					bind:value={purchase.item_id}
 					placeholder="Select item..."
 					create={create_item}
-					on:change={update_item_detail}
+					onchange={update_item_detail}
 					class="sm:w-48"
 				></ComboBox>
-				<Button class="ml-2" size="icon" on:click={() => duplicate_item(index)} variant="ghost">
+				<Button class="ml-2" size="icon" onclick={() => duplicate_item(index)} variant="ghost">
 					<Copy class="h-4 w-4 text-muted-foreground" />
 				</Button>
-				<Button size="icon" on:click={() => delete_row(index)} variant="ghost">
+				<Button size="icon" onclick={() => delete_row(index)} variant="ghost">
 					<X class="h-4 w-4 text-red-600" />
 				</Button>
 			</div>
@@ -262,7 +268,6 @@
 					placeholder={`Quantity ${purchase.item_id && item_details[purchase.item_id] ? '(' + item_details[purchase.item_id]?.unit + ')' : ''}`}
 					bind:value={purchase.quantity}
 					class="min-w-24 max-w-48"
-					type="number"
 					formatter={purchase.item_id && item_details[purchase.item_id]
 						? formatters[purchase.item_id]
 						: number_formatter}
@@ -272,7 +277,6 @@
 					placeholder="Price"
 					bind:value={purchase.price}
 					class="min-w-24 max-w-48"
-					type="number"
 					formatter={currency_formatter}
 					parser={currency_parser}
 				></Input>
@@ -281,7 +285,7 @@
 	{/each}
 
 	<div class="flex justify-end py-2">
-		<Button class="p-2" size="icon" on:click={add_row} variant="outline">
+		<Button class="p-2" size="icon" onclick={add_row} variant="outline">
 			<Plus class="h-4 w-4 text-muted-foreground" />
 		</Button>
 	</div>
@@ -289,7 +293,7 @@
 
 <div class="flex items-end justify-between">
 	<span class="text-sm text-muted-foreground">Total: {total}</span>
-	<Button type="submit" class="w-24" on:click={handle_submit}>Submit</Button>
+	<Button type="submit" class="w-24" onclick={handle_submit}>Submit</Button>
 </div>
 
 <CreateItemDialog bind:open={create_item_dialog_open} {on_item_created} name={create_item_label} />

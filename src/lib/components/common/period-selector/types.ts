@@ -7,5 +7,6 @@ export type Period = {
 
 export type PeriodWithLabel = {
     label: string;
-    value: Period;
+    value: string;
+    data: Period;
 };

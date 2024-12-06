@@ -27,16 +27,19 @@
 		LineController
 	);
 
-	export let data: LineChartData;
-	export let title: string | undefined = undefined;
-	export let label_x: string | undefined = undefined;
-	export let label_y: string | undefined = undefined;
+	interface Props {
+		data: LineChartData;
+		title?: string;
+		label_x?: string;
+		label_y?: string;
+	}
 
-	let canvas: HTMLCanvasElement;
-	let chart: ChartJS;
-	let chart_data: ChartData<'line', number[], string>;
+	let { data, title, label_x, label_y }: Props = $props();
 
-	$: chart_data = {
+	let canvas: HTMLCanvasElement | undefined = $state();
+	let chart: ChartJS | undefined = $state();
+
+	let chart_data: ChartData<'line', number[], string> = $derived({
 		labels: data.column_labels,
 		datasets: data.lines
 			.toSorted((a, b) => Math.max(...a.values) - Math.max(...b.values))
@@ -46,7 +49,7 @@
 				hidden: line.hidden,
 				backgroundColor: line.color
 			}))
-	};
+	});
 
 	const options: ChartOptions<'line'> = {
 		responsive: true,
@@ -91,18 +94,20 @@
 		}
 	};
 
-	$: if (canvas && chart_data) {
+	$effect.pre(() => {
+		if (!canvas || !chart_data) return;
+
 		if (chart) {
-			chart.data = chart_data;
+			chart.data = $state.snapshot(chart_data) as any;
 			chart.update();
 		} else {
 			chart = new ChartJS(canvas, {
 				type: 'line',
-				data: chart_data,
+				data: $state.snapshot(chart_data) as any,
 				options
 			});
 		}
-	}
+	});
 </script>
 
-<canvas bind:this={canvas} />
+<canvas bind:this={canvas}></canvas>

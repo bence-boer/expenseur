@@ -1,288 +1,61 @@
-<script lang="ts">
-	import { Input } from '$lib/components/ui-custom/input';
-	import { Button } from '$lib/components/ui/button';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import Skeleton from '$lib/components/ui/skeleton/skeleton.svelte';
+<script lang="ts" generics="DATA extends Record<string, any>">
+	import type { HTMLTableAttributes } from 'svelte/elements';
+	import type { WithElementRef } from 'bits-ui';
 	import * as Table from '$lib/components/ui/table';
-	import { currency_formatter, number_formatter } from '$lib/consts';
-	import { ArrowUpDown, ChevronDown } from 'lucide-svelte';
-	import { createRender, createTable, Render, Subscribe } from 'svelte-headless-table';
-	import {
-		addHiddenColumns,
-		addPagination,
-		addSelectedRows,
-		addSortBy,
-		addTableFilter
-	} from 'svelte-headless-table/plugins';
-	import { writable, type Writable } from 'svelte/store';
-	import type { Views } from '../../../types';
-	import DataTableActions from './data-table-actions.svelte';
-	import DataTableCheckbox from './data-table-checkbox.svelte';
-	import type { ColumnData, ColumnOptions } from './types';
-	import { default_columns_default } from './table-builder';
+	import type { DataTableProps } from './types';
 	import DataTableSkeleton from './data-table-skeleton.svelte';
 
-	export let data: Views['all_tables_view']['Row'][];
-	export let loading: boolean = false;
-	export let skeleton_rows: number = 8;
-	export let columns_default: ColumnOptions = {} as ColumnOptions;
-	export let delete_item: ((id: number) => Promise<void>) | ((id: string) => Promise<void>);
-
-	$: columns_default = { ...default_columns_default, ...columns_default };
-
-	let _data: Writable<Views['all_tables_view']['Row'][]> = writable([]);
-	$: _data.set(data ?? []);
-	type Column = keyof (typeof data)[number];
-
-	const table = createTable(_data, {
-		page: addPagination(),
-		sortBy: addSortBy(),
-		filter: addTableFilter({
-			fn: ({ filterValue, value }) => value.toLowerCase().includes(filterValue.toLowerCase())
-		}),
-		hide: addHiddenColumns(),
-		select: addSelectedRows()
-	});
-
-	// TODO: fix fucked up function types
-	const _delete_item = async (id: number): Promise<void> => {
-		await (delete_item as any)(id);
-		_data.update((data) => data.filter((row) => row.id !== id));
-	};
-
-	// TODO: remove unknown for proper type checking
-	const right_aligned: (Column | unknown)[] = ['quantity', 'price'];
-	const sortable: (Column | unknown)[] = ['date', 'price'];
-	const filterable: Column[] = ['item', 'details', 'brand', 'category', 'store'];
-	const hideable: Column[] = ['details', 'brand', 'category', 'quantity', 'unit', 'store'];
-
-	const columns = table.createColumns([
-		table.column({
-			accessor: 'id',
-			header: (_, { pluginStates }) => {
-				const { allPageRowsSelected } = pluginStates.select;
-				return createRender(DataTableCheckbox, {
-					checked: allPageRowsSelected
-				});
-			},
-			cell: ({ row }, { pluginStates }) => {
-				const { getRowState } = pluginStates.select;
-				const { isSelected } = getRowState(row);
-
-				return createRender(DataTableCheckbox, {
-					checked: isSelected
-				});
-			},
-			plugins: {
-				sortBy: { disable: true },
-				filter: { exclude: true }
-			}
-		}),
-		table.column({
-			accessor: 'date',
-			header: 'Date',
-			cell: ({ value }) => new Date(value!).toLocaleDateString(),
-			plugins: {
-				sortBy: { disable: !sortable.includes('date') },
-				filter: { exclude: !filterable.includes('date') }
-			}
-		}),
-		table.column({
-			accessor: 'item',
-			header: 'Item',
-			plugins: {
-				sortBy: { disable: !sortable.includes('item') },
-				filter: { exclude: !filterable.includes('item') }
-			}
-		}),
-		table.column({
-			accessor: 'details',
-			header: 'Details',
-			cell: ({ value }) => value?.join(', ') ?? '-',
-			plugins: {
-				sortBy: { disable: !sortable.includes('details') },
-				filter: { exclude: !filterable.includes('details') }
-			}
-		}),
-		table.column({
-			accessor: 'brand',
-			header: 'Brand',
-			cell: ({ value }) => value ?? '-',
-			plugins: {
-				sortBy: { disable: !sortable.includes('brand') },
-				filter: { exclude: !filterable.includes('brand') }
-			}
-		}),
-		table.column({
-			accessor: 'category',
-			header: 'Category',
-			plugins: {
-				sortBy: { disable: !sortable.includes('category') },
-				filter: { exclude: !filterable.includes('category') }
-			}
-		}),
-		table.column({
-			accessor: 'quantity',
-			header: 'Quantity',
-			cell: ({ value }) => number_formatter.format(value!),
-			plugins: {
-				sortBy: { disable: !sortable.includes('quantity') },
-				filter: { exclude: !filterable.includes('quantity') }
-			}
-		}),
-		table.column({
-			accessor: 'unit',
-			header: 'Unit',
-			plugins: {
-				sortBy: { disable: !sortable.includes('unit') },
-				filter: { exclude: !filterable.includes('unit') }
-			}
-		}),
-		table.column({
-			accessor: 'price',
-			header: 'Price',
-			cell: ({ value }) => currency_formatter.format(value!),
-			plugins: {
-				sortBy: { disable: !sortable.includes('price') },
-				filter: { exclude: !filterable.includes('price') }
-			}
-		}),
-		table.column({
-			accessor: 'store',
-			header: 'Store',
-			plugins: {
-				sortBy: { disable: !sortable.includes('store') },
-				filter: { exclude: !filterable.includes('store') }
-			}
-		}),
-		table.column({
-			accessor: ({ id }) => id,
-			header: '',
-			cell: ({ value }) =>
-				createRender(DataTableActions, {
-					id: value!,
-					delete_item: _delete_item
-				}),
-			plugins: {
-				sortBy: { disable: true },
-				filter: { exclude: true }
-			}
-		})
-	]);
-
-	const { headerRows, pageRows, tableAttrs, tableBodyAttrs, pluginStates, flatColumns, rows } =
-		table.createViewModel(columns);
-	const { hasNextPage, hasPreviousPage, pageIndex } = pluginStates.page;
-	const { filterValue } = pluginStates.filter;
-	const { hiddenColumnIds } = pluginStates.hide;
-	const { selectedDataIds } = pluginStates.select;
-
-	const ids: Column[] = flatColumns.map((column) => column.id);
-	let id_hidden = Object.fromEntries(ids.map((id) => [id, true]));
-
-	$: filtered_total = $rows.reduce((acc, row: any) => acc + row.original.price, 0);
-
-	$: $hiddenColumnIds = Object.entries(id_hidden)
-		.filter(([, hide]) => !hide)
-		.map(([id]) => id);
+	let {
+		ref = $bindable(null),
+		class: className,
+		caption,
+		columns = [],
+		data = [],
+		key,
+		loading = false,
+		...restProps
+	}: WithElementRef<HTMLTableAttributes> & DataTableProps<DATA> = $props();
 </script>
 
-{#if loading}
-	<DataTableSkeleton rows={skeleton_rows} />
-{:else}
-	<div>
-		<div class="flex items-center gap-4 py-4">
-			<Input
-				class="max-w-sm text-ellipsis"
-				placeholder={'Filter by ' +
-					[...filterable]
-						.map((column) => column.charAt(0).toUpperCase() + column.slice(1))
-						.join(', ')}
-				type="text"
-				bind:value={$filterValue}
-			/>
-			<DropdownMenu.Root>
-				<DropdownMenu.Trigger asChild let:builder>
-					<Button variant="outline" class="ml-auto" builders={[builder]}>
-						Columns <ChevronDown class="ml-2 h-4 w-4" />
-					</Button>
-				</DropdownMenu.Trigger>
-				<DropdownMenu.Content>
-					{#each flatColumns as col}
-						{#if hideable.includes(col.id)}
-							<DropdownMenu.CheckboxItem bind:checked={id_hidden[col.id]}>
-								{col.header}
-							</DropdownMenu.CheckboxItem>
-						{/if}
+<div class="relative w-full overflow-auto rounded-md border">
+	{#if loading}
+		<DataTableSkeleton />
+	{:else}
+		<Table.Root class={className} {...restProps} bind:ref>
+			{#if caption}
+				<Table.Caption>{caption}</Table.Caption>
+			{/if}
+			<Table.Header>
+				<Table.Row>
+					{#each columns as { header, header_class }}
+						<Table.Head class={header_class}>{header}</Table.Head>
 					{/each}
-				</DropdownMenu.Content>
-			</DropdownMenu.Root>
-		</div>
-		<div class="rounded-md border">
-			<Table.Root {...$tableAttrs}>
-				<Table.Header>
-					{#each $headerRows as headerRow}
-						<Subscribe rowAttrs={headerRow.attrs()}>
-							<Table.Row>
-								{#each headerRow.cells as cell (cell.id)}
-									<Subscribe attrs={cell.attrs()} let:attrs props={cell.props()} let:props>
-										<Table.Head {...attrs} class="[&:has([role=checkbox])]:pl-3">
-											<div class={right_aligned.includes(cell.id) ? 'text-right' : ''}>
-												{#if sortable.includes(cell.id)}
-													<Button variant="ghost" on:click={props.sortBy.toggle}>
-														<Render of={cell.render()} />
-														<ArrowUpDown class={'ml-2 h-4 w-4'} />
-													</Button>
-												{:else}
-													<Render of={cell.render()} />
-												{/if}
-											</div>
-										</Table.Head>
-									</Subscribe>
-								{/each}
-							</Table.Row>
-						</Subscribe>
+				</Table.Row>
+			</Table.Header>
+			<Table.Body>
+				{#each data as item, index (key ? item[key] : index)}
+					<Table.Row>
+						{#each columns as { field, field_class, format }}
+							<Table.Cell class={field_class + ' h-14'}>
+								{format ? format(item[field]) : item[field]}
+							</Table.Cell>
+						{/each}
+					</Table.Row>
+				{/each}
+			</Table.Body>
+			<Table.Footer>
+				<Table.Row>
+					{#each columns as { field, footer, footer_class }}
+						<Table.Cell class={footer_class}>
+							{#if footer instanceof Function}
+								{data.map((data) => data[field])}
+							{:else}
+								{footer ?? ''}
+							{/if}
+						</Table.Cell>
 					{/each}
-				</Table.Header>
-				<Table.Body {...$tableBodyAttrs}>
-					{#each $pageRows as row (row.id)}
-						<Subscribe rowAttrs={row.attrs()} let:rowAttrs>
-							<Table.Row {...rowAttrs} data-state={$selectedDataIds[row.id] && 'selected'}>
-								{#each row.cells as cell (cell.id)}
-									<Subscribe attrs={cell.attrs()} let:attrs>
-										<Table.Cell {...attrs}>
-											<div class={['quantity', 'price'].includes(cell.id) ? 'text-right' : ''}>
-												<Render of={cell.render()} />
-											</div>
-										</Table.Cell>
-									</Subscribe>
-								{/each}
-							</Table.Row>
-						</Subscribe>
-					{/each}
-				</Table.Body>
-			</Table.Root>
-		</div>
-		<div class="flex items-center justify-end space-x-4 py-4">
-			<!-- <div class="flex-1 text-sm text-muted-foreground">
-				{Object.keys($selectedDataIds).length} of{' '}
-				{$rows.length} row(s) selected.
-			</div> -->
-			<div class="flex-1 text-sm text-muted-foreground">
-				Total: {currency_formatter.format(filtered_total)}
-			</div>
-			<Button
-				variant="outline"
-				size="sm"
-				on:click={() => ($pageIndex = $pageIndex - 1)}
-				disabled={!$hasPreviousPage}>Previous</Button
-			>
-			<Button
-				variant="outline"
-				size="sm"
-				disabled={!$hasNextPage}
-				on:click={() => ($pageIndex = $pageIndex + 1)}>Next</Button
-			>
-		</div>
-	</div>
-{/if}
+				</Table.Row>
+			</Table.Footer>
+		</Table.Root>
+	{/if}
+</div>

@@ -1,21 +1,26 @@
 <script lang="ts">
 	import type { HTMLInputAttributes } from 'svelte/elements';
-	import type { InputEvents } from './index.js';
+	import type { WithElementRef } from 'bits-ui';
 	import { cn } from '$lib/utils.js';
 
-	type $$Props = HTMLInputAttributes & {
-		formatter?: Intl.NumberFormat;
-		parser?: (value: string) => number;
-	};
-	type $$Events = InputEvents;
+	type Format =
+		| {
+				formatter: Intl.NumberFormat;
+				parser: (value: string) => number;
+		  }
+		| {
+				formatter?: never;
+				parser?: never;
+		  };
 
-	let className: $$Props['class'] = undefined;
-	export let value: $$Props['value'] = undefined;
-	export { className as class };
-
-	let node: HTMLInputElement;
-	$: if (node)
-		node.value = (value || value === 0) && formatter ? formatter.format(value) : value ? value : '';
+	let {
+		ref = $bindable(null),
+		value = $bindable(),
+		class: className,
+		formatter,
+		parser,
+		...restProps
+	}: WithElementRef<HTMLInputAttributes> & Format = $props();
 
 	const input = (event: Event) => {
 		const target = event.target as HTMLInputElement;
@@ -64,36 +69,22 @@
 		}
 	};
 
-	// Workaround for https://github.com/sveltejs/svelte/issues/9305
-	// Fixed in Svelte 5, but not backported to 4.x.
-	export let readonly: $$Props['readonly'] = undefined;
-	export let formatter: $$Props['formatter'] = undefined;
-	export let parser: $$Props['parser'] = undefined;
+	// TODO: double check whether this is needed
+	$effect(() => {
+		if (ref)
+			(ref as HTMLInputElement).value =
+				(value || value === 0) && formatter ? formatter.format(value) : value ? value : '';
+	});
 </script>
 
 <input
+	bind:this={ref}
 	class={cn(
 		'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
 		className
 	)}
-	{readonly}
-	on:blur
-	on:change
-	on:click
-	on:focus
-	on:focusin
-	on:focusout
-	on:keydown
-	on:keypress
-	on:keyup
-	on:mouseover
-	on:mouseenter
-	on:mouseleave
-	on:mousemove
-	on:paste
-	on:input={input}
-	on:wheel|passive
-	{...$$restProps}
-	type={formatter ? 'text' : $$restProps.type}
-	bind:this={node}
+	bind:value
+	oninput={input}
+	type="text"
+	{...restProps}
 />

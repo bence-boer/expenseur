@@ -9,17 +9,21 @@
 	import type { LabelValue } from '$lib/types';
 	import { toast } from 'svelte-sonner';
 
-	export let open = false;
-	export let name = '';
-	export let on_item_created: (item_id: number) => void;
+	interface Props {
+		open?: boolean;
+		name?: string;
+		on_item_created: (item_id: number) => void;
+	}
 
-	let dialog_disabled = false;
+	let { open = $bindable(false), name = $bindable(''), on_item_created }: Props = $props();
 
-	let category: number | undefined;
-	let categories: LabelValue[];
+	let dialog_disabled = $state(false);
 
-	let unit: number | undefined;
-	let units: LabelValue[];
+	let category: number | undefined = $state();
+	let categories: LabelValue[] = $state([]);
+
+	let unit: number | undefined = $state();
+	let units: LabelValue[] = $state([]);
 
 	service.get_categories().then((data) => (categories = data.map(label_value_transform)));
 	service.get_units().then((data) => (units = data.map(label_value_transform)));
@@ -103,13 +107,12 @@
 	};
 </script>
 
-<Dialog.Root
-	bind:open
-	closeOnEscape={!dialog_disabled}
-	closeOnOutsideClick={!dialog_disabled}
-	{onOpenChange}
->
-	<Dialog.Content class="sm:max-w-[425px]">
+<Dialog.Root bind:open {onOpenChange}>
+	<Dialog.Content
+		class="sm:max-w-[425px]"
+		escapeKeydownBehavior={dialog_disabled ? 'ignore' : 'close'}
+		interactOutsideBehavior={dialog_disabled ? 'ignore' : 'close'}
+	>
 		<Dialog.Header>
 			<Dialog.Title>Create Item</Dialog.Title>
 			<Dialog.Description>Enter the details of the item you want to create.</Dialog.Description>
@@ -143,7 +146,7 @@
 			</div>
 		</div>
 		<Dialog.Footer>
-			<Button type="submit" on:click={create_item} disabled={dialog_disabled}>Create</Button>
+			<Button type="submit" onclick={create_item} disabled={dialog_disabled}>Create</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

@@ -7,8 +7,11 @@
 	import * as service from '$lib/service';
 	import { format_date } from '$lib/utils';
 
-	let spendings_data: LineChartData;
-	let loading: boolean = true;
+	let spendings_data: LineChartData = $state({
+		column_labels: [],
+		lines: []
+	});
+	let loading: boolean = $state(true);
 
 	const load_data = (start: string, end: string): void => {
 		service.get_spendings_by_category_interval(start, end, 7).then((spendings) => {
@@ -35,6 +38,6 @@
 	{#if loading}
 		<Skeleton class="mt-4 h-full" />
 	{:else}
-		<StackedAreaChart data={spendings_data} />
+		<StackedAreaChart data={spendings_data!} />
 	{/if}
 </div>
