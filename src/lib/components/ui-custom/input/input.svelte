@@ -1,7 +1,8 @@
 <script lang="ts">
-	import type { HTMLInputAttributes } from 'svelte/elements';
+	import type { FormEventHandler, HTMLInputAttributes } from 'svelte/elements';
 	import type { WithElementRef } from 'bits-ui';
 	import { cn } from '$lib/utils.js';
+	import { tick } from 'svelte';
 
 	type Format =
 		| {
@@ -14,7 +15,7 @@
 		  };
 
 	let {
-		ref = $bindable(null),
+		ref = $bindable(),
 		value = $bindable(),
 		class: className,
 		formatter,
@@ -22,7 +23,13 @@
 		...restProps
 	}: WithElementRef<HTMLInputAttributes> & Format = $props();
 
-	const input = (event: Event) => {
+	$effect.pre(() => {
+		if (ref)
+			(ref as HTMLInputElement).value =
+				(value || value === 0) && formatter ? formatter.format(value) : value ? value : '';
+	});
+
+	const input: FormEventHandler<HTMLInputElement> = ((event: InputEvent) => {
 		const target = event.target as HTMLInputElement;
 		const string_value = target.value;
 
@@ -33,13 +40,17 @@
 
 		const last_character_decimal = /(^[^.,]*[.,]$)|(^[^.,]*\d[.,]$)/.test(string_value);
 		if (last_character_decimal) {
-			let string_without_decimal = formatter.format(parser(string_value));
-			target.value = string_without_decimal.replace(/(.*\d)(\D*)$/, '$1,$2');
+			const string_without_decimal = formatter.format(parser(string_value));
+			target.value =
+				event.inputType === 'deleteContentBackward'
+					? string_without_decimal
+					: string_without_decimal.replace(/(.*\d)(\D*)$/, '$1,$2');
+
 			return;
 		}
 		let _value;
 
-		if ((event as InputEvent).inputType === 'deleteContentBackward') {
+		if (event.inputType === 'deleteContentBackward') {
 			const value2 = String(parser(target.value));
 			if (value2 === '') {
 				value = undefined;
@@ -61,20 +72,12 @@
 		}
 
 		value = parser(_value);
+		tick().then(() => (target.value = formatter.format(parser(_value))));
 
-		target.value = formatter.format(value);
-
-		if (target.value === 'NaN') {
+		if (Number.isNaN(value) || Number.isNaN(target.value)) {
 			target.value = '';
 		}
-	};
-
-	// TODO: double check whether this is needed
-	$effect(() => {
-		if (ref)
-			(ref as HTMLInputElement).value =
-				(value || value === 0) && formatter ? formatter.format(value) : value ? value : '';
-	});
+	}) as any;
 </script>
 
 <input

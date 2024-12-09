@@ -22,12 +22,17 @@
 
 	const item_details: FunctionReturns['item_details'] = $state([]);
 	const formatters: Intl.NumberFormat[] = $state([]);
-	const update_item_detail = (index: number) => {
-		if (item_details[index]) return;
+	const update_item_detail = (id: number) => {
+		if (item_details[id]) return;
 
-		service.get_item_details(index).then((details) => {
-			item_details[index] = details!;
-			formatters[index] = formatter_for_unit(details!.unit);
+		service.get_item_details(id).then((details) => {
+			if (!details) {
+				toast.error('Item details not found!');
+				return;
+			}
+
+			item_details[id] = details;
+			formatters[id] = formatter_for_unit(details.unit);
 		});
 	};
 

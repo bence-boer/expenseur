@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" generics="VALUE extends number | string">
 	import { Button } from '$lib/components/ui/button';
 	import * as Command from '$lib/components/ui/command';
 	import * as Popover from '$lib/components/ui/popover';
@@ -8,38 +8,36 @@
 	import { Check, ChevronsUpDown } from 'lucide-svelte';
 	import { tick } from 'svelte';
 
+	type Item = LabelValue<VALUE>;
 	interface Props {
 		class?: string;
-		data: LabelValue[];
+		data: Item[];
 		max_results?: number;
-		value?: LabelValue['value'] | undefined;
+		value?: VALUE;
 		placeholder?: string;
-		create: (label: string) => Promise<LabelValue['value']>;
-		onchange?: (index: number) => void;
+		create: (label: string) => Promise<VALUE>;
+		onchange?: (value: VALUE) => void;
 		disabled?: boolean;
 	}
 
 	let {
 		class: clazz = '',
-		data = $bindable(),
+		data = $bindable([]),
 		max_results = 10,
-		value = $bindable(undefined),
+		value = $bindable(),
 		placeholder = $bindable('Please select an option'),
 		create,
 		onchange = () => void 0,
 		disabled = $bindable(false)
 	}: Props = $props();
 
-	data ??= [];
 	// TODO: more efficient update instead of recreating the map
-	let data_map: Map<LabelValue['value'], LabelValue> = $derived(
-		new Map(data?.map((item) => [item.value, item]))
-	);
+	let data_map: Map<VALUE, Item> = $derived(new Map(data?.map((item) => [item.value, item])));
 
-	let shown_results: (LabelValue & { score: number })[] = $state([]);
+	let shown_results: (Item & { score: number })[] = $state([]);
 
 	let label_as_value_binded_to_form: string = $state('');
-	let selected: LabelValue | undefined = $state(undefined);
+	let selected: Item | undefined = $state(undefined);
 	let selected_changed: boolean = $state(false);
 
 	let search_expression: string = $state('');
@@ -127,14 +125,14 @@
 				</div>
 			</Command.Empty>
 			<Command.Group>
-				{#each shown_results as item, index}
+				{#each shown_results as item}
 					<Command.Item
 						value={item.label}
 						onSelect={() => {
 							selected = item;
 							selected_changed = true;
 							close_and_focus_trigger();
-							onchange(index);
+							onchange(item.value);
 						}}
 					>
 						<Check

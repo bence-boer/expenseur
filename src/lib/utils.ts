@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
-export const label_value_transform = (data: { id: number; name: string }): LabelValue => ({
+export const label_value_transform = <VALUE extends number | string>(data: { id: VALUE; name: string }): LabelValue<VALUE> => ({
 	label: data.name,
 	value: data.id
 });
