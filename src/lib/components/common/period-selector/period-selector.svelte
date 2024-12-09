@@ -8,39 +8,59 @@
 	import type { Period, PeriodWithLabel } from './types';
 	import { cn } from '$lib/utils';
 
-	let clazz: string = '';
-	export { clazz as class };
-	export let select: (period: Period) => void;
+	interface Props {
+		class?: string;
+		empty?: boolean;
+		select: (period: Period) => void;
+	}
 
-	let selected: PeriodWithLabel = default_period;
+	let { class: clazz = '', empty = false, select }: Props = $props();
 
-	const empty_period = (): Period => ({
+	const period_map: Map<string, PeriodWithLabel> = new Map(
+		periods.map((period) => [period.value, period])
+	);
+
+	const empty_period_value = (): Period => ({
 		start: undefined as any as CalendarDate,
 		end: undefined as any as CalendarDate
 	});
 
-	// TODO: implement custom period selection
-	let custom_period: PeriodWithLabel = {
-		label: 'Custom',
-		value: empty_period()
+	const empty_period: PeriodWithLabel = {
+		label: 'Empty',
+		value: 'EMPTY',
+		data: empty_period_value()
 	};
 
-	$: if (selected.value.start && selected.value.end) select(selected.value);
+	// TODO: implement custom period selection
+	let custom_period: PeriodWithLabel = $state({
+		label: 'Custom',
+		value: 'CUSTOM',
+		data: empty_period_value()
+	});
+
+	let selected_period_value: string = $state(empty ? empty_period.value : default_period.value);
+	let selected: PeriodWithLabel = $state(empty ? empty_period : default_period);
+
+	$effect.pre(() => {
+		const next = period_map.get(selected_period_value) ?? empty_period;
+		selected = next;
+		if (next.data.start && next.data.end) select(next.data);
+	});
 </script>
 
-<Select.Root bind:selected>
+<Select.Root bind:value={selected_period_value} type="single">
 	<Select.Trigger class={cn('flex-1', clazz)}>
-		<Select.Value placeholder="Period" />
+		{selected.label ?? 'Period'}
 	</Select.Trigger>
 	<Select.Content>
-		{#each periods as { label, value }}
-			<Select.Item value={label} on:click={() => select(value)} {label} />
+		{#each periods as { label, value, data }}
+			<Select.Item {value} onclick={() => select(data)} {label} />
 		{/each}
 		<Select.Item
 			value={custom_period.label}
-			on:click={(event) => {
+			onclick={(event) => {
 				event.preventDefault();
-				custom_period.value = empty_period();
+				custom_period.data = empty_period_value();
 				selected = custom_period;
 			}}
 			disabled
@@ -49,13 +69,13 @@
 				<Collapsible.Trigger>Custom (coming soon...)</Collapsible.Trigger>
 				<Collapsible.Content class="flex gap-2 pt-2">
 					<DatePicker
-						bind:value={custom_period.value.start}
+						bind:value={custom_period.data.start}
 						title="Start date"
 						placeholder={TODAY}
 						class="flex-1"
 					></DatePicker>
 					<DatePicker
-						bind:value={custom_period.value.end}
+						bind:value={custom_period.data.end}
 						title="End date"
 						placeholder={TODAY}
 						class="flex-1"

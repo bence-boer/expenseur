@@ -6,8 +6,8 @@
 	import { supabase } from '../../supabase-client';
 	import { browser } from '$app/environment';
 
-	let email: string;
-	let password: string;
+	let email: string = $state('');
+	let password: string = $state('');
 
 	const back = () => {
 		if (browser) goto('/');
@@ -17,7 +17,7 @@
 		!!data.user && back();
 	});
 
-	let failed = false;
+	let failed = $state(false);
 	const register = () => {
 		supabase.auth
 			.signUp({
@@ -56,8 +56,8 @@
 			</div>
 		</Card.Content>
 		<Card.Footer class="justify-end gap-2">
-			<Button variant="outline" on:click={back} type="reset">Back</Button>
-			<Button variant="default" on:click={register} type="submit">Register</Button>
+			<Button variant="outline" onclick={back} type="reset">Back</Button>
+			<Button variant="default" onclick={register} type="submit">Register</Button>
 		</Card.Footer>
 	</Card.Root>
 </form>

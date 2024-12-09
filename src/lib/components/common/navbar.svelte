@@ -5,8 +5,12 @@
 	import HamburgerNavigation from './hamburger-navigation.svelte';
 	import ProfileMenu from './profile-menu.svelte';
 
-	export let authenticated: boolean;
-	export let route: string;
+	interface Props {
+		authenticated: boolean;
+		route: string;
+	}
+
+	let { authenticated = $bindable(), route }: Props = $props();
 
 	const routes: Route[] = [
 		{ name: 'Dashboard', path: '/' },

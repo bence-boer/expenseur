@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" generics="VALUE extends number | string">
 	import { Button } from '$lib/components/ui/button';
 	import * as Command from '$lib/components/ui/command';
 	import * as Popover from '$lib/components/ui/popover';
@@ -7,43 +7,48 @@
 	import { cn } from '$lib/utils.js';
 	import { Check, ChevronsUpDown } from 'lucide-svelte';
 	import { tick } from 'svelte';
-	import { createEventDispatcher } from 'svelte';
 
-	let clazz: string = '';
-
-	export let data: LabelValue[];
-	export let max_results: number = 10;
-	export { clazz as class };
-	export let value: LabelValue['value'] | undefined = undefined;
-	export let placeholder: string = 'Please select an option';
-	export let create: (label: string) => Promise<LabelValue['value']>;
-	export let disabled: boolean = false;
-
-	data ??= [];
-	let data_map: Map<LabelValue['value'], LabelValue>;
-	// TODO: more efficient update instead of recreating the map
-	$: data_map = new Map(data?.map((item) => [item.value, item]));
-
-	let shown_results: (LabelValue & { score: number })[] = [];
-	$: {
-		const search = search_expression?.trim() ?? '';
-		shown_results = data
-			.map((item) => ({ ...item, score: commandScore(item.label, search ?? '') }))
-			.filter((item) => item.score)
-			.toSorted((a, b) => b.score - a.score)
-			.slice(0, max_results);
+	type Item = LabelValue<VALUE>;
+	interface Props {
+		class?: string;
+		data: Item[];
+		max_results?: number;
+		value?: VALUE;
+		placeholder?: string;
+		create: (label: string) => Promise<VALUE>;
+		onchange?: (value: VALUE) => void;
+		disabled?: boolean;
 	}
 
-	let label_as_value_binded_to_form: string;
-	let selected: LabelValue | undefined = undefined;
-	let selected_changed: boolean = false;
+	let {
+		class: clazz = '',
+		data = $bindable([]),
+		max_results = 10,
+		value = $bindable(),
+		placeholder = $bindable('Please select an option'),
+		create,
+		onchange = () => void 0,
+		disabled = $bindable(false)
+	}: Props = $props();
 
-	let search_expression: string;
-	let open: boolean = false;
+	// TODO: more efficient update instead of recreating the map
+	let data_map: Map<VALUE, Item> = $derived(new Map(data?.map((item) => [item.value, item])));
 
-	$: if (value === undefined) search_expression = '';
+	let shown_results: (Item & { score: number })[] = $state([]);
 
-	$: {
+	let label_as_value_binded_to_form: string = $state('');
+	let selected: Item | undefined = $state(undefined);
+	let selected_changed: boolean = $state(false);
+
+	let search_expression: string = $state('');
+	let open: boolean = $state(false);
+	let trigger: HTMLButtonElement = $state<HTMLButtonElement>(null!);
+
+	const close_and_focus_trigger = () => {
+		open = false;
+		tick().then(() => trigger.focus());
+	};
+	$effect.pre(() => {
 		if (selected_changed) {
 			label_as_value_binded_to_form = selected?.label ?? '';
 			value = selected?.value;
@@ -52,30 +57,35 @@
 			selected = data_map.get(value!);
 			label_as_value_binded_to_form = selected?.label ?? '';
 		}
-	}
-
-	const dispatch = createEventDispatcher();
-	const dispatch_change_event = (value: LabelValue['value']) => dispatch('change', { value });
-
-	const close_and_focus_trigger = (triggerId: string) => {
-		open = false;
-		tick().then(() => document.getElementById(triggerId)?.focus());
-	};
+	});
+	$effect.pre(() => {
+		if (value === undefined) search_expression = '';
+	});
+	$effect.pre(() => {
+		const search = search_expression?.trim() ?? '';
+		shown_results = data
+			.map((item) => ({ ...item, score: commandScore(item.label, search ?? '') }))
+			.filter((item) => item.score)
+			.toSorted((a, b) => b.score - a.score)
+			.slice(0, max_results);
+	});
 </script>
 
-<Popover.Root bind:open let:ids>
-	<Popover.Trigger asChild let:builder>
-		<Button
-			builders={[builder]}
-			variant="outline"
-			role="combobox"
-			aria-expanded={open}
-			{disabled}
-			class={cn('w-full justify-between', !value && 'font-normal text-muted-foreground', clazz)}
-		>
-			{selected?.label ?? placeholder}
-			<ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-		</Button>
+<Popover.Root bind:open>
+	<Popover.Trigger bind:ref={trigger}>
+		{#snippet child({ props })}
+			<Button
+				variant="outline"
+				role="combobox"
+				aria-expanded={open}
+				{disabled}
+				{...props}
+				class={cn('w-full justify-between', !value && 'font-normal text-muted-foreground', clazz)}
+			>
+				{selected?.label ?? placeholder}
+				<ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+			</Button>
+		{/snippet}
 	</Popover.Trigger>
 	<Popover.Content class="w-48 p-0">
 		<Command.Root
@@ -95,8 +105,8 @@
 						variant="outline"
 						size="sm"
 						class="flex-none"
-						on:click={async () => {
-							close_and_focus_trigger(ids.trigger);
+						onclick={async () => {
+							close_and_focus_trigger();
 							const placeholder_backup = placeholder;
 							placeholder = search_expression;
 							disabled = true;
@@ -121,8 +131,8 @@
 						onSelect={() => {
 							selected = item;
 							selected_changed = true;
-							close_and_focus_trigger(ids.trigger);
-							dispatch_change_event(item.value);
+							close_and_focus_trigger();
+							onchange(item.value);
 						}}
 					>
 						<Check

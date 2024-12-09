@@ -1,15 +1,17 @@
-import type { DataLabel, HeaderLabel } from "svelte-headless-table";
-import type { AnyPlugins } from "svelte-headless-table/plugins";
+export type DataTableProps<DATA> = {
+    caption?: string;
+    columns: Column<DATA, keyof DATA>[];
+    data: DATA[];
+    key?: keyof DATA;
+    loading?: boolean;
+};
 
-export type ColumnOptions = {
-    class: string;
-    sortable: boolean;
-    filterable: boolean;
-    hideable: boolean;
-}
-
-export type ColumnData<Item, Value> = Partial<ColumnOptions> & {
-    accessor: keyof Item | ((item: Item) => Value);
-    header: HeaderLabel<unknown, AnyPlugins> | string;
-    cell: DataLabel<Item>;
-}
+export type Column<DATA, FIELD extends keyof DATA> = {
+    header: string;
+    header_class?: string;
+    field: FIELD;
+    field_class?: string;
+    format?: (value: DATA[FIELD]) => string;
+    footer?: (values: DATA[FIELD][]) => string;
+    footer_class?: string;
+};

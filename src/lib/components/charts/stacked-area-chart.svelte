@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Line } from 'svelte-chartjs';
 	import {
 		Chart as ChartJS,
 		Title,
@@ -8,66 +7,74 @@
 		LineElement,
 		LinearScale,
 		PointElement,
-		CategoryScale
+		CategoryScale,
+		LineController,
+		Filler,
+		type ChartOptions,
+		type ChartData
 	} from 'chart.js';
 	import type { LineChartData } from './types';
 
-	export let data: LineChartData;
-	export let title: string | undefined = undefined;
-	export let label_x: string | undefined = undefined;
-	export let label_y: string | undefined = undefined;
+	ChartJS.register(
+		Title,
+		Tooltip,
+		Legend,
+		Filler,
+		LineElement,
+		LinearScale,
+		PointElement,
+		CategoryScale,
+		LineController
+	);
 
-	ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, CategoryScale);
+	interface Props {
+		data: LineChartData;
+		title?: string;
+		label_x?: string;
+		label_y?: string;
+	}
 
-	// TODO: add fill under lines
-	let chart_data: Line['$$prop_def']['data'];
-	$: chart_data = {
+	let { data, title, label_x, label_y }: Props = $props();
+
+	let canvas: HTMLCanvasElement | undefined = $state();
+	let chart: ChartJS | undefined = $state();
+
+	let chart_data: ChartData<'line', number[], string> = $derived({
 		labels: data.column_labels,
 		datasets: data.lines
 			.toSorted((a, b) => Math.max(...a.values) - Math.max(...b.values))
 			.map((line) => ({
 				label: line.label,
 				data: line.values,
-				fill: 'origin',
 				hidden: line.hidden,
-				backgroundColor: line.color,
-				borderColor: line.color,
-				borderCapStyle: 'butt',
-				borderDash: [],
-				borderDashOffset: 0.0,
-				borderJoinStyle: 'miter',
-				lineTension: 0.3,
-				pointBorderColor: line.color,
-				pointBackgroundColor: line.color,
-				pointBorderWidth: 0,
-				pointHoverRadius: 5,
-				pointHoverBackgroundColor: '#000000',
-				pointHoverBorderColor: 'rgba(220, 220, 220,1)',
-				pointHoverBorderWidth: 2,
-				pointRadius: 1,
-				pointHitRadius: 10
+				backgroundColor: line.color
 			}))
-	};
+	});
 
-	const options: Line['$$prop_def']['options'] = {
+	const options: ChartOptions<'line'> = {
 		responsive: true,
 		aspectRatio: 0,
+		datasets: {
+			line: {
+				fill: '-1',
+				borderColor: 'black',
+				borderWidth: 1,
+				pointRadius: 0,
+				pointHoverRadius: 5,
+				pointHoverBorderWidth: 2,
+				pointHoverBackgroundColor: 'black',
+				pointHoverBorderColor: 'rgba(220, 220, 220, 1)'
+			}
+		},
+		elements: { line: { tension: 0.3 } },
 		plugins: {
 			title: {
 				display: !!title,
 				text: title
-			},
-			tooltip: {
-				mode: 'index'
-			},
-			filler: {
-				propagate: true,
-				drawTime: 'beforeDatasetsDraw'
 			}
 		},
 		interaction: {
 			mode: 'nearest',
-			axis: 'x',
 			intersect: false
 		},
 		scales: {
@@ -86,6 +93,21 @@
 			}
 		}
 	};
+
+	$effect.pre(() => {
+		if (!canvas || !chart_data) return;
+
+		if (chart) {
+			chart.data = $state.snapshot(chart_data) as any;
+			chart.update();
+		} else {
+			chart = new ChartJS(canvas, {
+				type: 'line',
+				data: $state.snapshot(chart_data) as any,
+				options
+			});
+		}
+	});
 </script>
 
-<Line data={chart_data} {options} />
+<canvas bind:this={canvas}></canvas>

@@ -13,7 +13,7 @@
 	};
 
 	let user: User;
-	let initials: string = '';
+	let initials: string = $state('');
 
 	supabase.auth.getUser().then(({ data, error }) => {
 		if (data.user) {
@@ -42,7 +42,7 @@
 				<UserIcon />
 				Profile
 			</DropdownMenu.Item>
-			<DropdownMenu.Item on:click={logout} class="gap-2 text-muted-foreground">
+			<DropdownMenu.Item onclick={logout} class="gap-2 text-muted-foreground">
 				<LogOut />
 				Log out
 			</DropdownMenu.Item>

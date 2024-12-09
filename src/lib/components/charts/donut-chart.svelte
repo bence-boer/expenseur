@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { Doughnut } from 'svelte-chartjs';
-
 	import {
+		DoughnutController,
 		Chart as ChartJS,
 		Title,
 		Tooltip,
@@ -12,6 +11,17 @@
 	} from 'chart.js';
 	import type { DonutDataPoint } from './types';
 
+	ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale, DoughnutController);
+
+	interface Props {
+		data: DonutDataPoint[];
+	}
+
+	let { data }: Props = $props();
+
+	let canvas: HTMLCanvasElement | undefined = $state();
+	let chart: ChartJS | undefined = $state();
+
 	const donut_default: ChartData<'doughnut', number[], string> = {
 		labels: [],
 		datasets: [
@@ -19,24 +29,37 @@
 				data: [],
 				backgroundColor: [],
 				hoverBackgroundColor: [],
-				borderJoinStyle: 'round',
 				borderColor: '#020817',
-				borderWidth: 4
+				borderJoinStyle: 'round',
+				borderWidth: 4,
+				borderRadius: 10
 			}
 		]
 	};
 
-	export let data: DonutDataPoint[];
+	const chart_data: ChartData<'doughnut', number[], string> = $derived(
+		data.reduce((acc, { label, value, backgroundColor, hoverBackgroundColor }) => {
+			acc.labels!.push(label);
+			acc.datasets[0].data.push(value);
+			(acc.datasets[0].backgroundColor as string[]).push(backgroundColor);
+			(acc.datasets[0].hoverBackgroundColor as string[]).push(hoverBackgroundColor);
+			return acc;
+		}, structuredClone(donut_default))
+	);
 
-	$: dataset = data.reduce((acc, { label, value, backgroundColor, hoverBackgroundColor }) => {
-		acc.labels!.push(label);
-		acc.datasets[0].data.push(value);
-		(acc.datasets[0].backgroundColor as string[]).push(backgroundColor);
-		(acc.datasets[0].hoverBackgroundColor as string[]).push(hoverBackgroundColor);
-		return acc;
-	}, structuredClone(donut_default));
-
-	ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale);
+	$effect.pre(() => {
+		if (canvas && data) {
+			if (chart) {
+				chart.data = chart_data;
+				chart.update();
+			} else {
+				chart = new ChartJS(canvas, {
+					type: 'doughnut',
+					data: chart_data
+				});
+			}
+		}
+	});
 </script>
 
-<Doughnut data={dataset} options={{ responsive: true }} />
+<canvas bind:this={canvas}></canvas>

@@ -7,14 +7,25 @@
 	import { CalendarDate, getLocalTimeZone, today, type DateValue } from '@internationalized/date';
 	import { CalendarIcon } from 'lucide-svelte';
 
-	export let value: DateValue | undefined;
-	export let title = 'Date Picker';
-	export let placeholder: DateValue = today(getLocalTimeZone());
-	export let min: DateValue = new CalendarDate(1900, 1, 1);
-	export let max: DateValue = new CalendarDate(2099, 12, 31);
-	let _class = '';
-	export { _class as class };
-	let open = false;
+	interface Props {
+		value: DateValue | undefined;
+		title?: string;
+		placeholder?: DateValue;
+		min?: DateValue;
+		max?: DateValue;
+		class?: string;
+	}
+
+	let {
+		value = $bindable(),
+		title = 'Date Picker',
+		placeholder = $bindable(today(getLocalTimeZone())),
+		min = new CalendarDate(1900, 1, 1),
+		max = new CalendarDate(2099, 12, 31),
+		class: _class = ''
+	}: Props = $props();
+
+	let open = $state(false);
 </script>
 
 <Popover.Root bind:open>
@@ -33,6 +44,7 @@
 		<Calendar
 			bind:value
 			bind:placeholder
+			type="single"
 			minValue={min}
 			maxValue={max}
 			calendarLabel="Date Picker"
