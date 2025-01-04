@@ -4,6 +4,7 @@ import { memory_cache } from "./cache";
 import type { FunctionName, FunctionParameters, FunctionReturns, QueryParameters, ServiceCache, Tables, Views } from "./types";
 import type { CalendarDate } from "@internationalized/date";
 import type { SpendingsInInterval } from "./DTO";
+import { PUBLIC_API_URL } from '$env/static/public'
 
 // import type { PostgrestSingleResponse } from '@supabase/supabase-js'
 

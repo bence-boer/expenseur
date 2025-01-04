@@ -1,0 +1,17 @@
+{
+  "version": "0.1.0",
+  "imports": {
+    "chart.js": "npm:chart.js@^4.4.3",
+    "clsx": "npm:clsx@^2.1.1",
+    "svelte-radix": "npm:svelte-radix@^1.1.0",
+    "tailwind-merge": "npm:tailwind-merge@^2.4.0",
+    "tailwind-variants": "npm:tailwind-variants@^0.2.1",
+    "tailwindcss-animate": "npm:tailwindcss-animate@^1.0.7"
+  },
+  "tasks": {
+    "start": "deno run --allow-net main.ts"
+  },
+  "usnstable": [
+    "sloppy-imports"
+  ]
+}
