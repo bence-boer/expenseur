@@ -1,7 +1,7 @@
 {
   "name": "@expenseur/backend",
   "version": "0.1.0",
-  "exports": "./src/types",
+  "exports": "./src/types/public.ts",
   "imports": {
     "@google/generative-ai": "npm:@google/generative-ai@^0.21.0",
     "@hono/zod-validator": "npm:@hono/zod-validator@^0.4.2",

@@ -1,259 +1,167 @@
-import type { User } from "@supabase/supabase-js";
-import { supabase } from "../supabase-client";
-import { memory_cache } from "./cache";
-import type { FunctionName, FunctionParameters, FunctionReturns, QueryParameters, ServiceCache, Tables, Views } from "./types";
-import type { CalendarDate } from "@internationalized/date";
-import type { SpendingsInInterval } from "./DTO";
-import { PUBLIC_API_URL } from '$env/static/public'
+import { PUBLIC_API_URL } from '$env/static/public';
+import { ClientResponse, hc, InferRequestType, InferResponseType } from 'hono/client';
+import type { API } from '@expenseur/backend';
+import { ServiceCache } from './types.ts';
 
-// import type { PostgrestSingleResponse } from '@supabase/supabase-js'
+const client = hc<API>(PUBLIC_API_URL, {});
 
 const cache: ServiceCache = memory_cache;
 console.log('Using cache:', cache.name);
 
+// TODO: Implement getting user info
 
-const user_promise: Promise<User> = supabase.auth.getUser().then(response => response.data.user!);
+const extract_data = <Data>(response: ClientResponse<Data>): Promise<Data> =>
+    response.ok
+        ? response.json() as Promise<Data>
+        : Promise.reject(new Error(response.statusText));
 
+/* SERVICE FUNCTIONS */
+//-------------------------------------------------------------------------------------
 
-/*
-const process_response = async <DATA>({ error, data }: PostgrestSingleResponse<DATA>, cache_key?: string): Promise<Exclude<DATA, null>> => {
-    if (error) {
-        console.error(error);
-        return Promise.reject(error);
-    }
+const $get_item_details = client.api.items[':id'].$get;
+export type ItemDetails = InferResponseType<typeof $get_item_details>;
+export type ItemDetailsParam = InferRequestType<typeof $get_item_details>['param'];
 
-    if (cache_key) cache.set(cache_key, data);
-    return Promise.resolve(data!);
-}
+export const get_item_details =
+    (param: ItemDetailsParam): Promise<ItemDetails> =>
+        $get_item_details({ param }).then(extract_data);
 
-// Type '{ id: number; name: string; unit: string; category: string; }[] | { category: string; total: number; }[]' is not assignable to type 'FunctionReturns[Function]'
-const sameShit1: PostgrestSingleResponse<FunctionReturns[FunctionName]>['data'] = undefined as unknown as PostgrestSingleResponse<FunctionReturns[FunctionName]>['data'];
-const sameShit2: FunctionReturns[FunctionName] = undefined as unknown as FunctionReturns[FunctionName];
+//-------------------------------------------------------------------------------------
 
-type wtf1 = Omit<typeof sameShit1, keyof typeof sameShit2>
-type wtf2 = Omit<typeof sameShit2 | null, keyof typeof sameShit1>
+const $get_spendings_by_category = client.api.spendings.categorized.$get;
+export type SpendingsByCategory = InferResponseType<typeof $get_spendings_by_category>;
+export type SpendingsByCategoryParam = InferRequestType<typeof $get_spendings_by_category>
 
-const wtf1Obj: wtf1 = undefined as unknown as wtf1;
-const wtf2Obj: wtf2 = undefined as unknown as wtf2;
+export const get_spendings_by_category =
+    (param: SpendingsByCategoryParam): Promise<SpendingsByCategory> =>
+        $get_spendings_by_category({ param }).then(extract_data);
 
+//-------------------------------------------------------------------------------------
 
+const $get_spendings_by_category_interval = client.api.spendings.categorized.intervalled.$get;
+export type SpendingsByCategoryInterval = InferResponseType<typeof $get_spendings_by_category_interval>;
+export type SpendingsByCategoryIntervalParam = InferRequestType<typeof $get_spendings_by_category_interval>;
 
-const get_function = async <Function extends FunctionName>(key: Function, args: FunctionParameters[Function]): Promise<FunctionReturns[Function]> => {
-    const cache_key = JSON.stringify([key, args]);
-    const cached_data = cache.get<FunctionReturns[Function]>(cache_key);
-    if (cached_data) return Promise.resolve(cached_data);
+export const get_spendings_by_category_interval =
+    (param: SpendingsByCategoryIntervalParam): Promise<SpendingsByCategoryInterval> =>
+        $get_spendings_by_category_interval({ param }).then(extract_data);
 
-    const alma: FunctionReturns[Function] = null as unknown as FunctionReturns[Function];
-    console.log(alma);
-    
+//-------------------------------------------------------------------------------------
 
-    return supabase
-        .rpc(key, args)
-        .then((response) => process_response(response, cache_key));
-};
-*/
+const $get_brands = client.api.brands.$get;
+export type Brands = InferResponseType<typeof $get_brands>;
 
+export const get_brands = (): Promise<Brands> =>
+    $get_brands().then(extract_data);
 
+//-------------------------------------------------------------------------------------
 
-const get_function = async <Function extends FunctionName>(key: Function, args: FunctionParameters[Function]): Promise<FunctionReturns[Function]> => {
-    const cache_key = JSON.stringify([key, args]);
-    const cached_data = cache.get<FunctionReturns[Function]>(cache_key);
-    if (cached_data) return Promise.resolve(cached_data);
+const $get_categories = client.api.categories.$get;
+export type Categories = InferResponseType<typeof $get_categories>;
 
-    return supabase
-        .rpc(key, args)
-        .then(({ data, error }: { data: unknown, error: unknown }) => {
-            if (error) return Promise.reject(error);
+export const get_categories = (): Promise<Categories> =>
+    $get_categories().then(extract_data);
 
-            cache.set(cache_key, data);
-            return Promise.resolve(data as FunctionReturns[Function]);
-        });
-};
+//-------------------------------------------------------------------------------------
 
-const get_view = async <View extends keyof Views>(view: View, parameters: QueryParameters<typeof view>): Promise<Views[View]['Row'][]> => {
-    const cache_key = JSON.stringify([view, parameters]);
-    const cached_data = cache.get<Views[View]['Row'][]>(cache_key);
-    if (cached_data) return Promise.resolve(cached_data);
+const $get_vendors = client.api.vendors.$get;
+export type Vendors = InferResponseType<typeof $get_vendors>;
 
-    const user: User = await user_promise;
-    let request = supabase
-        .from(view)
-        .select()
-        .eq('user_id', user.id);
+export const get_vendors = (): Promise<Vendors> =>
+    $get_vendors().then(extract_data);
 
-    if (parameters?.filter?.length) {
-        for (const { by, value, min, max } of parameters.filter) {
-            if (value) {
-                request = request.eq(by, value);
-                break;
-            }
-            if (min) request = request.gte(by, min);
-            if (max) request = request.lte(by, max);
-        }
-    }
+//-------------------------------------------------------------------------------------
 
-    if (parameters?.order?.length) {
-        for (const { by, direction } of parameters.order) {
-            request = request.order(by, { ascending: direction === 'ascending' });
-        }
-    };
+const $get_units = client.api.units.$get;
+export type Units = InferResponseType<typeof $get_units>;
 
-    return request.then(({ data, error }: { data: unknown, error: unknown }) => {
-        if (error) {
-            console.error(error);
-            return Promise.reject(error);
-        }
+export const get_units = (): Promise<Units> =>
+    $get_units().then(extract_data);
 
-        cache.set(cache_key, data);
-        return Promise.resolve(data as Views[View]['Row'][]);
-    });
-}
+//-------------------------------------------------------------------------------------
 
-const get_table = async <Table extends keyof Tables>(table: Table): Promise<Tables[Table]['Row'][]> => {
-    const cache_key = table;
-    const cached_data = cache.get<Tables[Table]['Row'][]>(cache_key);
-    if (cached_data) return Promise.resolve(cached_data);
+const $get_items = client.api.items.$get;
+export type Items = InferResponseType<typeof $get_items>;
 
-    const user: User = await user_promise;
-    return supabase
-        .from(table)
-        .select()
-        .eq('user_id', user?.id)
-        .then(({ data, error }: { data: unknown, error: unknown }) => {
-            if (error) {
-                console.error(error);
-                return Promise.reject(error);
-            }
+export const get_items = (): Promise<Items> =>
+    $get_items().then(extract_data);
 
-            cache.set(cache_key, data);
-            return Promise.resolve(data as Tables[Table]['Row'][]);
-        });
-};
+//-------------------------------------------------------------------------------------
 
-const create_single = async <Table extends keyof Tables>(
-    table: Table,
-    data: Tables[Table]['Insert']
-): Promise<Tables[Table]['Row']> => {
-    const cache_key = table;
+const $create_purchases = client.api.purchases.$post;
+export type CreatePurchases = InferResponseType<typeof $create_purchases>;
+export type CreatePurchasesPayload = InferRequestType<typeof $create_purchases>;
 
-    return supabase
-        .from(table)
-        .insert(data as never)
-        .select()
-        .single()
-        .then(({ data, error }: { data: unknown, error: unknown }) => {
-            if (error) {
-                console.error(error);
-                return Promise.reject(error);
-            }
+export const create_purchases =
+    (payload: CreatePurchasesPayload): Promise<CreatePurchases> =>
+        $create_purchases({ json: payload }).then(extract_data);
 
-            cache.clear(cache_key);
-            return Promise.resolve(data as Tables[Table]['Row']);
-        });
-}
+//-------------------------------------------------------------------------------------
 
-const create_multiple = async <Table extends keyof Tables>(
-    table: Table,
-    data: Tables[Table]['Insert'][]
-): Promise<Tables[Table]['Row'][]> => {
-    return supabase
-        .from(table)
-        .insert(data as never)
-        .select('*')
-        .then(({ data, error }: { data: unknown, error: unknown }) => {
-            if (error) {
-                console.error(error);
-                return Promise.reject(error);
-            }
+const $create_item = client.api.items.$post;
+export type CreateItem = InferResponseType<typeof $create_item>;
+export type CreateItemPayload = InferRequestType<typeof $create_item>;
 
-            cache.clear(table);
-            return Promise.resolve(data as Tables[Table]['Row'][]);
-        });
-}
+export const create_item =
+    (payload: CreateItemPayload): Promise<CreateItem> =>
+        $create_item({ json: payload }).then(extract_data);
 
-const delete_single = async <Table extends keyof Tables>(
-    table: Table,
-    id: number
-) => {
-    return supabase
-        .from(table)
-        .delete()
-        .eq('id', id)
-        .then(({ error }: { error: unknown }) => {
-            if (error) {
-                console.error(error);
-                return Promise.reject(error);
-            }
+//-------------------------------------------------------------------------------------
 
-            cache.clear(table);
-            return Promise.resolve();
-        });
-}
+const $create_vendor = client.api.vendors.$post;
+export type CreateVendor = InferResponseType<typeof $create_vendor>;
+export type CreateVendorPayload = InferRequestType<typeof $create_vendor>;
 
-/** SERVICE FUNCTIONS */
-export const get_item_details = async (item_id: FunctionParameters['item_details']['item_id']): Promise<FunctionReturns['item_details'][number]> => {
-    return get_function('item_details', { item_id }).then(data => data[0]);
-}
+export const create_vendor =
+    (payload: CreateVendorPayload): Promise<CreateVendor> =>
+        $create_vendor({ json: payload }).then(extract_data);
 
-export const get_spendings_by_category = async (start_date: string, end_date: string): Promise<FunctionReturns['spendings_by_category']> => {
-    return get_function('spendings_by_category', { start_date, end_date });
-}
+//-------------------------------------------------------------------------------------
 
-export const get_spendings_by_category_interval = async (start_date: string, end_date: string, days_interval: number): Promise<SpendingsInInterval> => {
-    return get_function('spendings_by_category_interval', { start_date, end_date, days_interval }) as Promise<SpendingsInInterval>;
-}
+const $create_brand = client.api.brands.$post;
+export type CreateBrand = InferResponseType<typeof $create_brand>;
+export type CreateBrandPayload = InferRequestType<typeof $create_brand>;
 
-export const get_brands = async (): Promise<Tables['brands']['Row'][]> => {
-    return get_table('brands');
-}
+export const create_brand =
+    (payload: CreateBrandPayload): Promise<CreateBrand> =>
+        $create_brand({ json: payload }).then(extract_data);
 
-export const get_categories = async (): Promise<Tables['categories']['Row'][]> => {
-    return get_table('categories');
-}
+//-------------------------------------------------------------------------------------
 
-export const get_stores = async (): Promise<Tables['stores']['Row'][]> => {
-    return get_table('stores');
-}
+const $create_category = client.api.categories.$post;
+export type CreateCategory = InferResponseType<typeof $create_category>;
+export type CreateCategoryPayload = InferRequestType<typeof $create_category>;
 
-export const get_units = async (): Promise<Tables['units']['Row'][]> => {
-    return get_table('units');
-}
+export const create_category =
+    (payload: CreateCategoryPayload): Promise<CreateCategory> =>
+        $create_category({ json: payload }).then(extract_data);
 
-export const get_items = async (): Promise<Tables['items']['Row'][]> => {
-    return get_table('items');
-}
+//-------------------------------------------------------------------------------------
 
-export const create_purchases = async (purchases: Tables['purchases']['Insert'][]): Promise<Tables['purchases']['Row'][]> => {
-    return create_multiple('purchases', purchases);
-}
+const $create_unit = client.api.units.$post;
+export type CreateUnit = InferResponseType<typeof $create_unit>;
+export type CreateUnitPayload = InferRequestType<typeof $create_unit>;
 
-export const create_item = async (item: Tables['items']['Insert']): Promise<Tables['items']['Row']> => {
-    return create_single('items', item);
-}
+export const create_unit =
+    (payload: CreateUnitPayload): Promise<CreateUnit> =>
+        $create_unit({ json: payload }).then(extract_data);
 
-export const create_store = async (store_name: string): Promise<Tables['stores']['Row']> => {
-    return create_single('stores', { name: store_name });
-}
+//-------------------------------------------------------------------------------------
 
-export const create_brand = async (brand_name: string): Promise<Tables['brands']['Row']> => {
-    return create_single('brands', { name: brand_name });
-}
+const $delete_purchase = client.api.purchases[':id'].$delete;
+export type DeletePurchase = InferResponseType<typeof $delete_purchase>;
+export type DeletePurchaseParam = InferRequestType<typeof $delete_purchase>['param'];
 
-export const create_category = async (category_name: string): Promise<Tables['categories']['Row']> => {
-    return create_single('categories', { name: category_name });
-}
+export const delete_purchase =
+    (param: DeletePurchaseParam): Promise<DeletePurchase> =>
+        $delete_purchase({ param }).then(extract_data);
 
-export const create_unit = async (unit_name: string): Promise<Tables['units']['Row']> => {
-    return create_single('units', { name: unit_name });
-}
+//-------------------------------------------------------------------------------------
 
-export const delete_purchase = async (purchase_id: number) => {
-    return delete_single('purchases', purchase_id);
-}
+const $get_purchases = client.api.purchases.$get;
+export type Purchase = InferResponseType<typeof $get_purchases>[number];
+export type GetPurchasesParam = InferRequestType<typeof $get_purchases>;
 
-export const get_detailed_purchases = async (start_date: CalendarDate, end_date: CalendarDate): Promise<Views['all_tables_view']['Row'][]> => {
-    return get_view('all_tables_view', {
-        filter: [{ by: 'date', min: start_date.toString(), max: end_date.toString() }],
-        order: [{ by: 'date', direction: 'descending' }]
-    });
-}
+export const get_purchases =
+    (param: GetPurchasesParam): Promise<Purchase[]> =>
+        $get_purchases({ param }).then(extract_data);

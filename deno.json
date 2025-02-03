@@ -1,14 +1,19 @@
 {
-  "workspace": [
-    "./backend",
-    "./frontend"
-  ],
-  "imports": {
-    "hono": "npm:hono@^4.6.20",
-    "zod": "npm:zod@^3.19.1"
-  },
-  "nodeModulesDir": "auto",
-  "compilerOptions": {
-    "strict": true
-  }
+    "workspace": [
+        "./backend",
+        "./frontend"
+    ],
+    "imports": {
+        "hono": "npm:hono@^4.6.20",
+        "zod": "npm:zod@^3.19.1"
+    },
+    "nodeModulesDir": "auto",
+    "compilerOptions": {
+        "strict": true
+    },
+    "fmt": {
+        "semiColons": true,
+        "singleQuote": true,
+        "indentWidth": 4
+    }
 }

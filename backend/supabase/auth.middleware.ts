@@ -5,6 +5,7 @@ import { env } from 'hono/adapter';
 import { setCookie } from 'hono/cookie';
 import { cookie_options_mapper } from "./cookie-mapper.ts";
 import type { Database } from "./types.ts";
+import { Environment } from '../src/types/local.ts';
 
 declare module 'hono' {
   interface ContextVariableMap {
@@ -14,19 +15,14 @@ declare module 'hono' {
 
 export const supabase = (context: Context): SupabaseClient<Database, 'public', Database['public']> => context.get('supabase');
 
-type SupabaseEnv = {
-  PUBLIC_SUPABASE_URL: string;
-  PUBLIC_SUPABASE_ANON_KEY: string;
-};
-
 export const supabase_middleware = (): MiddlewareHandler => {
   return async (context, next) => {
-    const environment = env<SupabaseEnv>(context);
-    const url = environment.PUBLIC_SUPABASE_URL ?? Deno.env.get('PUBLIC_SUPABASE_URL')!;
-    const key = environment.PUBLIC_SUPABASE_ANON_KEY ?? Deno.env.get('PUBLIC_SUPABASE_ANON_KEY')!;
+    const environment = env<Environment>(context);
+    const url = environment.SUPABASE_URL ?? Deno.env.get('SUPABASE_URL')!;
+    const key = environment.SUPABASE_ANON_KEY ?? Deno.env.get('SUPABASE_ANON_KEY')!;
 
-    if (!url) throw new Error('PUBLIC_SUPABASE_URL missing!');
-    if (!key) throw new Error('PUBLIC_SUPABASE_ANON_KEY missing!');
+    if (!url) throw new Error('SUPABASE_URL missing!');
+    if (!key) throw new Error('SUPABASE_ANON_KEY missing!');
 
     const supabase = createServerClient<Database, 'public', Database['public']>(url, key, {
       cookies: {

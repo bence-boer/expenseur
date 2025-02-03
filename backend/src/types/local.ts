@@ -1,9 +1,8 @@
-import type { PostgrestError } from "@supabase/supabase-js";
-
 export type Environment = {
-    PUBLIC_SUPABASE_URL: string;
-    PUBLIC_SUPABASE_ANON_KEY: string;
+    SUPABASE_URL: string;
+    SUPABASE_ANON_KEY: string;
     GEMINI_API_KEY: string;
+    GEMINI_MODEL: string;
 };
 
 export type Empty = Record<string | number | symbol, never>;
