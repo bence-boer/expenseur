@@ -1,36 +1,36 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { Button } from '$lib/components/ui/button';
-	import * as Card from '$lib/components/ui/card';
-	import { Input } from '$lib/components/ui-custom/input';
-	import { supabase } from '../../supabase-client';
-	import { browser } from '$app/environment';
+	import { goto } from "$app/navigation";
+	import { Button } from "$lib/components/ui/button";
+	import * as Card from "$lib/components/ui/card";
+	import { Input } from "$lib/components/ui-custom/input";
+	import { browser } from "$app/environment";
+	import { service } from "$lib/service";
 
-	let email: string = $state('');
-	let password: string = $state('');
+	let email: string = $state("");
+	let password: string = $state("");
 
 	const back = () => {
-		if (browser) goto('/');
+		if (browser) goto("/");
 	};
 
-	supabase.auth.getUser().then(({ data }) => {
-		!!data.user && back();
-	});
+	// supabase.auth.getUser().then(({ data }) => {
+	// 	!!data.user && back();
+	// });
 
 	let failed = $state(false);
 	const register = () => {
-		supabase.auth
-			.signUp({
+		service
+			.register({
 				email: email,
-				password: password
+				password: password,
 			})
 			.then((response) => {
 				if (response.error) throw response.error;
 
-				goto('/login');
+				goto("/login");
 			})
 			.catch((error) => {
-				console.error('Registration error:', error.message);
+				console.error("Registration error:", error.message);
 				failed = true;
 			});
 	};
@@ -44,10 +44,20 @@
 		</Card.Header>
 		<Card.Content>
 			<div class="mb-2">
-				<Input type="email" placeholder="email" class="w-full" bind:value={email} />
+				<Input
+					type="email"
+					placeholder="email"
+					class="w-full"
+					bind:value={email}
+				/>
 			</div>
 			<div>
-				<Input type="password" placeholder="password" class="w-full" bind:value={password} />
+				<Input
+					type="password"
+					placeholder="password"
+					class="w-full"
+					bind:value={password}
+				/>
 			</div>
 			<div class="size h-2 text-right text-xs text-red-500">
 				{#if failed}
@@ -57,7 +67,9 @@
 		</Card.Content>
 		<Card.Footer class="justify-end gap-2">
 			<Button variant="outline" onclick={back} type="reset">Back</Button>
-			<Button variant="default" onclick={register} type="submit">Register</Button>
+			<Button variant="default" onclick={register} type="submit"
+				>Register</Button
+			>
 		</Card.Footer>
 	</Card.Root>
 </form>

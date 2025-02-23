@@ -3,8 +3,8 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui-custom/input';
-	import { supabase } from '../../supabase-client';
 	import { browser } from '$app/environment';
+	import { service } from '$lib/service';
 
 	let email: string = $state('');
 	let password: string = $state('');
@@ -13,14 +13,10 @@
 		if (browser) goto('/');
 	};
 
-	supabase.auth.getUser().then(({ data }) => {
-		!!data.user && back();
-	});
-
 	let failed = $state(false);
 	const login = () => {
-		supabase.auth
-			.signInWithPassword({
+		service
+			.login({
 				email: email,
 				password: password
 			})

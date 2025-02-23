@@ -1,30 +1,21 @@
 <script lang="ts">
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import * as Avatar from '$lib/components/ui/avatar/index.js';
-	import { supabase } from '../../../supabase-client';
-	import { goto } from '$app/navigation';
-	import { UserIcon, LogOut } from 'lucide-svelte';
-	import type { User, UserResponse } from '@supabase/supabase-js';
+	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
+	import * as Avatar from "$lib/components/ui/avatar/index.js";
+	import { goto } from "$app/navigation";
+	import { UserIcon, LogOut } from "lucide-svelte";
+	import type { User, UserResponse } from "@supabase/supabase-js";
+	import { service } from "$lib/service";
 
 	const logout = () => {
-		supabase.auth.signOut().then(() => {
-			goto('/');
+		// TODO: implement logout
+		service.logout().then(() => {
+			goto("/");
 		});
+		window.alert("Logout not implemented yet");
 	};
 
 	let user: User;
-	let initials: string = $state('');
-
-	supabase.auth.getUser().then(({ data, error }) => {
-		if (data.user) {
-			user = data.user;
-			initials = user
-				.email!.split('@')[0]
-				.split('.')
-				.map((name) => name.charAt(0).toUpperCase())
-				.join('');
-		}
-	});
+	let initials: string = $state("XX");
 </script>
 
 <DropdownMenu.Root>
@@ -36,13 +27,18 @@
 	</DropdownMenu.Trigger>
 	<DropdownMenu.Content>
 		<DropdownMenu.Group>
-			<DropdownMenu.Label class="text-center">My Account</DropdownMenu.Label>
+			<DropdownMenu.Label class="text-center"
+				>My Account</DropdownMenu.Label
+			>
 			<DropdownMenu.Separator />
 			<DropdownMenu.Item class="gap-2">
 				<UserIcon />
 				Profile
 			</DropdownMenu.Item>
-			<DropdownMenu.Item onclick={logout} class="gap-2 text-muted-foreground">
+			<DropdownMenu.Item
+				onclick={logout}
+				class="gap-2 text-muted-foreground"
+			>
 				<LogOut />
 				Log out
 			</DropdownMenu.Item>

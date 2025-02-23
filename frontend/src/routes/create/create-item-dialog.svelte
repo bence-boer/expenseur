@@ -1,6 +1,6 @@
 <script lang="ts">
-	import * as service from './../../lib/service';
-	import ComboBox from '../../lib/components/ui-custom/combo-box/combo-box.svelte';
+	import { service } from '$lib/service';
+	import ComboBox from '$lib/components/ui-custom/combo-box/combo-box.svelte';
 	import { Button, buttonVariants } from '$lib/components/ui/button';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Input } from '$lib/components/ui-custom/input';

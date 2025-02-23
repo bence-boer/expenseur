@@ -1,4 +1,4 @@
-import { TODAY } from '$lib/consts';
+import { TODAY } from '$lib/consts/index.ts';
 import {
     CalendarDate,
     endOfMonth,
@@ -6,7 +6,7 @@ import {
     startOfMonth,
     startOfYear
 } from '@internationalized/date';
-import { type PeriodWithLabel } from './types';
+import { type PeriodWithLabel } from './types.ts';
 
 const [year, month] = [TODAY.year, TODAY.month];
 export const periods: PeriodWithLabel[] = [

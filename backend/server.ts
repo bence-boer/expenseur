@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+
 import ai from "./src/routes/ai.ts";
 import auth from "./src/routes/auth.ts";
 import brands from "./src/routes/brands.ts";
@@ -9,9 +10,11 @@ import spendings from "./src/routes/spendings.ts";
 import units from "./src/routes/units.ts";
 import vendors from "./src/routes/vendors.ts";
 import { supabase_middleware } from "./supabase/auth.middleware.ts";
+import { cors_middleware } from './src/utils/cors.middleware.ts';
 
 const app = new Hono()
     // Configuration
+    .use('*', cors_middleware())
     .use('*', supabase_middleware())
     .basePath('/api')
     // Routes

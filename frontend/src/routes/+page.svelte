@@ -1,19 +1,18 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
-	import DonutChart from '$lib/components/charts/donut-chart.svelte';
-	import type { DonutDataPoint } from '$lib/components/charts/types';
-	import { PeriodSelector, type Period } from '$lib/components/common/period-selector';
-	import { Button } from '$lib/components/ui/button';
-	import { Separator } from '$lib/components/ui/separator';
-	import * as Table from '$lib/components/ui/table';
-	import * as service from '$lib/service';
-	import type { FunctionReturns } from '$lib/types';
-	import { CalendarDate } from '@internationalized/date';
-	import { ChevronDown, ChevronUp, Eye, EyeOff } from 'lucide-svelte';
-	import { supabase } from '../supabase-client';
-	import { currency_formatter } from './../lib/consts';
-	import { Skeleton } from '$lib/components/ui/skeleton';
+	import DonutChart from "$lib/components/charts/donut-chart.svelte";
+	import type { DonutDataPoint } from "$lib/components/charts/types";
+	import {
+		PeriodSelector,
+		type Period,
+	} from "$lib/components/common/period-selector";
+	import { Button } from "$lib/components/ui/button";
+	import { Separator } from "$lib/components/ui/separator";
+	import * as Table from "$lib/components/ui/table";
+	import { service, ServiceTypes } from "$lib/service";
+	import { CalendarDate } from "@internationalized/date";
+	import { ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-svelte";
+	import { currency_formatter } from "../lib/consts";
+	import { Skeleton } from "$lib/components/ui/skeleton";
 
 	let period: Period | undefined = $state();
 
@@ -21,42 +20,56 @@
 		period = value;
 	};
 
-	let spendings_by_category: (FunctionReturns['spendings_by_category'][number] & {
+	let spendings_by_category: (ServiceTypes.SpendingsByCategory & {
 		hidden: boolean;
 		open: boolean;
 	})[] = $state([]);
 	let diagram_data: DonutDataPoint[] = $state([]);
 	let total_spendings = $derived(
-		spendings_by_category?.reduce((acc, { total }) => acc + total, 0) ?? 0
+		spendings_by_category?.reduce((acc, { total }) => acc + total, 0) ?? 0,
 	);
 
-	const update_statistics = (start_date: CalendarDate, end_date: CalendarDate): void => {
-		service.get_spendings_by_category(start_date.toString(), end_date.toString()).then((data) => {
-			spendings_by_category = data.map((item) => ({ ...item, hidden: false, open: false }));
-			diagram_data = data.map(({ category, total, color }) => ({
-				label: category,
-				value: total,
-				backgroundColor: color,
-				hoverBackgroundColor: '#FFFFFF'
-			}));
-		});
+	const update_statistics = (
+		start_date: CalendarDate,
+		end_date: CalendarDate,
+	): void => {
+		service
+			.get_spendings_by_category({
+				start_date: start_date.toString(),
+				end_date: end_date.toString(),
+			})
+			.then((data) => {
+				spendings_by_category = data.map((item) => ({
+					...item,
+					hidden: false,
+					open: false,
+				}));
+				diagram_data = data.map(({ category, total, color }) => ({
+					label: category,
+					value: total,
+					backgroundColor: color,
+					hoverBackgroundColor: "#FFFFFF",
+				}));
+			});
 	};
 
-	run(() => {
+	$effect.pre(() => {
 		if (period) update_statistics(period.start, period.end);
 	});
 
 	let authenticated: boolean = $state(false);
-	supabase.auth.onAuthStateChange((_, session) => {
-		authenticated = session !== null;
-	});
+	// supabase.auth.onAuthStateChange((_, session) => {
+	// 	authenticated = session !== null;
+	// });
 </script>
 
 {#if authenticated}
 	<h1 class="text-2xl font-bold sm:text-4xl">Dashboard</h1>
 	<Separator class="mb-4 sm:mb-8" />
 
-	<div class="flex flex-row justify-center gap-2 max-sm:flex-col-reverse sm:gap-8">
+	<div
+		class="flex flex-row justify-center gap-2 max-sm:flex-col-reverse sm:gap-8"
+	>
 		<div class="flex flex-1 flex-col gap-2 sm:max-w-64">
 			<Table.Root class="sm:w-64">
 				<Table.Caption>Spread of spendings by category</Table.Caption>
@@ -69,9 +82,13 @@
 				</Table.Header>
 				<Table.Body>
 					{#each spendings_by_category as { category, total, hidden, open }, index}
-						<Table.Row class={hidden ? 'text-muted-foreground' : ''}>
+						<Table.Row
+							class={hidden ? "text-muted-foreground" : ""}
+						>
 							<Table.Cell>
-								<div class="flex flex-row flex-nowrap items-center gap-2">
+								<div
+									class="flex flex-row flex-nowrap items-center gap-2"
+								>
 									{#if open}
 										<ChevronUp size="1em" />
 									{:else}
@@ -88,14 +105,23 @@
 									size="icon"
 									variant="ghost"
 									onclick={() => {
-										spendings_by_category[index].hidden = !hidden;
-										diagram_data = spendings_by_category.map(({ category, total, color }) => ({
-											label: category,
-											value: total,
-											backgroundColor: color,
-											hoverBackgroundColor: '#FFFFFF',
-											hidden
-										}));
+										spendings_by_category[index].hidden =
+											!hidden;
+										diagram_data =
+											spendings_by_category.map(
+												({
+													category,
+													total,
+													color,
+												}) => ({
+													label: category,
+													value: total,
+													backgroundColor: color,
+													hoverBackgroundColor:
+														"#FFFFFF",
+													hidden,
+												}),
+											);
 									}}
 								>
 									{#if hidden}

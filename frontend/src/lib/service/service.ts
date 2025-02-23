@@ -1,12 +1,11 @@
-import { PUBLIC_API_URL } from '$env/static/public';
-import { ClientResponse, hc, InferRequestType, InferResponseType } from 'hono/client';
-import type { API } from '@expenseur/backend';
-import { ServiceCache } from './types.ts';
+import type { ClientResponse, InferRequestType, InferResponseType } from 'hono/client';
+// import { ServiceCache } from "$lib/types";
+import { type Client, get_client } from "$lib/service/client.ts";
 
-const client = hc<API>(PUBLIC_API_URL, {});
+const client: Client = get_client()
 
-const cache: ServiceCache = memory_cache;
-console.log('Using cache:', cache.name);
+// const cache: ServiceCache = memory_cache;
+// console.log('Using cache:', cache.name);
 
 // TODO: Implement getting user info
 
@@ -18,8 +17,46 @@ const extract_data = <Data>(response: ClientResponse<Data>): Promise<Data> =>
 /* SERVICE FUNCTIONS */
 //-------------------------------------------------------------------------------------
 
+const $session = client.api.auth.session.$get;
+export type SessionResponse = InferResponseType<typeof $session>;
+
+export const session =
+    (): Promise<SessionResponse> =>
+        $session().then(extract_data);
+
+//-------------------------------------------------------------------------------------
+
+const $login = client.api.auth.login.$post;
+export type LoginResponse = InferResponseType<typeof $login>;
+export type LoginPayload = InferRequestType<typeof $login>;
+
+export const login =
+    (payload: LoginPayload): Promise<LoginResponse> =>
+        $login({ json: payload }).then(extract_data);
+
+//-------------------------------------------------------------------------------------
+
+const $logout = client.api.auth.logout.$post;
+export type LogoutResponse = InferResponseType<typeof $logout>;
+
+export const logout =
+    (): Promise<LogoutResponse> =>
+        $logout().then(extract_data);
+
+//-------------------------------------------------------------------------------------
+
+const $register = client.api.auth.register.$post;
+export type RegisterResponse = InferResponseType<typeof $register>;
+export type RegisterPayload = InferRequestType<typeof $register>;
+
+export const register =
+    (payload: RegisterPayload): Promise<RegisterResponse> =>
+        $register({ json: payload }).then(extract_data);
+
+//-------------------------------------------------------------------------------------
+
 const $get_item_details = client.api.items[':id'].$get;
-export type ItemDetails = InferResponseType<typeof $get_item_details>;
+export type ItemDetails = InferResponseType<typeof $get_item_details, 200>;
 export type ItemDetailsParam = InferRequestType<typeof $get_item_details>['param'];
 
 export const get_item_details =
@@ -29,17 +66,17 @@ export const get_item_details =
 //-------------------------------------------------------------------------------------
 
 const $get_spendings_by_category = client.api.spendings.categorized.$get;
-export type SpendingsByCategory = InferResponseType<typeof $get_spendings_by_category>;
-export type SpendingsByCategoryParam = InferRequestType<typeof $get_spendings_by_category>
+export type SpendingsByCategory = InferResponseType<typeof $get_spendings_by_category, 200>[number];
+export type SpendingsByCategoryParam = InferRequestType<typeof $get_spendings_by_category>;
 
 export const get_spendings_by_category =
-    (param: SpendingsByCategoryParam): Promise<SpendingsByCategory> =>
+    (param: SpendingsByCategoryParam): Promise<SpendingsByCategory[]> =>
         $get_spendings_by_category({ param }).then(extract_data);
 
 //-------------------------------------------------------------------------------------
 
 const $get_spendings_by_category_interval = client.api.spendings.categorized.intervalled.$get;
-export type SpendingsByCategoryInterval = InferResponseType<typeof $get_spendings_by_category_interval>;
+export type SpendingsByCategoryInterval = InferResponseType<typeof $get_spendings_by_category_interval, 200>;
 export type SpendingsByCategoryIntervalParam = InferRequestType<typeof $get_spendings_by_category_interval>;
 
 export const get_spendings_by_category_interval =
@@ -49,81 +86,81 @@ export const get_spendings_by_category_interval =
 //-------------------------------------------------------------------------------------
 
 const $get_brands = client.api.brands.$get;
-export type Brands = InferResponseType<typeof $get_brands>;
+export type Brand = InferResponseType<typeof $get_brands, 200>[number];
 
-export const get_brands = (): Promise<Brands> =>
+export const get_brands = (): Promise<Brand[]> =>
     $get_brands().then(extract_data);
 
 //-------------------------------------------------------------------------------------
 
 const $get_categories = client.api.categories.$get;
-export type Categories = InferResponseType<typeof $get_categories>;
+export type Category = InferResponseType<typeof $get_categories>[number];
 
-export const get_categories = (): Promise<Categories> =>
+export const get_categories = (): Promise<Category[]> =>
     $get_categories().then(extract_data);
 
 //-------------------------------------------------------------------------------------
 
 const $get_vendors = client.api.vendors.$get;
-export type Vendors = InferResponseType<typeof $get_vendors>;
+export type Vendor = InferResponseType<typeof $get_vendors>[number];
 
-export const get_vendors = (): Promise<Vendors> =>
+export const get_vendors = (): Promise<Vendor[]> =>
     $get_vendors().then(extract_data);
 
 //-------------------------------------------------------------------------------------
 
 const $get_units = client.api.units.$get;
-export type Units = InferResponseType<typeof $get_units>;
+export type Unit = InferResponseType<typeof $get_units>[number];
 
-export const get_units = (): Promise<Units> =>
+export const get_units = (): Promise<Unit[]> =>
     $get_units().then(extract_data);
 
 //-------------------------------------------------------------------------------------
 
 const $get_items = client.api.items.$get;
-export type Items = InferResponseType<typeof $get_items>;
+export type Item = InferResponseType<typeof $get_items>[number];
 
-export const get_items = (): Promise<Items> =>
+export const get_items = (): Promise<Item[]> =>
     $get_items().then(extract_data);
 
 //-------------------------------------------------------------------------------------
 
 const $create_purchases = client.api.purchases.$post;
-export type CreatePurchases = InferResponseType<typeof $create_purchases>;
+export type CreatedPurchase = InferResponseType<typeof $create_purchases>[number];
 export type CreatePurchasesPayload = InferRequestType<typeof $create_purchases>;
 
 export const create_purchases =
-    (payload: CreatePurchasesPayload): Promise<CreatePurchases> =>
+    (payload: CreatePurchasesPayload): Promise<CreatedPurchase[]> =>
         $create_purchases({ json: payload }).then(extract_data);
 
 //-------------------------------------------------------------------------------------
 
 const $create_item = client.api.items.$post;
-export type CreateItem = InferResponseType<typeof $create_item>;
+export type CreateItemResponse = InferResponseType<typeof $create_item>;
 export type CreateItemPayload = InferRequestType<typeof $create_item>;
 
 export const create_item =
-    (payload: CreateItemPayload): Promise<CreateItem> =>
+    (payload: CreateItemPayload): Promise<CreateItemResponse> =>
         $create_item({ json: payload }).then(extract_data);
 
 //-------------------------------------------------------------------------------------
 
 const $create_vendor = client.api.vendors.$post;
-export type CreateVendor = InferResponseType<typeof $create_vendor>;
+export type CreateVendorResponse = InferResponseType<typeof $create_vendor>;
 export type CreateVendorPayload = InferRequestType<typeof $create_vendor>;
 
 export const create_vendor =
-    (payload: CreateVendorPayload): Promise<CreateVendor> =>
+    (payload: CreateVendorPayload): Promise<CreateVendorResponse> =>
         $create_vendor({ json: payload }).then(extract_data);
 
 //-------------------------------------------------------------------------------------
 
 const $create_brand = client.api.brands.$post;
-export type CreateBrand = InferResponseType<typeof $create_brand>;
+export type CreateBrandResponse = InferResponseType<typeof $create_brand>;
 export type CreateBrandPayload = InferRequestType<typeof $create_brand>;
 
 export const create_brand =
-    (payload: CreateBrandPayload): Promise<CreateBrand> =>
+    (payload: CreateBrandPayload): Promise<CreateBrandResponse> =>
         $create_brand({ json: payload }).then(extract_data);
 
 //-------------------------------------------------------------------------------------
@@ -139,21 +176,21 @@ export const create_category =
 //-------------------------------------------------------------------------------------
 
 const $create_unit = client.api.units.$post;
-export type CreateUnit = InferResponseType<typeof $create_unit>;
+export type CreatedUnit = InferResponseType<typeof $create_unit>;
 export type CreateUnitPayload = InferRequestType<typeof $create_unit>;
 
 export const create_unit =
-    (payload: CreateUnitPayload): Promise<CreateUnit> =>
+    (payload: CreateUnitPayload): Promise<CreatedUnit> =>
         $create_unit({ json: payload }).then(extract_data);
 
 //-------------------------------------------------------------------------------------
 
 const $delete_purchase = client.api.purchases[':id'].$delete;
-export type DeletePurchase = InferResponseType<typeof $delete_purchase>;
+export type DeletedPurchase = InferResponseType<typeof $delete_purchase>;
 export type DeletePurchaseParam = InferRequestType<typeof $delete_purchase>['param'];
 
 export const delete_purchase =
-    (param: DeletePurchaseParam): Promise<DeletePurchase> =>
+    (param: DeletePurchaseParam): Promise<DeletedPurchase> =>
         $delete_purchase({ param }).then(extract_data);
 
 //-------------------------------------------------------------------------------------

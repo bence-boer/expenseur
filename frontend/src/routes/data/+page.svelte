@@ -2,18 +2,15 @@
 	import { PeriodSelector, type Period } from '$lib/components/common/period-selector';
 	import { DataTable, type Column } from '$lib/components/ui-custom/data-table';
 	import { Separator } from '$lib/components/ui/separator';
-	import * as service from '$lib/service';
+	import { service, ServiceTypes } from '$lib/service';
 	import { toast } from 'svelte-sonner';
-	import type { Tables } from '../../types/supabase';
 	import { format_currency, format_date } from '$lib/utils';
 
-	type Purchase = Tables<'all_tables_view'>;
-
-	let purchases: Purchase[] = $state([]);
+	let purchases: ServiceTypes.Purchase[] = $state([]);
 	let period: Period | undefined = $state();
 	let loading: boolean = $state(true);
 
-	const table_columns: Column<Purchase, keyof Purchase>[] = [
+	const table_columns: Column<ServiceTypes.Purchase, keyof ServiceTypes.Purchase>[] = [
 		{ header: 'Date', field: 'date', header_class: 'min-w-24' },
 		{ header: 'Item', field: 'item' },
 		{ header: 'Details', field: 'details' },
@@ -50,16 +47,21 @@
 		if (!period) return;
 
 		loading = true;
-		service.get_detailed_purchases(period.start, period.end).then((data) => {
-			purchases = data.map((item) => ({
-				...item,
-				date: format_date(item.date!),
-				details: item.details?.length ? (item.details?.join(', ') as any) : '-',
-				brand: item.brand ?? '-',
-				price: format_currency(item.price!) as any
-			}));
-			loading = false;
-		});
+		service
+			.get_purchases({
+				start_date: period.start.toString(),
+				end_date: period.end.toString()
+			})
+			.then((data) => {
+				purchases = data.map((item) => ({
+					...item,
+					date: format_date(item.date!),
+					details: item.details?.length ? (item.details?.join(', ') as any) : '-',
+					brand: item.brand ?? '-',
+					price: format_currency(item.price!) as any
+				}));
+				loading = false;
+			});
 	});
 </script>
 

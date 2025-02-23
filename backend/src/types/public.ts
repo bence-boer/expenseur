@@ -3,4 +3,4 @@ export type {
     SignUpWithPasswordCredentials as RegisterPayload,
     UserIdentity as DeleteUserPayload,
 } from '@supabase/supabase-js';
-export type { AppType as API } from '../../main.ts';
+export type { AppType as API } from '../../server.ts';

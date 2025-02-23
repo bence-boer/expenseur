@@ -10,22 +10,22 @@
 		number_formatter,
 		number_parser
 	} from '$lib/consts';
-	import * as service from '$lib/service';
-	import type { FunctionReturns } from '$lib/types';
+	import { service, ServiceTypes } from '$lib/service';
+
 	import { label_value_transform, sanitize_string } from '$lib/utils';
 	import { type DateValue, getLocalTimeZone, today } from '@internationalized/date';
 	import { Copy, Plus, X } from 'lucide-svelte';
 	import { toast } from 'svelte-sonner';
-	import type { Tables, TablesInsert } from '../../types/supabase';
 	import ComboBox from '../../lib/components/ui-custom/combo-box/combo-box.svelte';
 	import CreateItemDialog from './create-item-dialog.svelte';
+	import type { LabelValue } from '$lib/types';
 
-	const item_details: FunctionReturns['item_details'] = $state([]);
+	const item_details: ServiceTypes.ItemDetails[] = $state([]);
 	const formatters: Intl.NumberFormat[] = $state([]);
 	const update_item_detail = (id: number) => {
 		if (item_details[id]) return;
 
-		service.get_item_details(id).then((details) => {
+		service.get_item_details({ id }).then((details) => {
 			if (!details) {
 				toast.error('Item details not found!');
 				return;
@@ -35,18 +35,6 @@
 			formatters[id] = formatter_for_unit(details.unit);
 		});
 	};
-
-	interface Props {
-		data: {
-			brands: Tables<'brands'>[];
-			categories: Tables<'categories'>[];
-			stores: Tables<'stores'>[];
-			units: Tables<'units'>[];
-			items: Tables<'items'>[];
-		};
-	}
-
-	let { data }: Props = $props();
 
 	type FormSchema = {
 		date: string;
@@ -70,12 +58,24 @@
 
 	let purchases: FormSchema['purchases'] = $state([empty_purchase()]);
 
-	let selectable_stores = $state(data.stores.map(label_value_transform));
+	let selectable_stores: LabelValue<string | number>[] = $state([]);
 	let selected_store: number | undefined = $state();
 
 	let date: DateValue | undefined = $state(); // TODO: REFACTOR INTO SCHEMA OBJECT
-	let selectable_items = $state(data.items.map(label_value_transform));
-	let selectable_brands = $state(data.brands.map(label_value_transform));
+	let selectable_items: LabelValue<number>[] = $state([]);
+	let selectable_brands: LabelValue<number>[] = $state([]);
+
+	service
+		.get_brands()
+		.then((brands) => (selectable_brands = brands.map(label_value_transform<number>)));
+
+	service
+		.get_vendors()
+		.then((vendors) => (selectable_stores = vendors.map(label_value_transform<number>)));
+
+	service
+		.get_items()
+		.then((items) => (selectable_items = items.map(label_value_transform<number>)));
 
 	let create_item_dialog_open = $state(false);
 	let create_item_label: string | undefined = $state();
@@ -95,7 +95,7 @@
 		}
 
 		return service
-			.create_store(label)
+			.create_vendor(label)
 			.then((store) => {
 				selectable_stores = [...selectable_stores, { label, value: store.id }];
 				toast.success(`Store "${label}" created successfully!`);
@@ -187,7 +187,7 @@
 		}
 
 		const formatted_date = date!.toString();
-		const data: TablesInsert<'purchases'>[] = purchases.map((purchase) => ({
+		const data = purchases.map((purchase) => ({
 			...(purchase as any),
 			brand_id: purchase.brand_id ?? null,
 			details:
@@ -254,7 +254,7 @@
 					class="sm:w-48"
 				></ComboBox>
 				<Button class="ml-2" size="icon" onclick={() => duplicate_item(index)} variant="ghost">
-					<Copy class="h-4 w-4 text-muted-foreground" />
+					<Copy class="text-muted-foreground h-4 w-4" />
 				</Button>
 				<Button size="icon" onclick={() => delete_row(index)} variant="ghost">
 					<X class="h-4 w-4 text-red-600" />
@@ -291,13 +291,13 @@
 
 	<div class="flex justify-end py-2">
 		<Button class="p-2" size="icon" onclick={add_row} variant="outline">
-			<Plus class="h-4 w-4 text-muted-foreground" />
+			<Plus class="text-muted-foreground h-4 w-4" />
 		</Button>
 	</div>
 </ScrollArea>
 
 <div class="flex items-end justify-between">
-	<span class="text-sm text-muted-foreground">Total: {total}</span>
+	<span class="text-muted-foreground text-sm">Total: {total}</span>
 	<Button type="submit" class="w-24" onclick={handle_submit}>Submit</Button>
 </div>
 

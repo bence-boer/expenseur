@@ -32,7 +32,7 @@ const app = new Hono()
                 }) as SupabaseResponse<SpendingsInInterval>;
 
             if (error) throw new HTTPException(500, error);
-            return context.json(data);
+            return context.json(data!);
         })
 
 export default app;

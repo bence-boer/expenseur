@@ -1,15 +1,16 @@
 {
-  "name": "@expenseur/backend",
-  "version": "0.1.0",
-  "exports": "./src/types/public.ts",
-  "imports": {
-    "@google/generative-ai": "npm:@google/generative-ai@^0.21.0",
-    "@hono/zod-validator": "npm:@hono/zod-validator@^0.4.2",
-    "@supabase/ssr": "npm:@supabase/ssr@^0.5.2",
-    "@supabase/supabase-js": "npm:@supabase/supabase-js@^2.47.10"
-  },
-  "tasks": {
-    "start": "deno run --allow-net --allow-env main.ts",
-    "generate-types": "echo y | npx supabase gen types typescript --project-id 'atmchajrexboccdgntma' --schema public > supabase/types.ts"
-  }
+    "name": "@expenseur/backend",
+    "version": "0.1.0",
+    "exports": "./src/types/public.ts",
+    "imports": {
+        "@google/generative-ai": "npm:@google/generative-ai@^0.21.0",
+        "@hono/zod-validator": "npm:@hono/zod-validator@^0.4.2",
+        "@supabase/ssr": "npm:@supabase/ssr@^0.5.2",
+        "@supabase/supabase-js": "npm:@supabase/supabase-js@^2.47.10"
+    },
+    "tasks": {
+        "serve:development": "deno run --watch --allow-all --env-file=.env.development server.ts",
+        "serve:production": "deno run --allow-all --env-file=.env server.ts",
+        "generate-types": "echo y | npx supabase gen types typescript --project-id 'atmchajrexboccdgntma' --schema public > supabase/types.ts"
+    }
 }

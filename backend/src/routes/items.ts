@@ -12,7 +12,7 @@ const app = new Hono()
             .select('*');
 
         if (error) throw new HTTPException(500, error);
-        return context.json(data[0]);
+        return context.json(data);
     })
 
     .post('/', zValidator('json', item_validator),

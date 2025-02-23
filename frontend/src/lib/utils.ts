@@ -1,7 +1,7 @@
+import { currency_formatter, date_formatter } from '$lib/consts/index.ts';
+import type { LabelValue } from '$lib/types.ts';
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import type { LabelValue } from "./types";
-import { currency_formatter, date_formatter } from "./consts";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));

@@ -7,6 +7,15 @@
         "hono": "npm:hono@^4.6.20",
         "zod": "npm:zod@^3.19.1"
     },
+    "tasks": {
+        "serve": {
+            "command": "echo 'No serve task defined'",
+            "dependencies": ["backend:serve", "frontend:serve"]
+        },
+        "backend:serve": "cd backend && deno task serve:development",
+        "frontend:serve": "cd frontend && deno task serve:development",
+        "frontend:build": "deno task --cwd frontend build"
+    },
     "nodeModulesDir": "auto",
     "compilerOptions": {
         "strict": true

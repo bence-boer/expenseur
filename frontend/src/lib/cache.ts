@@ -1,4 +1,4 @@
-import type { ServiceCache } from "./types";
+import type { ServiceCache } from "$lib/types.ts";
 
 export const session_storage_cache: ServiceCache = {
     name: 'session-storage-cache',
