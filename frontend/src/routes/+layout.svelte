@@ -2,9 +2,10 @@
 	import { page } from "$app/state";
 	import Navbar from "$lib/components/common/navbar.svelte";
 	import { Toaster } from "$lib/components/ui/sonner";
-	import { service } from "$lib/service";
+	import { auth, service, session } from "$lib/service";
 	import { onMount } from "svelte";
 	import "../app.css";
+	import type { Session } from "$lib/service/auth";
 	interface Props {
 		children?: import("svelte").Snippet;
 	}
@@ -25,15 +26,31 @@
 	let authenticated = $state(false);
 	let loaded = $state(false);
 
+	session.subscribe((state) => (authenticated = state === "VALID"));
+
 	onMount(() => {
-		service
-			.session()
-			.then((session) => {
-				authenticated = !!session;
-			})
-			.finally(() => {
-				loaded = true;
-			});
+		// 1 - check if session cookie exists
+		// 2 - if it does, check if it's valid
+		// 3 - if it's valid, set authenticated to true
+		// 4 - if it's not valid, set authenticated to false
+		// 5 - if it doesn't exist, set authenticated to false
+		// 6 - set loaded to true
+		// 7 - if authenticated is false, redirect to login page
+
+		const current_session: Session = session.get();
+
+		// if(document.cookie.includes("session")) {
+		// 	const auth.check_session(document.cookie);
+
+		// }
+		// service
+		// 	.session()
+		// 	.then((session) => {
+		// 		authenticated = !!session;
+		// 	})
+		// 	.finally(() => {
+		// 		loaded = true;
+		// 	});
 	});
 	$effect.pre(() => {
 		if (loaded) clearInterval(loading_text_interval);

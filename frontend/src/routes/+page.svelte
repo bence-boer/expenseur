@@ -8,7 +8,7 @@
 	import { Button } from "$lib/components/ui/button";
 	import { Separator } from "$lib/components/ui/separator";
 	import * as Table from "$lib/components/ui/table";
-	import { service, ServiceTypes } from "$lib/service";
+	import { service, ServiceTypes, session } from "$lib/service";
 	import { CalendarDate } from "@internationalized/date";
 	import { ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-svelte";
 	import { currency_formatter } from "../lib/consts";
@@ -58,9 +58,8 @@
 	});
 
 	let authenticated: boolean = $state(false);
-	// supabase.auth.onAuthStateChange((_, session) => {
-	// 	authenticated = session !== null;
-	// });
+
+	session.subscribe((state) => (authenticated = state === "VALID"));
 </script>
 
 {#if authenticated}

@@ -14,16 +14,9 @@ const extract_data = <Data>(response: ClientResponse<Data>): Promise<Data> =>
         ? response.json() as Promise<Data>
         : Promise.reject(new Error(response.statusText));
 
+// TODO: helyette clientet wrapelni
+
 /* SERVICE FUNCTIONS */
-//-------------------------------------------------------------------------------------
-
-const $session = client.api.auth.session.$get;
-export type SessionResponse = InferResponseType<typeof $session>;
-
-export const session =
-    (): Promise<SessionResponse> =>
-        $session().then(extract_data);
-
 //-------------------------------------------------------------------------------------
 
 const $login = client.api.auth.login.$post;

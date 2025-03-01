@@ -6,14 +6,17 @@ import { supabase } from "../../supabase/auth.middleware.ts";
 import type { Empty } from "../types/local.ts";
 import type { DeleteUserPayload, LoginPayload, RegisterPayload } from '../types/public.ts';
 import type { SupabaseResponse } from "../types/supabase-helper.ts";
-import { delete_user_validator, user_validator } from "../utils/validators.ts";
+import { delete_user_validator, session_validator, user_validator } from "../utils/validators.ts";
 
 const app = new Hono()
-    .get('/session', async (context: Context) => {
-        const { data, error } = await supabase(context).auth.getSession();
-        if (error) throw new HTTPException(401, error);
-        return context.json(data, 200);
-    })
+    .post('/refresh-session', zValidator('json', session_validator),
+        async (context: Context) => {
+            const payload: { refresh_token: string } = await context.req.json();
+            const { data, error }: AuthResponse = await supabase(context).auth.refreshSession(payload);
+
+            if (error) throw new HTTPException(401, error)
+            return context.json(data, 200);
+        })
 
     .post('/login', zValidator('json', user_validator),
         async (context: Context) => {

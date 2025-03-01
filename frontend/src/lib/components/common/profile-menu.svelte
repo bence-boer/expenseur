@@ -3,19 +3,18 @@
 	import * as Avatar from "$lib/components/ui/avatar/index.js";
 	import { goto } from "$app/navigation";
 	import { UserIcon, LogOut } from "lucide-svelte";
-	import type { User, UserResponse } from "@supabase/supabase-js";
-	import { service } from "$lib/service";
+	import { service, session } from "$lib/service";
+    import { onMount } from "svelte";
+    import type { User } from "$lib/service/session.svelte";
 
 	const logout = () => {
-		// TODO: implement logout
 		service.logout().then(() => {
 			goto("/");
 		});
-		window.alert("Logout not implemented yet");
 	};
 
-	let user: User;
-	let initials: string = $state("XX");
+	const user: User = session.get()?.user;
+	let initials: string = $state(session.get()?.u);
 </script>
 
 <DropdownMenu.Root>
@@ -35,10 +34,7 @@
 				<UserIcon />
 				Profile
 			</DropdownMenu.Item>
-			<DropdownMenu.Item
-				onclick={logout}
-				class="gap-2 text-muted-foreground"
-			>
+			<DropdownMenu.Item onclick={logout} class="gap-2">
 				<LogOut />
 				Log out
 			</DropdownMenu.Item>

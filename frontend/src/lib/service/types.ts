@@ -27,3 +27,6 @@ export type {
     Purchase,
     GetPurchasesParam
 } from "$lib/service/service.ts";
+export type {
+    LoginResponse
+} from "$lib/service/auth.ts";

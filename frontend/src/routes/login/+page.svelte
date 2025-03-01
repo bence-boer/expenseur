@@ -1,16 +1,16 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { Button } from '$lib/components/ui/button';
-	import * as Card from '$lib/components/ui/card';
-	import { Input } from '$lib/components/ui-custom/input';
-	import { browser } from '$app/environment';
-	import { service } from '$lib/service';
+	import { goto } from "$app/navigation";
+	import { Button } from "$lib/components/ui/button";
+	import * as Card from "$lib/components/ui/card";
+	import { Input } from "$lib/components/ui-custom/input";
+	import { browser } from "$app/environment";
+	import { service, session, ServiceTypes } from "$lib/service";
 
-	let email: string = $state('');
-	let password: string = $state('');
+	let email: string = $state("");
+	let password: string = $state("");
 
 	const back = () => {
-		if (browser) goto('/');
+		if (browser) goto("/");
 	};
 
 	let failed = $state(false);
@@ -18,14 +18,16 @@
 		service
 			.login({
 				email: email,
-				password: password
+				password: password,
 			})
-			.then((response) => {
+			.then((response: ServiceTypes.LoginResponse) => {
 				if (response.error) throw response.error;
-				goto('/');
+
+				session.set(response.session);
+				goto("/");
 			})
 			.catch((error) => {
-				console.error('Login error:', error.message);
+				console.error("Login error:", error.message);
 				failed = true;
 			});
 	};
@@ -39,10 +41,20 @@
 		</Card.Header>
 		<Card.Content>
 			<div class="mb-2">
-				<Input type="email" placeholder="email" class="w-full" bind:value={email} />
+				<Input
+					type="email"
+					placeholder="email"
+					class="w-full"
+					bind:value={email}
+				/>
 			</div>
 			<div>
-				<Input type="password" placeholder="password" class="w-full" bind:value={password} />
+				<Input
+					type="password"
+					placeholder="password"
+					class="w-full"
+					bind:value={password}
+				/>
 			</div>
 			<div class="size h-2 text-right text-xs text-red-500">
 				{#if failed}
@@ -52,7 +64,9 @@
 		</Card.Content>
 		<Card.Footer class="justify-end gap-2">
 			<Button variant="outline" onclick={back} type="reset">Back</Button>
-			<Button variant="default" onclick={login} type="submit">Login</Button>
+			<Button variant="default" onclick={login} type="submit"
+				>Login</Button
+			>
 		</Card.Footer>
 	</Card.Root>
 </form>

@@ -4,8 +4,8 @@
         "./frontend"
     ],
     "imports": {
-        "hono": "npm:hono@^4.6.20",
-        "zod": "npm:zod@^3.19.1"
+        "hono": "npm:hono@^4.7.2",
+        "zod": "npm:zod@^3.24.2"
     },
     "tasks": {
         "serve": {
