@@ -7,9 +7,9 @@ import type { SupabaseResponse } from "../types/supabase-helper.ts";
 import { interval_validator, period_validator } from "../utils/validators.ts";
 
 const app = new Hono()
-    .get('/categorized', zValidator('param', period_validator),
+    .get('/categorized', zValidator('query', period_validator),
         async (context: Context) => {
-            const { start_date, end_date } = context.req.param();
+            const { start_date, end_date } = context.req.query();
             if (new Date(start_date) > new Date(end_date)) throw new HTTPException(400, { message: 'start_date should be less than end_date' });
 
             const { data, error } = await supabase(context)

@@ -1,20 +1,25 @@
 <script lang="ts">
-	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
-	import * as Avatar from "$lib/components/ui/avatar/index.js";
 	import { goto } from "$app/navigation";
-	import { UserIcon, LogOut } from "lucide-svelte";
-	import { service, session } from "$lib/service";
-    import { onMount } from "svelte";
-    import type { User } from "$lib/service/session.svelte";
+	import * as Avatar from "$lib/components/ui/avatar/index.js";
+	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
+	import { auth, session } from "$lib/service";
+	import type { User } from "$lib/service/session.svelte";
+	import { LogOut, UserIcon } from "lucide-svelte";
 
 	const logout = () => {
-		service.logout().then(() => {
+		auth.logout({ JWT: session.get()?.access_token }).then(() => {
 			goto("/");
 		});
 	};
 
 	const user: User = session.get()?.user;
-	let initials: string = $state(session.get()?.u);
+	let initials: string = $state(
+		session
+			.get()
+			?.user.email.split("@")
+			.map((part: string) => part[0].toLocaleUpperCase())
+			.join(""),
+	);
 </script>
 
 <DropdownMenu.Root>

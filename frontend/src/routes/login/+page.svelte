@@ -1,10 +1,10 @@
 <script lang="ts">
+	import { browser } from "$app/environment";
 	import { goto } from "$app/navigation";
+	import { Input } from "$lib/components/ui-custom/input";
 	import { Button } from "$lib/components/ui/button";
 	import * as Card from "$lib/components/ui/card";
-	import { Input } from "$lib/components/ui-custom/input";
-	import { browser } from "$app/environment";
-	import { service, session, ServiceTypes } from "$lib/service";
+	import { auth } from "$lib/service";
 
 	let email: string = $state("");
 	let password: string = $state("");
@@ -15,18 +15,14 @@
 
 	let failed = $state(false);
 	const login = () => {
-		service
-			.login({
-				email: email,
-				password: password,
-			})
-			.then((response: ServiceTypes.LoginResponse) => {
-				if (response.error) throw response.error;
-
-				session.set(response.session);
+		auth.login({
+			email: email,
+			password: password,
+		})
+			.then(() => {
 				goto("/");
 			})
-			.catch((error) => {
+			.catch((error: Error) => {
 				console.error("Login error:", error.message);
 				failed = true;
 			});
@@ -64,9 +60,9 @@
 		</Card.Content>
 		<Card.Footer class="justify-end gap-2">
 			<Button variant="outline" onclick={back} type="reset">Back</Button>
-			<Button variant="default" onclick={login} type="submit"
-				>Login</Button
-			>
+			<Button variant="default" onclick={login} type="submit">
+				Login
+			</Button>
 		</Card.Footer>
 	</Card.Root>
 </form>

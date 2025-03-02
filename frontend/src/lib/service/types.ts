@@ -2,7 +2,7 @@ export type {
     ItemDetails,
     ItemDetailsParam,
     SpendingsByCategory,
-    SpendingsByCategoryParam,
+    SpendingsByCategoryParams,
     SpendingsByCategoryInterval,
     SpendingsByCategoryIntervalParam,
     Brand,

@@ -21,17 +21,18 @@ export type LoginResponse = InferResponseType<typeof $login>;
 export type Session = LoginResponse['session'];
 
 export const login =
-    (payload: LoginPayload) =>
+    (payload: LoginPayload): Promise<void> =>
         $login({ json: payload }).then(extract_data)
             .then(response => session.set(response.session));
 
 //-------------------------------------------------------------------------------------
 
 const $logout = client.api.auth.logout.$post;
+export type LogoutPayload = InferRequestType<typeof $logout>;
 
 export const logout =
-    (): Promise<void> =>
-        $logout().then(extract_data)
+    (payload: LogoutPayload): Promise<void> =>
+        $logout({ json: payload }).then(extract_data)
             .then(() => session.clear());
 
 //-------------------------------------------------------------------------------------

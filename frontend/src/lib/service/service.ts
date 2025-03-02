@@ -19,35 +19,6 @@ const extract_data = <Data>(response: ClientResponse<Data>): Promise<Data> =>
 /* SERVICE FUNCTIONS */
 //-------------------------------------------------------------------------------------
 
-const $login = client.api.auth.login.$post;
-export type LoginResponse = InferResponseType<typeof $login>;
-export type LoginPayload = InferRequestType<typeof $login>;
-
-export const login =
-    (payload: LoginPayload): Promise<LoginResponse> =>
-        $login({ json: payload }).then(extract_data);
-
-//-------------------------------------------------------------------------------------
-
-const $logout = client.api.auth.logout.$post;
-export type LogoutResponse = InferResponseType<typeof $logout>;
-
-export const logout =
-    (): Promise<LogoutResponse> =>
-        $logout().then(extract_data);
-
-//-------------------------------------------------------------------------------------
-
-const $register = client.api.auth.register.$post;
-export type RegisterResponse = InferResponseType<typeof $register>;
-export type RegisterPayload = InferRequestType<typeof $register>;
-
-export const register =
-    (payload: RegisterPayload): Promise<RegisterResponse> =>
-        $register({ json: payload }).then(extract_data);
-
-//-------------------------------------------------------------------------------------
-
 const $get_item_details = client.api.items[':id'].$get;
 export type ItemDetails = InferResponseType<typeof $get_item_details, 200>;
 export type ItemDetailsParam = InferRequestType<typeof $get_item_details>['param'];
@@ -60,11 +31,11 @@ export const get_item_details =
 
 const $get_spendings_by_category = client.api.spendings.categorized.$get;
 export type SpendingsByCategory = InferResponseType<typeof $get_spendings_by_category, 200>[number];
-export type SpendingsByCategoryParam = InferRequestType<typeof $get_spendings_by_category>;
+export type SpendingsByCategoryParams = InferRequestType<typeof $get_spendings_by_category>;
 
 export const get_spendings_by_category =
-    (param: SpendingsByCategoryParam): Promise<SpendingsByCategory[]> =>
-        $get_spendings_by_category({ param }).then(extract_data);
+    (query: SpendingsByCategoryParams): Promise<SpendingsByCategory[]> =>
+        $get_spendings_by_category({ query }).then(extract_data);
 
 //-------------------------------------------------------------------------------------
 

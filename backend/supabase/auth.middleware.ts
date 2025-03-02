@@ -5,11 +5,11 @@ import { env } from 'hono/adapter';
 import { setCookie } from 'hono/cookie';
 import { cookie_options_mapper } from "./cookie-mapper.ts";
 import type { Database } from "./types.ts";
-import { Environment } from '../src/types/local.ts';
+import type { Environment } from '../src/types/local.ts';
 
 declare module 'hono' {
   interface ContextVariableMap {
-    supabase: SupabaseClient;
+    supabase: SupabaseClient<Database, 'public', Database['public']>;
   }
 }
 
@@ -27,7 +27,14 @@ export const supabase_middleware = (): MiddlewareHandler => {
     const supabase = createServerClient<Database, 'public', Database['public']>(url, key, {
       cookies: {
         getAll: () => parseCookieHeader(context.req.header('Cookie') ?? ''),
-        setAll: (cookies) => cookies.forEach(({ name, value, options }) => setCookie(context, name, value, cookie_options_mapper(options))),
+        setAll: (cookies) => cookies.forEach(({ name, value, options }) => {
+          const mapped_options = {
+            ...cookie_options_mapper(options),
+            secure: true,
+            sameSite: 'none' as const,
+          };
+          setCookie(context, name, value, mapped_options)
+        }),
       },
     });
 

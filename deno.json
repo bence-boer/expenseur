@@ -23,6 +23,7 @@
     "fmt": {
         "semiColons": true,
         "singleQuote": true,
-        "indentWidth": 4
+        "indentWidth": 4,
+        "lineWidth": 140
     }
 }

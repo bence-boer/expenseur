@@ -5,4 +5,4 @@ import { hc } from 'hono/client';
 // Redeclaration of the client allows for pre-compiling types
 const client = hc<API>(PUBLIC_API_URL)
 export type Client = typeof client;
-export const get_client = (): Client => hc<API>(PUBLIC_API_URL);
+export const get_client = (): Client => hc<API>(PUBLIC_API_URL, { init: { credentials: 'include' } });
