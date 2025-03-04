@@ -19,9 +19,9 @@ const app = new Hono()
             return context.json(data);
         })
 
-    .get('/categorized/intervalled', zValidator('param', interval_validator),
+    .get('/categorized/intervalled', zValidator('query', interval_validator),
         async (context: Context) => {
-            const { start_date, end_date, days_interval } = context.req.param();
+            const { start_date, end_date, days_interval } = context.req.query();
             if (new Date(start_date) > new Date(end_date)) throw new HTTPException(400, { message: 'start_date should be less than end_date' });
 
             const { data, error }: SupabaseResponse<SpendingsInInterval> = await supabase(context)

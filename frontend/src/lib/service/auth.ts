@@ -31,8 +31,8 @@ const $logout = client.api.auth.logout.$post;
 export type LogoutPayload = InferRequestType<typeof $logout>;
 
 export const logout =
-    (payload: LogoutPayload): Promise<void> =>
-        $logout({ json: payload }).then(extract_data)
+    (): Promise<void> =>
+        $logout().then(extract_data)
             .then(() => session.clear());
 
 //-------------------------------------------------------------------------------------

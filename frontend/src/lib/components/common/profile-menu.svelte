@@ -3,11 +3,11 @@
 	import * as Avatar from "$lib/components/ui/avatar/index.js";
 	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 	import { auth, session } from "$lib/service";
-	import type { User } from "$lib/service/session.svelte";
+	import type { User } from "$lib/service/session";
 	import { LogOut, UserIcon } from "lucide-svelte";
 
 	const logout = () => {
-		auth.logout({ JWT: session.get()?.access_token }).then(() => {
+		auth.logout().then(() => {
 			goto("/");
 		});
 	};
@@ -31,9 +31,9 @@
 	</DropdownMenu.Trigger>
 	<DropdownMenu.Content>
 		<DropdownMenu.Group>
-			<DropdownMenu.Label class="text-center"
-				>My Account</DropdownMenu.Label
-			>
+			<DropdownMenu.Label class="text-center">
+				My Account
+			</DropdownMenu.Label>
 			<DropdownMenu.Separator />
 			<DropdownMenu.Item class="gap-2">
 				<UserIcon />

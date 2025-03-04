@@ -9,10 +9,6 @@ export const session_validator = z.object({
     refresh_token: z.string()
 });
 
-export const logout_validator = z.object({
-    JWT: z.string()
-});
-
 export const delete_user_validator = z.object({
     id: z.string(),
     user_id: z.string(),

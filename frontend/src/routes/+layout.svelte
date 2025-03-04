@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from "$app/navigation";
 	import { page } from "$app/state";
 	import Navbar from "$lib/components/common/navbar.svelte";
 	import { Progress } from "$lib/components/ui/progress/index.ts";
@@ -27,6 +28,7 @@
 
 	session.subscribe((state) => {
 		authenticated = state === "VALID";
+		console.log("state", state, "authenticated", authenticated);
 
 		if (state !== "EXPIRED") {
 			loaded = true;

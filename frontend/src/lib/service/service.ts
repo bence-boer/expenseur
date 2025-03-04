@@ -1,18 +1,12 @@
-import type { ClientResponse, InferRequestType, InferResponseType } from 'hono/client';
+import type { InferRequestType, InferResponseType } from 'hono/client';
 // import { ServiceCache } from "$lib/types";
 import { type Client, get_client } from "$lib/service/client.ts";
+import { extract_data } from '$lib/service/utils.ts';
 
 const client: Client = get_client()
 
 // const cache: ServiceCache = memory_cache;
 // console.log('Using cache:', cache.name);
-
-// TODO: Implement getting user info
-
-const extract_data = <Data>(response: ClientResponse<Data>): Promise<Data> =>
-    response.ok
-        ? response.json() as Promise<Data>
-        : Promise.reject(new Error(response.statusText));
 
 // TODO: helyette clientet wrapelni
 
