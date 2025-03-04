@@ -9,7 +9,8 @@ const SCORE_CONTINUE_MATCH = 1,
     // of fragments.
     // NOTE: We score word jumps between spaces slightly higher than slashes, brackets
     // hyphens, etc.
-    SCORE_SPACE_WORD_JUMP = 0.9, SCORE_NON_SPACE_WORD_JUMP = 0.8,
+    SCORE_SPACE_WORD_JUMP = 0.9,
+    SCORE_NON_SPACE_WORD_JUMP = 0.8,
     // Any other match isn't ideal, but we include it for completeness.
     SCORE_CHARACTER_JUMP = 0.17,
     // If the user transposed two letters, it should be significantly penalized.
@@ -43,7 +44,15 @@ const SCORE_CONTINUE_MATCH = 1,
     // with the number of tokens.
     PENALTY_NOT_COMPLETE = 0.99;
 const IS_GAP_REGEXP = /[\\/_+.#"@[({&]/, COUNT_GAPS_REGEXP = /[\\/_+.#"@[({&]/g, IS_SPACE_REGEXP = /[\s-]/, COUNT_SPACE_REGEXP = /[\s-]/g;
-function commandScoreInner(string: string, abbreviation: string, lowerString: string, lowerAbbreviation: string, stringIndex: number, abbreviationIndex: number, memoizedResults: Record<string, number>): number {
+function commandScoreInner(
+    string: string,
+    abbreviation: string,
+    lowerString: string,
+    lowerAbbreviation: string,
+    stringIndex: number,
+    abbreviationIndex: number,
+    memoizedResults: Record<string, number>,
+): number {
     if (abbreviationIndex === abbreviation.length) {
         if (stringIndex === string.length) {
             return SCORE_CONTINUE_MATCH;
@@ -63,22 +72,19 @@ function commandScoreInner(string: string, abbreviation: string, lowerString: st
         if (score > highScore) {
             if (index === stringIndex) {
                 score *= SCORE_CONTINUE_MATCH;
-            }
-            else if (IS_GAP_REGEXP.test(string.charAt(index - 1))) {
+            } else if (IS_GAP_REGEXP.test(string.charAt(index - 1))) {
                 score *= SCORE_NON_SPACE_WORD_JUMP;
                 wordBreaks = string.slice(stringIndex, index - 1).match(COUNT_GAPS_REGEXP);
                 if (wordBreaks && stringIndex > 0) {
                     score *= Math.pow(PENALTY_SKIPPED, wordBreaks.length);
                 }
-            }
-            else if (IS_SPACE_REGEXP.test(string.charAt(index - 1))) {
+            } else if (IS_SPACE_REGEXP.test(string.charAt(index - 1))) {
                 score *= SCORE_SPACE_WORD_JUMP;
                 spaceBreaks = string.slice(stringIndex, index - 1).match(COUNT_SPACE_REGEXP);
                 if (spaceBreaks && stringIndex > 0) {
                     score *= Math.pow(PENALTY_SKIPPED, spaceBreaks.length);
                 }
-            }
-            else {
+            } else {
                 score *= SCORE_CHARACTER_JUMP;
                 if (stringIndex > 0) {
                     score *= Math.pow(PENALTY_SKIPPED, index - stringIndex);
@@ -88,12 +94,22 @@ function commandScoreInner(string: string, abbreviation: string, lowerString: st
                 score *= PENALTY_CASE_MISMATCH;
             }
         }
-        if ((score < SCORE_TRANSPOSITION &&
-            lowerString.charAt(index - 1) === lowerAbbreviation.charAt(abbreviationIndex + 1)) ||
+        if (
+            (score < SCORE_TRANSPOSITION &&
+                lowerString.charAt(index - 1) === lowerAbbreviation.charAt(abbreviationIndex + 1)) ||
             (lowerAbbreviation.charAt(abbreviationIndex + 1) ===
-                lowerAbbreviation.charAt(abbreviationIndex) && // allow duplicate letters. Ref #7428
-                lowerString.charAt(index - 1) !== lowerAbbreviation.charAt(abbreviationIndex))) {
-            transposedScore = commandScoreInner(string, abbreviation, lowerString, lowerAbbreviation, index + 1, abbreviationIndex + 2, memoizedResults);
+                    lowerAbbreviation.charAt(abbreviationIndex) && // allow duplicate letters. Ref #7428
+                lowerString.charAt(index - 1) !== lowerAbbreviation.charAt(abbreviationIndex))
+        ) {
+            transposedScore = commandScoreInner(
+                string,
+                abbreviation,
+                lowerString,
+                lowerAbbreviation,
+                index + 1,
+                abbreviationIndex + 2,
+                memoizedResults,
+            );
             if (transposedScore * SCORE_TRANSPOSITION > score) {
                 score = transposedScore * SCORE_TRANSPOSITION;
             }

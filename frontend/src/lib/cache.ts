@@ -1,4 +1,4 @@
-import type { ServiceCache } from "$lib/types.ts";
+import type { ServiceCache } from '$lib/types.ts';
 
 export const session_storage_cache: ServiceCache = {
     name: 'session-storage-cache',
@@ -16,7 +16,7 @@ export const session_storage_cache: ServiceCache = {
     clear: (key?: string): void => {
         if (key) sessionStorage.removeItem(key);
         else sessionStorage.clear();
-    }
+    },
 };
 
 export const local_storage_cache: ServiceCache = {
@@ -35,7 +35,7 @@ export const local_storage_cache: ServiceCache = {
     clear: (key?: string): void => {
         if (key) localStorage.removeItem(key);
         else localStorage.clear();
-    }
+    },
 };
 
 const storage: Map<string, unknown> = new Map();
@@ -54,5 +54,5 @@ export const memory_cache: ServiceCache = {
     clear: (key?: string): void => {
         if (key) storage.delete(key);
         else storage.clear();
-    }
+    },
 };

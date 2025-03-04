@@ -9,9 +9,7 @@ const $refresh_session = client.api.auth['refresh-session'].$post;
 export type RefreshSessionResponse = InferResponseType<typeof $refresh_session>;
 export type RefreshSessionPayload = InferRequestType<typeof $refresh_session>;
 
-export const refresh_session =
-    (payload: RefreshSessionPayload): Promise<RefreshSessionResponse> =>
-        $refresh_session({ json: payload }).then(extract_data);
+export const refresh_session = (payload: RefreshSessionPayload): Promise<RefreshSessionResponse> => $refresh_session({ json: payload }).then(extract_data);
 
 //-------------------------------------------------------------------------------------
 
@@ -20,20 +18,18 @@ export type LoginPayload = InferRequestType<typeof $login>;
 export type LoginResponse = InferResponseType<typeof $login>;
 export type Session = LoginResponse['session'];
 
-export const login =
-    (payload: LoginPayload): Promise<void> =>
-        $login({ json: payload }).then(extract_data)
-            .then(response => session.set(response.session));
+export const login = (payload: LoginPayload): Promise<void> =>
+    $login({ json: payload }).then(extract_data)
+        .then((response) => session.set(response.session));
 
 //-------------------------------------------------------------------------------------
 
 const $logout = client.api.auth.logout.$post;
 export type LogoutPayload = InferRequestType<typeof $logout>;
 
-export const logout =
-    (): Promise<void> =>
-        $logout().then(extract_data)
-            .then(() => session.clear());
+export const logout = (): Promise<void> =>
+    $logout().then(extract_data)
+        .then(() => session.clear());
 
 //-------------------------------------------------------------------------------------
 
@@ -41,8 +37,6 @@ const $register = client.api.auth.register.$post;
 export type RegisterResponse = InferResponseType<typeof $register>;
 export type RegisterPayload = InferRequestType<typeof $register>;
 
-export const register =
-    (payload: RegisterPayload): Promise<RegisterResponse> =>
-        $register({ json: payload }).then(extract_data);
+export const register = (payload: RegisterPayload): Promise<RegisterResponse> => $register({ json: payload }).then(extract_data);
 
 //-------------------------------------------------------------------------------------

@@ -1,5 +1,5 @@
-import { Hono, type Context } from "hono";
-import { HTTPException } from "hono/http-exception";
+import { type Context, Hono } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 
 const app = new Hono()
     .post('/suggest_items', (context: Context) => {

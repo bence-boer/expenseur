@@ -1,5 +1,5 @@
-import type { PostgrestError } from "@supabase/supabase-js";
-import type { Database } from "../../supabase/types.ts";
+import type { PostgrestError } from '@supabase/supabase-js';
+import type { Database } from '../../supabase/types.ts';
 
 export type Functions = Database['public']['Functions'];
 export type FunctionName = keyof Functions;
@@ -9,13 +9,12 @@ export type FunctionReturns = { [K in keyof Functions]: Database['public']['Func
 export type Route = {
     name: string;
     path: string;
-}
+};
 
-export type SupabaseResponse<DATA = unknown, ERROR = PostgrestError | null> =
-    {
-        data: DATA;
-        error: null;
-    } | {
-        data: null;
-        error: ERROR;
-    };
+export type SupabaseResponse<DATA = unknown, ERROR = PostgrestError | null> = {
+    data: DATA;
+    error: null;
+} | {
+    data: null;
+    error: ERROR;
+};

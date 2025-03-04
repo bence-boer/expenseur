@@ -1,12 +1,12 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const user_validator = z.object({
     email: z.string(),
-    password: z.string()
+    password: z.string(),
 });
 
 export const session_validator = z.object({
-    refresh_token: z.string()
+    refresh_token: z.string(),
 });
 
 export const delete_user_validator = z.object({
@@ -22,7 +22,7 @@ export const period_validator = z.object({
 });
 
 export const interval_validator = period_validator.extend({
-    days_interval: z.number().int().positive()
+    days_interval: z.coerce.number().int().positive(),
 });
 
 export const name_validator = z.object({
@@ -30,24 +30,24 @@ export const name_validator = z.object({
 });
 
 export const category_validator = name_validator.extend({
-    color: z.string().optional()
+    color: z.string().optional(),
 });
 
 export const item_validator = name_validator.extend({
-    category_id: z.number().int(),
-    price: z.number(),
+    category_id: z.coerce.number().int(),
+    price: z.coerce.number(),
 });
 
 export const id_validator = z.object({
-    id: z.number().int().positive()
+    id: z.coerce.number().int().positive(),
 });
 
 export const purchase_validator = z.object({
-    brand_id: z.number().int().optional(),
+    brand_id: z.coerce.number().int().optional(),
     date: z.string().date(),
     details: z.string().array().optional(),
-    item_id: z.number().int(),
-    price: z.number(),
-    quantity: z.number(),
-    store_id: z.number().int(),
+    item_id: z.coerce.number().int(),
+    price: z.coerce.number(),
+    quantity: z.coerce.number(),
+    store_id: z.coerce.number().int(),
 }).array();

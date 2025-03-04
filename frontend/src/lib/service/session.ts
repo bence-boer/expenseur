@@ -13,13 +13,13 @@ const validity = (): SessionState => {
 
     const now: number = new Date().getSeconds();
     return now < expiry ? 'VALID' : 'EXPIRED';
-}
+};
 
 const refresh = (): void => {
     if (!session) throw new Error('Session could not be refreshed, because it is not set.');
 
     auth.refresh_session({ refresh_token: session.refresh_token })
-        .then(response => set(response.session!))
+        .then((response) => set(response.session!))
         .catch(() => clear());
 };
 
@@ -68,5 +68,5 @@ const notify = (): void => {
     if (state === new_state) return;
 
     state = new_state;
-    subscriptions.forEach(subscription => subscription(state));
+    subscriptions.forEach((subscription) => subscription(state));
 };

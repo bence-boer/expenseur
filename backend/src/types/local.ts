@@ -17,4 +17,4 @@ export type GeminiModel =
     | 'learnlm-1.5-pro-experimental'
     | 'gemma-2-2b-it'
     | 'gemma-2-9b-it'
-    | 'gemma-2-27b-it'
+    | 'gemma-2-27b-it';

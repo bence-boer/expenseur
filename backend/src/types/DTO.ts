@@ -1,4 +1,4 @@
-import type { Tables, TablesInsert } from "../../supabase/types.ts";
+import type { Tables, TablesInsert } from '../../supabase/types.ts';
 
 export type SpendingsInInterval = {
     dates: string[];

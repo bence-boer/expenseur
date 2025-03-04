@@ -1,24 +1,24 @@
 import { Hono } from 'hono';
 import { logger } from 'hono/logger';
 
-import ai from "./src/routes/ai.ts";
-import auth from "./src/routes/auth.ts";
-import brands from "./src/routes/brands.ts";
-import categories from "./src/routes/categories.ts";
-import items from "./src/routes/items.ts";
-import purchases from "./src/routes/purchases.ts";
-import spendings from "./src/routes/spendings.ts";
-import units from "./src/routes/units.ts";
-import vendors from "./src/routes/vendors.ts";
+import ai from './src/routes/ai.ts';
+import auth from './src/routes/auth.ts';
+import brands from './src/routes/brands.ts';
+import categories from './src/routes/categories.ts';
+import items from './src/routes/items.ts';
+import purchases from './src/routes/purchases.ts';
+import spendings from './src/routes/spendings.ts';
+import units from './src/routes/units.ts';
+import vendors from './src/routes/vendors.ts';
 import { cors_middleware } from './src/utils/cors.middleware.ts';
-import { supabase_middleware } from "./supabase/auth.middleware.ts";
+import { supabase_middleware } from './supabase/auth.middleware.ts';
 
 const app = new Hono()
     // Configuration
     .use(
         cors_middleware(),
         supabase_middleware(),
-        logger()
+        logger(),
     )
     .basePath('/api')
     // Routes
@@ -30,9 +30,8 @@ const app = new Hono()
     .route('/purchases', purchases)
     .route('/spendings', spendings)
     .route('/vendors', vendors)
-    .route('/units', units)
+    .route('/units', units);
 
-
-Deno.serve(app.fetch)
+Deno.serve(app.fetch);
 
 export type AppType = typeof app;
