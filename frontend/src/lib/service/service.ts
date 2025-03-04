@@ -132,4 +132,4 @@ const $get_purchases = client.api.purchases.$get;
 export type Purchase = InferResponseType<typeof $get_purchases>[number];
 export type GetPurchasesParam = InferRequestType<typeof $get_purchases>;
 
-export const get_purchases = (param: GetPurchasesParam): Promise<Purchase[]> => $get_purchases({ param }).then(extract_data);
+export const get_purchases = (query: GetPurchasesParam): Promise<Purchase[]> => $get_purchases({ query }).then(extract_data);

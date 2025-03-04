@@ -3,6 +3,8 @@ import { CalendarDate, endOfMonth, endOfYear, startOfMonth, startOfYear } from '
 import { type PeriodWithLabel } from './types.ts';
 
 const [year, month] = [TODAY.year, TODAY.month];
+const [year_last_month, month_last_month] = month === 1 ? [year - 1, 12] : [year, month - 1];
+
 export const periods: PeriodWithLabel[] = [
     {
         label: 'This month',
@@ -10,14 +12,16 @@ export const periods: PeriodWithLabel[] = [
         data: {
             start: startOfMonth(TODAY),
             end: endOfMonth(TODAY),
+            days: endOfMonth(TODAY).day,
         },
     },
     {
         label: 'Last month',
         value: 'LAST_MONTH',
         data: {
-            start: new CalendarDate(year, (month + 12 - 1) % 12, 1),
-            end: endOfMonth(new CalendarDate(year, (month + 12 - 1) % 12, 1)),
+            start: new CalendarDate(year_last_month, month_last_month, 1),
+            end: endOfMonth(new CalendarDate(year_last_month, month_last_month, 1)),
+            days: endOfMonth(new CalendarDate(year_last_month, month_last_month, 1)).day,
         },
     },
     {
@@ -26,6 +30,7 @@ export const periods: PeriodWithLabel[] = [
         data: {
             start: startOfYear(TODAY),
             end: endOfYear(TODAY),
+            days: year % 4 === 0 ? 366 : 365,
         },
     },
     {
@@ -34,6 +39,7 @@ export const periods: PeriodWithLabel[] = [
         data: {
             start: new CalendarDate(year - 1, 1, 1),
             end: endOfYear(new CalendarDate(year - 1, 1, 1)),
+            days: (year - 1) % 4 === 0 ? 366 : 365,
         },
     },
     {
@@ -42,6 +48,7 @@ export const periods: PeriodWithLabel[] = [
         data: {
             start: new CalendarDate(1970, 1, 1),
             end: new CalendarDate(2100, 1, 1),
+            days: 365 * 130,
         },
     },
 ];
