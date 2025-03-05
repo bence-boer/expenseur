@@ -47,7 +47,12 @@
     );
 
     // svelte-ignore state_referenced_locally
-    select(selected.data);
+    if (selected !== empty_period) select(selected.data);
+    const set = (value: string) => {
+        const next = period_map.get(value) ?? empty_period;
+        selected = next;
+        if (next !== empty_period) select(next.data);
+    };
 </script>
 
 <Select.Root bind:value={selected_period_value} type="single">
@@ -56,7 +61,7 @@
     </Select.Trigger>
     <Select.Content>
         {#each periods as { label, value, data }}
-            <Select.Item {value} onclick={() => select(data)} {label} />
+            <Select.Item {value} {label} onclick={() => set(value)} />
         {/each}
         <Select.Item
             value={custom_period.label}
