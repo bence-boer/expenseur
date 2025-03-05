@@ -1,0 +1,30 @@
+{
+    "workspace": [
+        "./backend",
+        "./frontend"
+    ],
+    "imports": {
+        "hono": "npm:hono@^4.7.2",
+        "zod": "npm:zod@^3.24.2"
+    },
+    "tasks": {
+        "serve": {
+            "command": "echo 'No serve task defined'",
+            "dependencies": ["backend:serve", "frontend:serve"]
+        },
+        "backend:serve": "cd backend && deno task serve:development",
+        "frontend:serve": "cd frontend && deno task serve:development",
+        "frontend:build": "deno task --cwd frontend build"
+    },
+    "nodeModulesDir": "auto",
+    "compilerOptions": {
+        "strict": true
+    },
+    "fmt": {
+        "semiColons": true,
+        "singleQuote": true,
+        "indentWidth": 4,
+        "useTabs": false,
+        "lineWidth": 200
+    }
+}
