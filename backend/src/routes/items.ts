@@ -9,10 +9,19 @@ const app = new Hono()
     .get('/', async (context: Context) => {
         const { data, error } = await supabase(context)
             .from('items')
-            .select('*');
+            .select('*')
+            .order('name', { ascending: true });
 
         if (error) throw new HTTPException(500, error);
         return context.json(data);
+    })
+    .get('/:id', zValidator('param', id_validator), async (context: Context) => {
+        const item_id = Number(context.req.param('id'));
+
+        const { data, error } = await supabase(context).rpc('item_details', { item_id });
+        if (error) throw new HTTPException(500, error);
+
+        return context.json(data[0]);
     })
     .post('/', zValidator('json', item_validator), async (context: Context) => {
         const item: TablesInsert<'items'> = await context.req.json();
@@ -26,13 +35,30 @@ const app = new Hono()
         if (error) throw new HTTPException(500, error);
         return context.json(data);
     })
-    .get('/:id', zValidator('param', id_validator), async (context: Context) => {
-        const item_id = Number(context.req.param('id'));
+    .patch('/:id', zValidator('param', id_validator), zValidator('json', item_validator.optional()), async (context: Context) => {
+        const id = Number(context.req.param('id'));
+        const item: TablesInsert<'items'> = await context.req.json();
 
-        const { data, error } = await supabase(context).rpc('item_details', { item_id });
+        if (Object.keys(item).length === 0) throw new HTTPException(400, { message: 'No data provided' });
+
+        const { data, error } = await supabase(context)
+            .from('items')
+            .update(item)
+            .eq('id', id);
+
         if (error) throw new HTTPException(500, error);
+        return context.json(data);
+    })
+    .delete('/:id', zValidator('param', id_validator), async (context: Context) => {
+        const id = Number(context.req.param('id'));
 
-        return context.json(data[0]);
+        const { data, error } = await supabase(context)
+            .from('items')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw new HTTPException(500, error);
+        return context.json(data);
     });
 
 export default app;

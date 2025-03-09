@@ -5,9 +5,9 @@ export type Route = {
     path: string;
 };
 
-export type ServiceCache = {
+export type LocalCache<KEY extends string> = {
     name: string;
-    get: <Data>(key: string) => Data | null;
-    set: (key: string, data: unknown) => void;
-    clear: (key?: string) => void;
+    get: <Data>(key: KEY) => Data | null;
+    set: (key: KEY, data: unknown) => void;
+    clear: (key?: KEY) => void;
 };

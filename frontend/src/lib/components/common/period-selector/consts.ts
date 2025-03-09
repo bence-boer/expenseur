@@ -1,15 +1,17 @@
 import { TODAY } from '$lib/consts/index.ts';
 import { CalendarDate, endOfMonth, endOfYear, startOfMonth, startOfYear } from '@internationalized/date';
-import { type PeriodWithLabel } from './types.ts';
+import { type PeriodWithLabel } from '$lib/components/common/period-selector/types.ts';
 
 const [year, month] = [TODAY.year, TODAY.month];
 const [year_last_month, month_last_month] = month === 1 ? [year - 1, 12] : [year, month - 1];
 
-export const periods: PeriodWithLabel[] = [
+export const periods = [
     {
         label: 'This month',
-        value: 'THIS_MONTH',
-        data: {
+        key: 'THIS_MONTH',
+        value: {
+            previous_start: startOfMonth(startOfMonth(TODAY).subtract({ days: 1 })),
+            previous_end: startOfMonth(TODAY).subtract({ days: 1 }),
             start: startOfMonth(TODAY),
             end: endOfMonth(TODAY),
             days: endOfMonth(TODAY).day,
@@ -17,8 +19,10 @@ export const periods: PeriodWithLabel[] = [
     },
     {
         label: 'Last month',
-        value: 'LAST_MONTH',
-        data: {
+        key: 'LAST_MONTH',
+        value: {
+            previous_start: startOfMonth(new CalendarDate(year_last_month, month_last_month, 1).subtract({ days: 1 })),
+            previous_end: new CalendarDate(year_last_month, month_last_month, 1).subtract({ days: 1 }),
             start: new CalendarDate(year_last_month, month_last_month, 1),
             end: endOfMonth(new CalendarDate(year_last_month, month_last_month, 1)),
             days: endOfMonth(new CalendarDate(year_last_month, month_last_month, 1)).day,
@@ -26,8 +30,10 @@ export const periods: PeriodWithLabel[] = [
     },
     {
         label: 'This year',
-        value: 'THIS_YEAR',
-        data: {
+        key: 'THIS_YEAR',
+        value: {
+            previous_start: startOfYear(startOfYear(TODAY).subtract({ days: 1 })),
+            previous_end: startOfYear(TODAY).subtract({ days: 1 }),
             start: startOfYear(TODAY),
             end: endOfYear(TODAY),
             days: year % 4 === 0 ? 366 : 365,
@@ -35,8 +41,10 @@ export const periods: PeriodWithLabel[] = [
     },
     {
         label: 'Last year',
-        value: 'LAST_YEAR',
-        data: {
+        key: 'LAST_YEAR',
+        value: {
+            previous_start: startOfYear(new CalendarDate(year - 1, 1, 1).subtract({ days: 1 })),
+            previous_end: new CalendarDate(year - 1, 1, 1).subtract({ days: 1 }),
             start: new CalendarDate(year - 1, 1, 1),
             end: endOfYear(new CalendarDate(year - 1, 1, 1)),
             days: (year - 1) % 4 === 0 ? 366 : 365,
@@ -44,13 +52,15 @@ export const periods: PeriodWithLabel[] = [
     },
     {
         label: 'All time',
-        value: 'ALL_TIME',
-        data: {
+        key: 'ALL_TIME',
+        value: {
+            previous_start: new CalendarDate(1970, 1, 1),
+            previous_end: new CalendarDate(1970, 1, 1),
             start: new CalendarDate(1970, 1, 1),
             end: new CalendarDate(2100, 1, 1),
             days: 365 * 130,
         },
     },
-];
+] as const satisfies PeriodWithLabel[];
 
-export const default_period: PeriodWithLabel = periods[0];
+export const default_period: typeof periods[number] = periods[0];

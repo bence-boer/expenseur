@@ -1,7 +1,12 @@
 import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vite';
+import { ConfigEnv, defineConfig } from 'vite';
 
-export default defineConfig({
-    server: { fs: { allow: ['./../'] } },
-    plugins: [sveltekit()],
-});
+export default (config: ConfigEnv) =>
+    defineConfig({
+        server: {
+            fs: { allow: ['..'] },
+            port: 3000,
+            host: config.mode === 'development' ? 'localhost' : '0.0.0.0',
+        },
+        plugins: [sveltekit()],
+    });

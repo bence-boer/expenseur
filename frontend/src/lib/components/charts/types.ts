@@ -1,3 +1,10 @@
+export type BarDataPoint = {
+    label: string;
+    value: number;
+    color: string;
+    hidden?: boolean;
+};
+
 export type DonutDataPoint = {
     label: string;
     value: number;

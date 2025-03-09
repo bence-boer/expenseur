@@ -35,7 +35,7 @@ export const category_validator = name_validator.extend({
 
 export const item_validator = name_validator.extend({
     category_id: z.coerce.number().int(),
-    price: z.coerce.number(),
+    unit_id: z.coerce.number().int(),
 });
 
 export const id_validator = z.object({
@@ -51,3 +51,44 @@ export const purchase_validator = z.object({
     quantity: z.coerce.number(),
     store_id: z.coerce.number().int(),
 }).array();
+
+export const ai_purchase_prediction_schema = z.object({
+    date: z.string().nullish(),
+
+    store_id: z.number().int().nullish(),
+
+    purchases: z.object({
+        brand_id: z.number().int().nullish(),
+        details: z.string().array().nullish(),
+        item_id: z.number().int().nullish(),
+        price: z.number().nullish(),
+        quantity: z.number().nullish(),
+    }).array().nullish(),
+
+    brands: z.object({
+        id: z.number().int(),
+        name: z.string(),
+    }).array(),
+
+    categories: z.object({
+        id: z.number().int(),
+        name: z.string(),
+    }).array(),
+
+    items: z.object({
+        id: z.number().int(),
+        name: z.string(),
+        category_id: z.number().int(),
+        unit_id: z.number().int(),
+    }).array(),
+
+    units: z.object({
+        id: z.number().int(),
+        name: z.string(),
+    }).array(),
+
+    stores: z.object({
+        id: z.number().int(),
+        name: z.string(),
+    }).array(),
+});

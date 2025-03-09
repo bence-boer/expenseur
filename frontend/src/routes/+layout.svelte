@@ -1,64 +1,76 @@
 <script lang="ts">
-    import { goto } from "$app/navigation";
-    import { page } from "$app/state";
-    import Navbar from "$lib/components/common/navbar.svelte";
-    import { Progress } from "$lib/components/ui/progress/index.ts";
-    import { Toaster } from "$lib/components/ui/sonner";
-    import { session } from "$lib/service";
-    import "../app.css";
+    import { page } from '$app/state';
+    import Navbar from '$lib/components/common/navbar.svelte';
+    import { Toaster } from '$lib/components/ui/sonner';
+    import { auth, ServiceTypes } from '$lib/service';
+    import { onMount } from 'svelte';
+    import { browser } from '$app/environment';
+
+    import '../app.css';
+    import { promise } from '$lib/utils';
+    import { memory_cache } from '$lib/cache';
     interface Props {
-        children?: import("svelte").Snippet;
+        children?: import('svelte').Snippet;
     }
 
     let { children }: Props = $props();
 
-    let route: string = $derived(
-        page.url.pathname.split("/").filter(Boolean).pop() || "/",
-    );
-    const unauthenticated_routes = ["login", "register"];
+    let route: string = $derived(page.url.pathname.split('/').filter(Boolean).join('/') || '/');
+    let non_scrollable: boolean = $derived(route.startsWith('configuration') || route.startsWith('analytics'));
+    const unauthenticated_routes = ['login', 'register'];
 
-    const loading_interval = setInterval(() => {
-        progress += (100 - progress) * Math.random() * 0.4;
-        console.log(progress);
-    }, 200);
+    let loading_text = $state('Authenticating...');
 
-    let authenticated = $state(false);
-    let loaded = $state(false);
-    let progress: number = $state(0);
+    let { promise: data, resolve, reject } = promise<ServiceTypes.Session>();
+    let session: Promise<ServiceTypes.Session> = $state(data);
 
-    session.subscribe((state) => {
-        authenticated = state === "VALID";
+    const update_session = (value: Promise<ServiceTypes.Session>) => {
+        session = value;
+    };
+    memory_cache.set('update-session-callback', update_session);
 
-        if (state !== "EXPIRED") {
-            loaded = true;
-            clearInterval(loading_interval);
-        }
+    let loading_text_interval: number;
+    if (browser)
+        loading_text_interval = window.setInterval(() => {
+            loading_text = loading_text + '.';
+            if (loading_text.length > 17) loading_text = 'Authenticating';
+        }, 300);
+
+    onMount(() => {
+        auth.session()
+            .then(resolve)
+            .catch(reject)
+            .finally(() => {
+                window.clearInterval(loading_text_interval);
+            });
     });
 </script>
 
-<div
-    class="flex h-full flex-col selection:bg-purple-600 selection:font-bold selection:text-white"
->
-    <Navbar bind:authenticated {route} />
+<div class="h-full flex flex-col selection:bg-purple-600 selection:font-bold selection:text-white">
+    <Navbar bind:session {route} />
 
-    <div
-        class="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-4 sm:container md:px-8"
-    >
-        {#if authenticated || unauthenticated_routes.includes(route)}
-            {@render children?.()}
-        {:else if !loaded}
+    <div class="flex-grow flex flex-col gap-4 {non_scrollable ? 'overflow-y-hidden' : 'overflow-y-auto'} px-4 py-4 sm:container md:px-8">
+        {#await session}
             <div class="flex h-full flex-col">
-                <h1 class="text-2xl font-bold md:text-4xl">Authenticating</h1>
-                <Progress value={progress} max={100} />
+                <h1 class="text-2xl font-bold md:text-4xl">{loading_text}</h1>
             </div>
-        {:else}
+        {:then data}
+            {@const authenticated = (data?.expires_at ?? 0) * 1000 > Number(new Date())}
+
+            {#if authenticated || unauthenticated_routes.includes(route)}
+                {@render children?.()}
+            {:else}
+                <div class="flex h-full flex-col items-center justify-center">
+                    <h1 class="text-2xl font-bold md:text-4xl">You are not authenticated</h1>
+                    <p class="mt-4">Please sign in to view this page</p>
+                </div>
+            {/if}
+        {:catch error}
             <div class="flex h-full flex-col items-center justify-center">
-                <h1 class="text-2xl font-bold md:text-4xl">
-                    You are not authenticated
-                </h1>
-                <p class="mt-4">Please sign in to view this page</p>
+                <h1 class="text-2xl font-bold md:text-4xl text-center">An error occurred while authenticating</h1>
+                <p class="mt-4">{error.message}</p>
             </div>
-        {/if}
+        {/await}
     </div>
 </div>
 

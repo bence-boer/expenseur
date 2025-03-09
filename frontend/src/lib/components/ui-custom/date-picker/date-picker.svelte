@@ -5,7 +5,7 @@
 	import { date_formatter } from '$lib/consts';
 	import { cn } from '$lib/utils.js';
 	import { CalendarDate, getLocalTimeZone, today, type DateValue } from '@internationalized/date';
-	import { CalendarIcon } from 'lucide-svelte';
+	import { CalendarIcon } from '@lucide/svelte';
 
 	interface Props {
 		value: DateValue | undefined;

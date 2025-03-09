@@ -10,10 +10,12 @@
     "tasks": {
         "serve": {
             "command": "echo 'No serve task defined'",
-            "dependencies": ["backend:serve", "frontend:serve"]
+            "dependencies": ["backend:serve:development", "frontend:serve:local"]
         },
-        "backend:serve": "cd backend && deno task serve:development",
-        "frontend:serve": "cd frontend && deno task serve:development",
+        "backend:serve:production": "cd backend && deno task serve:production",
+        "backend:serve:development": "cd backend && deno task serve:development",
+        "frontend:serve": "cd frontend && deno task serve",
+        "frontend:serve:development": "cd frontend && deno task serve:development",
         "frontend:build": "deno task --cwd frontend build"
     },
     "nodeModulesDir": "auto",
@@ -25,6 +27,6 @@
         "singleQuote": true,
         "indentWidth": 4,
         "useTabs": false,
-        "lineWidth": 200
+        "lineWidth": 160
     }
 }

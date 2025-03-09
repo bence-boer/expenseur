@@ -1,47 +1,66 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-	import logo from '$lib/resources/images/logo.svg';
-	import type { Route } from '$lib/types';
-	import HamburgerNavigation from './hamburger-navigation.svelte';
-	import ProfileMenu from './profile-menu.svelte';
+    import { page } from '$app/state';
+    import { session_storage_cache } from '$lib/cache';
+    import { Button } from '$lib/components/ui/button';
+    import logo from '$lib/resources/images/logo.svg';
+    import type { SessionResponse } from '$lib/service/auth';
+    import type { Route } from '$lib/types';
+    import HamburgerNavigation from './hamburger-navigation.svelte';
+    import ProfileMenu from './profile-menu.svelte';
 
-	interface Props {
-		authenticated: boolean;
-		route: string;
-	}
+    interface Props {
+        session: Promise<SessionResponse>;
+        route: string;
+    }
 
-	let { authenticated = $bindable(), route }: Props = $props();
+    let { session = $bindable(), route }: Props = $props();
 
-	const routes: Route[] = [
-		{ name: 'Dashboard', path: '/' },
-		{ name: 'Statistics', path: '/statistics' },
-		{ name: 'Data', path: '/data' },
-		{ name: 'Create', path: '/create' }
-	];
+    const routes: Route[] = [
+        { name: 'Dashboard', path: '/' },
+        { name: 'Analytics', path: '/analytics' },
+        { name: 'Data', path: '/data' },
+        { name: 'Configuration', path: '/configuration' },
+        { name: 'New Expense', path: '/new-expense' }
+    ];
+
+    const source = () => {
+        const path: string = page.url.pathname;
+        const search: string = page.url.search;
+        if (['/', '/login', '/register'].includes(path)) return null;
+        return `${path}${search}`;
+    };
+
+    const save_login_redirect = () => {
+        const redirect: string = source();
+        if (redirect) session_storage_cache.set('login-redirect', redirect);
+        else session_storage_cache.clear('login-redirect');
+    };
 </script>
 
 <div class="px-4 py-4 drop-shadow-[0_35px_35px_var(--background)] md:px-8">
-	<div class="flex items-center justify-between gap-2">
-		<span class="flex sm:hidden">
-			<HamburgerNavigation {routes} />
-		</span>
-		<div class="flex flex-none items-center gap-2 max-sm:hidden">
-			<img src={logo} alt="logo" class="h-8 w-8" />
-			<a href="/">
-				<span class="text-gradient text-xl font-bold">Expenseur</span>
-			</a>
-		</div>
-		<div class="flex flex-initial items-center overflow-x-auto">
-			{#if !authenticated && route !== 'login'}
-				<Button variant="outline" href="/login">Log In</Button>
-			{:else if authenticated}
-				{#each routes as { name, path }}
-					<Button variant="link" href={path} class="max-sm:hidden">{name}</Button>
-				{/each}
-				<span class="flex items-center pl-2">
-					<ProfileMenu />
-				</span>
-			{/if}
-		</div>
-	</div>
+    <div class="flex items-center justify-between gap-2">
+        <span class="flex sm:hidden">
+            <HamburgerNavigation {routes} />
+        </span>
+        <div class="flex flex-none items-center gap-2 max-sm:hidden">
+            <img src={logo} alt="logo" class="h-8 w-8" />
+            <a href="/">
+                <span class="text-gradient text-xl font-bold">Expenseur</span>
+            </a>
+        </div>
+        <div class="flex flex-initial items-center overflow-x-auto">
+            {#await session then session_data}
+                {#if (session_data?.expires_at ?? 0) > new Date().getSeconds()}
+                    {#each routes as { name, path }}
+                        <Button variant="link" href={path} class="max-sm:hidden">{name}</Button>
+                    {/each}
+                    <span class="flex items-center pl-2">
+                        <ProfileMenu bind:session />
+                    </span>
+                {:else if route !== 'login'}
+                    <Button variant="outline" href="/login" onclick={save_login_redirect}>Log In</Button>
+                {/if}
+            {/await}
+        </div>
+    </div>
 </div>

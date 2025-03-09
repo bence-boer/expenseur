@@ -1,8 +1,8 @@
 {
     "version": "0.1.0",
     "tasks": {
-        "serve:development": "vite dev --open --mode development",
-        "serve:production": "vite dev --open --mode production"
+        "serve": "vite dev --open --mode production",
+        "serve:development": "vite dev --open --mode development"
     },
     "imports": {
         "chart.js": "npm:chart.js@^4.4.8",
@@ -20,12 +20,17 @@
         "$env/static/private": "./.svelte-kit/ambient.d.ts",
         "$env/dynamic/public": "./.svelte-kit/ambient.d.ts",
         "$env/dynamic/private": "./.svelte-kit/ambient.d.ts",
-        "$app/forms": "../../node_modules/@sveltejs/kit/types/index.d.ts",
-        "$app/environment": "../../node_modules/@sveltejs/kit/types/index.d.ts",
-        "$app/navigation": "../../node_modules/@sveltejs/kit/types/index.d.ts",
-        "$app/server": "../../node_modules/@sveltejs/kit/types/index.d.ts",
-        "$app/stores": "../../node_modules/@sveltejs/kit/types/index.d.ts",
-        "$app/state": "../../node_modules/@sveltejs/kit/types/index.d.ts"
+        "$app/forms": "../node_modules/@sveltejs/kit/types/index.d.ts",
+        "$app/environment": "../node_modules/@sveltejs/kit/types/index.d.ts",
+        "$app/navigation": "../node_modules/@sveltejs/kit/types/index.d.ts",
+        "$app/server": "../node_modules/@sveltejs/kit/types/index.d.ts",
+        "$app/stores": "../node_modules/@sveltejs/kit/types/index.d.ts",
+        "$app/state": "../node_modules/@sveltejs/kit/types/index.d.ts"
+    },
+    "compilerOptions": {
+        "allowJs": true,
+        "checkJs": true,
+        "strict": true
     },
     "fmt": {
         "exclude": [

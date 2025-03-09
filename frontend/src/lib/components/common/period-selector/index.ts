@@ -1,5 +1,5 @@
-import { type Period } from './types.ts';
+export type { Period } from './types.ts';
+export { default_period } from './consts.ts';
 import PeriodSelector from './period-selector.svelte';
-import { default_period } from './consts.ts';
 
-export { default_period, type Period, PeriodSelector };
+export { PeriodSelector };

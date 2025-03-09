@@ -1,57 +1,60 @@
-import type { ServiceCache } from '$lib/types.ts';
+import type { LocalCache } from '$lib/types.ts';
 
-export const session_storage_cache: ServiceCache = {
+type SessionStorageCacheKey = 'login-redirect';
+export const session_storage_cache: LocalCache<SessionStorageCacheKey> = {
     name: 'session-storage-cache',
 
-    get: <Data>(key: string): Data | null => {
+    get: <Data>(key: SessionStorageCacheKey): Data | null => {
         const data = sessionStorage.getItem(key);
         if (!data) return null;
         return JSON.parse(data) as Data;
     },
 
-    set: (key: string, data: unknown): void => {
+    set: (key: SessionStorageCacheKey, data: unknown): void => {
         sessionStorage.setItem(key, JSON.stringify(data));
     },
 
-    clear: (key?: string): void => {
+    clear: (key?: SessionStorageCacheKey): void => {
         if (key) sessionStorage.removeItem(key);
         else sessionStorage.clear();
     },
 };
 
-export const local_storage_cache: ServiceCache = {
+type LocalStorageCacheKey = never;
+export const local_storage_cache: LocalCache<LocalStorageCacheKey> = {
     name: 'local-storage-cache',
 
-    get: <Data>(key: string): Data | null => {
+    get: <Data>(key: LocalStorageCacheKey): Data | null => {
         const data = localStorage.getItem(key);
         if (!data) return null;
         return JSON.parse(data) as Data;
     },
 
-    set: (key: string, data: unknown): void => {
+    set: (key: LocalStorageCacheKey, data: unknown): void => {
         localStorage.setItem(key, JSON.stringify(data));
     },
 
-    clear: (key?: string): void => {
+    clear: (key?: LocalStorageCacheKey): void => {
         if (key) localStorage.removeItem(key);
         else localStorage.clear();
     },
 };
 
-const storage: Map<string, unknown> = new Map();
-export const memory_cache: ServiceCache = {
+type MemoryCacheKey = 'update-session-callback';
+const storage: Map<MemoryCacheKey, unknown> = new Map<MemoryCacheKey, unknown>();
+export const memory_cache: LocalCache<MemoryCacheKey> = {
     name: 'in-memory-cache',
 
-    get: <Data>(key: string): Data | null => {
+    get: <Data>(key: MemoryCacheKey): Data | null => {
         if (!storage.has(key)) return null;
         return storage.get(key) as Data;
     },
 
-    set: (key: string, data: unknown): void => {
+    set: (key: MemoryCacheKey, data: unknown): void => {
         storage.set(key, data);
     },
 
-    clear: (key?: string): void => {
+    clear: (key?: MemoryCacheKey): void => {
         if (key) storage.delete(key);
         else storage.clear();
     },

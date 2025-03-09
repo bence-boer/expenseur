@@ -1,6 +1,7 @@
 import { cors } from 'hono/cors';
 
-const origin: string = Deno.env.get('CORS_ORIGIN') || 'http://localhost:3000';
+type CORSOptions = Exclude<Parameters<typeof cors>[0], undefined>['origin'];
+const origin: CORSOptions = Deno.env.get('CORS_ORIGIN') || ((origin: string) => origin);
 
 export const cors_middleware = () =>
     cors({

@@ -1,0 +1,38 @@
+name: Deploy Development Branch
+
+on:
+  push:
+    branches:
+      - development
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: development
+
+      - name: Create .env file in backend
+        run: |
+          cat <<EOF > ./backend/.env
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+          GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL=${{ secrets.GEMINI_MODEL }}
+          CORS_ORIGIN=${{ secrets.CORS_ORIGIN }}
+          HOST=0.0.0.0
+          EOF
+
+      - name: Build and run Docker container
+        working-directory: .
+        run: |
+          # Always attempt to stop and remove the container regardless of whether it's running
+          docker stop expenseur || true
+          docker rm expenseur || true
+          
+          # Build and run the Docker container
+          docker build -t expenseur --build-arg ENV_FILE="./backend/.env" .
+          docker run --name expenseur -d -p 8000:8000 expenseur
+          echo "Docker container started!"

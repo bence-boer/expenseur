@@ -4,7 +4,7 @@
 	import * as Sheet from '$lib/components/ui/sheet';
 	import logo from '$lib/resources/images/logo.svg';
 	import type { Route } from '$lib/types';
-	import { Menu } from 'lucide-svelte';
+	import { Menu } from '@lucide/svelte';
 
 	interface Props {
 		routes: Route[];

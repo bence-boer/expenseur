@@ -9,6 +9,12 @@ import type { SupabaseResponse } from '../types/supabase-helper.ts';
 import { delete_user_validator, session_validator, user_validator } from '../utils/validators.ts';
 
 const app = new Hono()
+    .post('/session', async (context: Context) => {
+        const { data, error } = await supabase(context).auth.getSession();
+
+        if (error) throw new HTTPException(401, error);
+        return context.json(data.session, 200);
+    })
     .post('/refresh-session', zValidator('json', session_validator), async (context: Context) => {
         const payload: { refresh_token: string } = await context.req.json();
         const { data, error }: AuthResponse = await supabase(context).auth.refreshSession(payload);

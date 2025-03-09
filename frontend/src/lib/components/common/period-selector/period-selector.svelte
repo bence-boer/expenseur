@@ -1,96 +1,106 @@
 <script lang="ts">
-    import DatePicker from "$lib/components/ui-custom/date-picker/date-picker.svelte";
-    import * as Collapsible from "$lib/components/ui/collapsible";
-    import * as Select from "$lib/components/ui/select";
-    import { TODAY } from "$lib/consts";
-    import { CalendarDate } from "@internationalized/date";
-    import { default_period, periods } from "./consts";
-    import type { Period, PeriodWithLabel } from "./types";
-    import { cn } from "$lib/utils";
+    import * as Select from '$lib/components/ui/select';
+    import { CalendarDate } from '@internationalized/date';
+    import { default_period, periods } from './consts';
+    import type { Period, PeriodWithLabel } from './types';
+    import { cn, day_difference } from '$lib/utils';
+    import DateRangePicker from '$lib/components/ui-custom/date-range-picker/date-range-picker.svelte';
 
     interface Props {
         class?: string;
-        empty?: boolean;
         select: (period: Period) => void;
+        default?: Period;
     }
 
-    let { class: clazz = "", empty = false, select }: Props = $props();
-
-    const period_map: Map<string, PeriodWithLabel> = new Map(
-        periods.map((period) => [period.value, period]),
-    );
+    let { class: clazz = '', select, default: default_custom }: Props = $props();
 
     const empty_period_value = (): Period => ({
+        previous_start: undefined as any as CalendarDate,
+        previous_end: undefined as any as CalendarDate,
         start: undefined as any as CalendarDate,
         end: undefined as any as CalendarDate,
-        days: 0,
+        days: 0
     });
 
-    const empty_period: PeriodWithLabel = {
-        label: "Empty",
-        value: "EMPTY",
-        data: empty_period_value(),
+    let custom_period: PeriodWithLabel = $state({
+        key: 'CUSTOM',
+        value: default_custom ?? empty_period_value(),
+        label: 'Custom'
+    });
+
+    type PeriodKey = (typeof periods)[number]['key'] | (typeof custom_period)['key'];
+    const period_map: { [Key in PeriodKey]: PeriodWithLabel } = {
+        ...Object.fromEntries(periods.map((period) => [period.key, period])),
+        [custom_period.key]: custom_period
     };
 
-    // TODO: implement custom period selection
-    let custom_period: PeriodWithLabel = $state({
-        label: "Custom",
-        value: "CUSTOM",
-        data: empty_period_value(),
-    });
+    let open: boolean = $state(false);
 
-    let selected_period_value: string = $state(
-        empty ? empty_period.value : default_period.value,
-    );
-    let selected: PeriodWithLabel = $state(
-        empty ? empty_period : default_period,
-    );
+    let selected: PeriodWithLabel = $state(default_custom ? custom_period : default_period);
+    // svelte-ignore state_referenced_locally
+    let selected_key: PeriodKey = $state(selected.key);
 
     // svelte-ignore state_referenced_locally
-    if (selected !== empty_period) select(selected.data);
-    const set = (value: string) => {
-        const next = period_map.get(value) ?? empty_period;
+    select(selected.value);
+
+    const set = (key: PeriodKey) => {
+        const next = period_map[key];
         selected = next;
-        if (next !== empty_period) select(next.data);
+        select(next.value);
+        open = false;
+        custom_period.value = empty_period_value();
     };
+
+    $effect(() => {
+        if (selected_key !== 'CUSTOM' || !custom_period.value.start || !custom_period.value.end) return;
+
+        const [start, end] = [custom_period.value.start.toString(), custom_period.value.end.toString()];
+        const basic: PeriodKey = periods.find((period) => period.value.start.toString() === start && period.value.end.toString() === end)?.key;
+        if (basic) {
+            set(basic);
+            selected_key = basic;
+            return;
+        }
+
+        custom_period.value.previous_start = custom_period.value.start.subtract({
+            days: day_difference(custom_period.value.start, custom_period.value.end) + 1
+        });
+        custom_period.value.previous_end = custom_period.value.start.subtract({ days: 1 });
+        set('CUSTOM');
+    });
 </script>
 
-<Select.Root bind:value={selected_period_value} type="single">
-    <Select.Trigger class={cn("flex-1", clazz)}>
-        {selected.label ?? "Period"}
+<Select.Root
+    bind:value={selected_key}
+    type="single"
+    bind:open={
+        () => open,
+        (next) => {
+            if (!open || selected_key !== 'CUSTOM') open = next;
+        }
+    }
+>
+    <Select.Trigger class={cn('gap-1 w-auto', clazz)}>
+        {selected.label}
     </Select.Trigger>
     <Select.Content>
-        {#each periods as { label, value, data }}
+        {#each periods as { label, key: value }}
             <Select.Item {value} {label} onclick={() => set(value)} />
         {/each}
         <Select.Item
-            value={custom_period.label}
-            onclick={(event) => {
-                event.preventDefault();
-                custom_period.data = empty_period_value();
-                selected = custom_period;
+            value={custom_period.key}
+            onclick={() => {
+                custom_period.value = empty_period_value();
             }}
-            disabled
+            class="p-0"
         >
-            <Collapsible.Root class="flex-1">
-                <Collapsible.Trigger
-                    >Custom (coming soon...)</Collapsible.Trigger
-                >
-                <Collapsible.Content class="flex gap-2 pt-2">
-                    <DatePicker
-                        bind:value={custom_period.data.start}
-                        title="Start date"
-                        placeholder={TODAY}
-                        class="flex-1"
-                    ></DatePicker>
-                    <DatePicker
-                        bind:value={custom_period.data.end}
-                        title="End date"
-                        placeholder={TODAY}
-                        class="flex-1"
-                    ></DatePicker>
-                </Collapsible.Content>
-            </Collapsible.Root>
+            <DateRangePicker
+                bind:value={custom_period.value}
+                class="flex-1 bg-transparent pr-8"
+                min={new CalendarDate(1900, 1, 1)}
+                max={new CalendarDate(2099, 12, 31)}
+                title={custom_period.label}
+            />
         </Select.Item>
     </Select.Content>
 </Select.Root>

@@ -6,18 +6,20 @@ import auth from './src/routes/auth.ts';
 import brands from './src/routes/brands.ts';
 import categories from './src/routes/categories.ts';
 import items from './src/routes/items.ts';
+import profile from './src/routes/profile.ts';
 import purchases from './src/routes/purchases.ts';
 import spendings from './src/routes/spendings.ts';
 import units from './src/routes/units.ts';
 import vendors from './src/routes/vendors.ts';
 import { cors_middleware } from './src/utils/cors.middleware.ts';
-import { supabase_middleware } from './supabase/auth.middleware.ts';
+import { session_middleware, supabase_middleware } from './supabase/auth.middleware.ts';
 
 const app = new Hono()
     // Configuration
     .use(
         cors_middleware(),
         supabase_middleware(),
+        session_middleware(),
         logger(),
     )
     .basePath('/api')
@@ -27,11 +29,12 @@ const app = new Hono()
     .route('/brands', brands)
     .route('/categories', categories)
     .route('/items', items)
+    .route('/profile', profile)
     .route('/purchases', purchases)
     .route('/spendings', spendings)
     .route('/vendors', vendors)
     .route('/units', units);
 
-Deno.serve(app.fetch);
+Deno.serve({ hostname: Deno.env.get('HOST'), port: 8000 }, app.fetch);
 
 export type AppType = typeof app;

@@ -1,51 +1,42 @@
 <script lang="ts">
-    import {
-        PeriodSelector,
-        type Period,
-    } from "$lib/components/common/period-selector";
-    import {
-        DataTable,
-        type Column,
-    } from "$lib/components/ui-custom/data-table";
-    import { Separator } from "$lib/components/ui/separator";
-    import { service, ServiceTypes } from "$lib/service";
-    import { toast } from "svelte-sonner";
-    import { format_currency, format_date } from "$lib/utils";
+    import { PeriodSelector, type Period } from '$lib/components/common/period-selector';
+    import { DataTable, type Column } from '$lib/components/ui-custom/data-table';
+    import { Separator } from '$lib/components/ui/separator';
+    import { service, ServiceTypes } from '$lib/service';
+    import { toast } from 'svelte-sonner';
+    import { format_currency, format_date } from '$lib/utils';
 
     let purchases: ServiceTypes.Purchase[] = $state([]);
     let period: Period | undefined = $state();
     let loading: boolean = $state(true);
 
-    const table_columns: Column<
-        ServiceTypes.Purchase,
-        keyof ServiceTypes.Purchase
-    >[] = [
-        { header: "Date", field: "date", header_class: "min-w-24" },
-        { header: "Item", field: "item" },
-        { header: "Details", field: "details" },
-        { header: "Brand", field: "brand" },
-        { header: "Category", field: "category" },
+    const table_columns: Column<ServiceTypes.Purchase, keyof ServiceTypes.Purchase>[] = [
+        { header: 'Date', field: 'date', header_class: 'min-w-24' },
+        { header: 'Item', field: 'item' },
+        { header: 'Details', field: 'details' },
+        { header: 'Brand', field: 'brand' },
+        { header: 'Category', field: 'category' },
         {
-            header: "Quantity",
-            field: "quantity",
-            field_class: "text-right",
-            header_class: "text-right",
+            header: 'Quantity',
+            field: 'quantity',
+            field_class: 'text-right',
+            header_class: 'text-right'
         },
-        { header: "Unit", field: "unit" },
+        { header: 'Unit', field: 'unit' },
         {
-            header: "Price",
-            field: "price",
-            field_class: "text-right",
-            header_class: "text-right",
+            header: 'Price',
+            field: 'price',
+            field_class: 'text-right',
+            header_class: 'text-right'
         },
-        { header: "Store", field: "store" },
+        { header: 'Store', field: 'store' }
     ];
 
     const delete_item = async (id: number): Promise<void> => {
         return service
             .delete_purchase(id)
             .then(() => {
-                toast.success("Item deleted successfully");
+                toast.success('Item deleted successfully');
                 purchases = purchases!.filter((purchase) => purchase.id !== id);
             })
             .catch((error) => {
@@ -64,17 +55,15 @@
         service
             .get_purchases({
                 start_date: period.start.toString(),
-                end_date: period.end.toString(),
+                end_date: period.end.toString()
             })
             .then((data) => {
                 purchases = data.map((item) => ({
                     ...item,
                     date: format_date(item.date!),
-                    details: item.details?.length
-                        ? (item.details?.join(", ") as any)
-                        : "-",
-                    brand: item.brand ?? "-",
-                    price: format_currency(item.price!) as any,
+                    details: item.details?.length ? (item.details?.join(', ') as any) : '-',
+                    brand: item.brand ?? '-',
+                    price: format_currency(item.price!) as any
                 }));
                 loading = false;
             });

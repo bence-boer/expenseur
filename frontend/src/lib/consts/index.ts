@@ -9,6 +9,13 @@ export const currency_formatter = new Intl.NumberFormat('hu-HU', {
     useGrouping: true,
 });
 
+export const currency_formatter_short = new Intl.NumberFormat('hu-HU', {
+    style: 'currency',
+    currency: 'HUF',
+    notation: 'compact',
+    maximumFractionDigits: 2,
+});
+
 export const currency_parser = (value: string) => {
     return parseInt(value.replace(/\D/g, ''));
 };

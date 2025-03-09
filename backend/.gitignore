@@ -3,3 +3,5 @@
 .env.*
 !.env.example
 !.env.test
+cert.pem
+key.pem
