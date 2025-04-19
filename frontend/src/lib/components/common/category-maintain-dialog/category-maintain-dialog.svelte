@@ -1,7 +1,7 @@
 <script lang="ts">
     import * as Dialog from '$lib/components/ui/dialog';
     import { Button } from '$lib/components/ui/button';
-    import { ServiceTypes } from '$lib/service';
+    import { service, ServiceTypes } from '$lib/service';
     import { toast } from 'svelte-sonner';
     import { Label } from '../../ui/label';
     import { Input } from '../../ui-custom/input';
@@ -10,9 +10,10 @@
         open: boolean;
         mode: 'CREATE' | 'UPDATE';
         category?: ServiceTypes.Category;
+        on_category_created: (category_id: number) => void;
     };
 
-    let { open = $bindable(), mode, category }: Props = $props();
+    let { open = $bindable(), mode, category, on_category_created }: Props = $props();
     $effect(() => {
         name = category?.name ?? '';
         color = category?.color ?? '';
@@ -34,11 +35,56 @@
     };
 
     const create = () => {
-        toast.info('Creation of category is not implemented yet');
+        if (!name) {
+            toast.error('Name is required');
+            return;
+        }
+        if (!color_validator.test(color)) {
+            toast.error('Color is invalid');
+            return;
+        }
+
+        disabled = true;
+        service
+            .create_category({ name, color })
+            .then((data) => {
+                on_category_created(data.id);
+                toast.success(`Category "${name}" created successfully!`);
+                open = false;
+            })
+            .catch((error) => {
+                toast.error(`Failed to create Category`);
+                throw error;
+            })
+            .finally(() => {
+                disabled = false;
+            });
     };
 
     const update = () => {
-        toast.info('Update of category is not implemented yet');
+        if (!name) {
+            toast.error('Name is required');
+            return;
+        }
+        if (!color_validator.test(color)) {
+            toast.error('Color is invalid');
+            return;
+        }
+
+        disabled = true;
+        service
+            .update_category(category.id, { name, color })
+            .then(() => {
+                toast.success(`Category "${name}" updated successfully!`);
+                open = false;
+            })
+            .catch((error) => {
+                toast.error(`Failed to update Category`);
+                throw error;
+            })
+            .finally(() => {
+                disabled = false;
+            });
     };
 </script>
 

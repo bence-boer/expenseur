@@ -11,6 +11,7 @@
         "tailwind-merge": "npm:tailwind-merge@^3.0.2",
         "tailwind-variants": "npm:tailwind-variants@^0.3.1",
         "tailwindcss-animate": "npm:tailwindcss-animate@^1.0.7",
+        "@tanstack/table-core": "npm:@tanstack/table-core@^8.21.3",
 
         "$lib": "./src/lib",
         "$lib/": "./src/lib/",

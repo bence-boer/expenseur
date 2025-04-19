@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - development
+    paths:
+      - 'backend/**'
+      - 'docker/**'
+      - '.github/workflows/deploy.yml'
 
 jobs:
   deploy:

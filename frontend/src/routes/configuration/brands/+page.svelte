@@ -15,7 +15,8 @@
     let delete_dialog_open: boolean = $state(false);
     let brand_to_delete: number = $state(-1);
 
-    let edit_dialog_open: boolean = $state(false);
+    let maintain_dialog_open: boolean = $state(false);
+    let maintain_dialog_mode: 'CREATE' | 'UPDATE' = $state('CREATE');
     let brand_to_edit: number = $state(-1);
 
     const fetch = () => {
@@ -34,12 +35,14 @@
 
     const open_edit_dialog = (id: number) => {
         brand_to_edit = id;
-        edit_dialog_open = true;
+        maintain_dialog_mode = 'UPDATE';
+        maintain_dialog_open = true;
     };
 
     const open_create_dialog = () => {
         brand_to_edit = -1;
-        edit_dialog_open = true;
+        maintain_dialog_mode = 'CREATE';
+        maintain_dialog_open = true;
     };
 
     const delete_brand = () => service.delete_brand(String(brand_to_delete));
@@ -99,4 +102,4 @@
     delete={delete_brand}
 />
 
-<BrandMaintainDialog bind:open={edit_dialog_open} brand={brand_map.get(brand_to_edit)} mode="UPDATE" on_brand_created={fetch} />
+<BrandMaintainDialog bind:open={maintain_dialog_open} brand={brand_map.get(brand_to_edit)} mode={maintain_dialog_mode} on_brand_created={fetch} />

@@ -6,30 +6,27 @@
     import { Button } from '$lib/components/ui/button';
     import { Skeleton } from '$lib/components/ui/skeleton';
     import { service, ServiceTypes } from '$lib/service';
-    import { promise } from '$lib/utils';
     import { Edit, Plus, Trash } from '@lucide/svelte';
     import { onMount } from 'svelte';
 
-    let { promise: data, resolve, reject } = promise<ServiceTypes.Category[]>();
-    let categories: Promise<ServiceTypes.Category[]> = $state(data);
+    let categories: Promise<ServiceTypes.Category[]> = $state(new Promise(() => []));
     let category_map: Map<number, ServiceTypes.Category> = $state(new Map());
 
     let delete_dialog_open: boolean = $state(false);
     let category_to_delete: number = $state(-1);
 
-    let edit_dialog_open: boolean = $state(false);
+    let maintain_dialog_open: boolean = $state(false);
+    let maintain_dialog_mode: 'CREATE' | 'UPDATE' = $state('CREATE');
     let category_to_edit: number = $state(-1);
 
-    // TODO: Refactor like in items and brands pages
-    onMount(() => {
-        service
-            .get_categories()
-            .then((response: ServiceTypes.Category[]) => {
-                category_map = new Map(response.map((category) => [category.id, category]));
-                resolve(response);
-            })
-            .catch(reject);
-    });
+    const fetch = () => {
+        categories = service.get_categories().then((response: ServiceTypes.Category[]) => {
+            category_map = new Map(response.map((category) => [category.id, category]));
+            return response;
+        });
+    };
+
+    onMount(fetch);
 
     const open_delete_confirmation = (id: number) => {
         category_to_delete = id;
@@ -38,7 +35,14 @@
 
     const open_edit_dialog = (id: number) => {
         category_to_edit = id;
-        edit_dialog_open = true;
+        maintain_dialog_mode = 'UPDATE';
+        maintain_dialog_open = true;
+    };
+
+    const open_create_dialog = () => {
+        category_to_edit = -1;
+        maintain_dialog_mode = 'CREATE';
+        maintain_dialog_open = true;
     };
 
     const delete_category = () => service.delete_category(String(category_to_delete));
@@ -79,7 +83,7 @@
                 {/each}
             </div>
         {/if}
-        <Button variant="secondary" class="w-full mt-auto">
+        <Button variant="secondary" class="w-full mt-auto" onclick={open_create_dialog}>
             <Plus size="16" />
             Add Category
         </Button>
@@ -97,4 +101,9 @@
     delete={delete_category}
 />
 
-<CategoryMaintainDialog bind:open={edit_dialog_open} mode="UPDATE" category={category_map.get(category_to_edit)} />
+<CategoryMaintainDialog
+    bind:open={maintain_dialog_open}
+    mode={maintain_dialog_mode}
+    category={category_map.get(category_to_edit)}
+    on_category_created={fetch}
+/>

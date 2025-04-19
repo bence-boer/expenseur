@@ -1,32 +1,32 @@
 <script lang="ts">
+    import { DeleteDialog } from '$lib/components/common/delete-dialog';
     import { ErrorCard } from '$lib/components/common/error-card';
     import { InfoCard } from '$lib/components/common/info-card';
+    import { VendorMaintainDialog } from '$lib/components/common/vendor-maintain-dialog';
     import { Button } from '$lib/components/ui/button';
     import { Skeleton } from '$lib/components/ui/skeleton';
     import { service, ServiceTypes } from '$lib/service';
-    import { promise } from '$lib/utils';
     import { Edit, Plus, Trash } from '@lucide/svelte';
     import { onMount } from 'svelte';
 
-    let { promise: data, resolve, reject } = promise<ServiceTypes.Vendor[]>();
-    let vendors: Promise<ServiceTypes.Vendor[]> = $state(data);
+    let vendors: Promise<ServiceTypes.Vendor[]> = $state(new Promise(() => []));
     let vendor_map: Map<number, ServiceTypes.Vendor> = $state(new Map());
 
     let delete_dialog_open: boolean = $state(false);
     let vendor_to_delete: number = $state(-1);
 
-    let edit_dialog_open: boolean = $state(false);
+    let maintain_dialog_open: boolean = $state(false);
+    let maintain_dialog_mode: 'CREATE' | 'UPDATE' = $state('CREATE');
     let vendor_to_edit: number = $state(-1);
 
-    onMount(() => {
-        service
-            .get_vendors()
-            .then((response: ServiceTypes.Vendor[]) => {
-                vendor_map = new Map(response.map((vendor) => [vendor.id, vendor]));
-                resolve(response);
-            })
-            .catch(reject);
-    });
+    const fetch = () => {
+        vendors = service.get_vendors().then((response: ServiceTypes.Vendor[]) => {
+            vendor_map = new Map(response.map((vendor) => [vendor.id, vendor]));
+            return response;
+        });
+    };
+
+    onMount(fetch);
 
     const open_delete_confirmation = (id: number) => {
         vendor_to_delete = id;
@@ -35,7 +35,14 @@
 
     const open_edit_dialog = (id: number) => {
         vendor_to_edit = id;
-        edit_dialog_open = true;
+        maintain_dialog_mode = 'UPDATE';
+        maintain_dialog_open = true;
+    };
+
+    const open_create_dialog = () => {
+        vendor_to_edit = -1;
+        maintain_dialog_mode = 'CREATE';
+        maintain_dialog_open = true;
     };
 
     const delete_vendor = () => service.delete_vendor(String(vendor_to_delete));
@@ -77,7 +84,7 @@
                 {/each}
             </div>
         {/if}
-        <Button variant="secondary" class="w-full mt-auto">
+        <Button variant="secondary" class="w-full mt-auto" onclick={open_create_dialog}>
             <Plus size="16" />
             Add Vendor
         </Button>
@@ -87,3 +94,12 @@
         {error.message}
     </ErrorCard>
 {/await}
+
+<DeleteDialog
+    bind:open={delete_dialog_open}
+    title="Delete Vendor"
+    description="Are you sure you want to delete Vendor: {vendor_map.get(vendor_to_delete).name}? This action cannot be undone."
+    delete={delete_vendor}
+/>
+
+<VendorMaintainDialog bind:open={maintain_dialog_open} vendor={vendor_map.get(vendor_to_edit)} mode="UPDATE" on_vendor_created={fetch} />

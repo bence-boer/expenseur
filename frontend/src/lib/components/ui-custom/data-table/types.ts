@@ -1,17 +1,18 @@
-export type DataTableProps<DATA> = {
-    caption?: string;
-    columns: Column<DATA, keyof DATA>[];
-    data: DATA[];
-    key?: keyof DATA;
-    loading?: boolean;
-};
+import type { ColumnDef } from '@tanstack/table-core';
 
-export type Column<DATA, FIELD extends keyof DATA> = {
-    header: string;
-    header_class?: string;
-    field: FIELD;
-    field_class?: string;
-    format?: (value: DATA[FIELD]) => string;
-    footer?: (values: DATA[FIELD][]) => string;
-    footer_class?: string;
+// Re-export the ColumnDef type for ease of use
+export type { ColumnDef } from '@tanstack/table-core';
+
+// DataTable props type
+export type DataTableProps<TData> = {
+    data: TData[];
+    columns: ColumnDef<TData, any>[];
+    caption?: string;
+    pageSize?: number;
+    loading?: boolean;
+    enableSorting?: boolean;
+    enableFiltering?: boolean;
+    enablePagination?: boolean;
+    enableColumnVisibility?: boolean;
+    enableRowSelection?: boolean;
 };

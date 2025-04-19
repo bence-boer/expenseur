@@ -1,47 +1,23 @@
 <script lang="ts">
-	import type { HTMLTableAttributes } from 'svelte/elements';
-	import type { WithElementRef } from 'bits-ui';
-	import * as Table from '$lib/components/ui/table';
-	import type { DataTableProps } from './types';
-	import { Skeleton } from '$lib/components/ui/skeleton';
+    import * as Table from '$lib/components/ui/table';
+    import { Skeleton } from '$lib/components/ui/skeleton';
 
-	type DataTableSkeletonProps = Pick<DataTableProps<never>, 'caption'>;
+    type Props = {
+        columns?: number;
+        rows?: number;
+    };
 
-	let {
-		ref = $bindable(null),
-		class: className,
-		caption,
-		...restProps
-	}: WithElementRef<HTMLTableAttributes> & DataTableSkeletonProps = $props();
+    let { columns = 5, rows = 5 }: Props = $props();
 </script>
 
-<div class="relative w-full overflow-auto">
-	<Table.Root class={className} {...restProps} bind:ref>
-		{#if caption}
-			<Table.Caption>
-				<Skeleton class="m-2 h-4" />
-			</Table.Caption>
-		{/if}
-		<Table.Header>
-			<Table.Row>
-				<Table.Head>
-					<Skeleton class="m-2 h-4" />
-				</Table.Head>
-			</Table.Row>
-		</Table.Header>
-		<Table.Body>
-			{#each Array(3) as _}
-				<Table.Row>
-					<Table.Cell>
-						<Skeleton class="m-2 h-4" />
-					</Table.Cell>
-				</Table.Row>
-			{/each}
-		</Table.Body>
-		<Table.Footer>
-			<Table.Row>
-				<Skeleton class="m-2 h-4" />
-			</Table.Row>
-		</Table.Footer>
-	</Table.Root>
+<div class="flex flex-col gap-2">
+    <div class="flex gap-2">
+        <Skeleton class="h-9 flex-1" />
+        <Skeleton class="h-9 w-[90px]" />
+    </div>
+    <Skeleton class="h-72 w-full" />
+    <div class="flex justify-between">
+        <Skeleton class="h-9 w-16" />
+        <Skeleton class="h-9 w-28" />
+    </div>
 </div>
