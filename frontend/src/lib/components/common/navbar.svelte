@@ -3,13 +3,13 @@
     import { session_storage_cache } from '$lib/cache';
     import { Button } from '$lib/components/ui/button';
     import logo from '$lib/resources/images/logo.svg';
-    import type { SessionResponse } from '$lib/service/auth';
+    import type { ServiceTypes } from '$lib/service';
     import type { Route } from '$lib/types';
     import HamburgerNavigation from './hamburger-navigation.svelte';
     import ProfileMenu from './profile-menu.svelte';
 
     interface Props {
-        session: Promise<SessionResponse>;
+        session: Promise<ServiceTypes.Session>;
         route: string;
     }
 
@@ -50,15 +50,22 @@
         </div>
         <div class="flex flex-initial items-center overflow-x-auto">
             {#await session then session_data}
-                {#if (session_data?.expires_at ?? 0) > new Date().getSeconds()}
+                {#if (session_data?.expires_at ?? 0) * 1000 > Number(new Date())}
                     {#each routes as { name, path }}
                         <Button variant="link" href={path} class="max-sm:hidden">{name}</Button>
                     {/each}
                     <span class="flex items-center pl-2">
                         <ProfileMenu bind:session />
                     </span>
-                {:else if route !== 'login'}
-                    <Button variant="outline" href="/login" onclick={save_login_redirect}>Log In</Button>
+                {:else}
+                    <span class="flex gap-2">
+                        {#if route !== 'register'}
+                            <Button variant="ghost" href="/register" onclick={save_login_redirect}>Register</Button>
+                        {/if}
+                        {#if route !== 'login'}
+                            <Button variant="outline" href="/login" onclick={save_login_redirect}>Log In</Button>
+                        {/if}
+                    </span>
                 {/if}
             {/await}
         </div>

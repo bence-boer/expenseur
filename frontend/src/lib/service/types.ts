@@ -3,6 +3,7 @@ import * as auth from '$lib/service/auth.ts';
 
 export type Session = Awaited<ReturnType<typeof auth.session>>;
 export type LoginResponse = Awaited<ReturnType<typeof auth.login>>;
+export type RegisterResponse = Awaited<ReturnType<typeof auth.register>>;
 
 export type ItemDetails = Awaited<ReturnType<typeof service.get_item_details>>;
 export type Item = Awaited<ReturnType<typeof service.get_items>>[number];

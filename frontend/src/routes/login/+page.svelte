@@ -39,10 +39,10 @@
         </Card.Header>
         <Card.Content>
             <div class="mb-2">
-                <Input type="email" placeholder="email" class="w-full" bind:value={email} />
+                <Input type="email" placeholder="Email" class="w-full" bind:value={email} />
             </div>
             <div>
-                <Input type="password" placeholder="password" class="w-full" bind:value={password} />
+                <Input type="password" placeholder="Password" class="w-full" bind:value={password} />
             </div>
             <div class="size h-2 text-right text-xs text-red-500">
                 {#if failed}
