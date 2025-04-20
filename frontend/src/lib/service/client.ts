@@ -50,7 +50,14 @@ const exctract_response_data = <Data = unknown>(response: Response): Promise<Dat
 };
 
 const custom_fetch = (endpoint: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    if (init?.method !== 'GET') return fetch(endpoint, init).then((response) => exctract_response_data(response));
+    if (init?.method !== 'GET') {
+        return fetch(endpoint, init)
+            .then((response) => {
+                const data = exctract_response_data(response);
+                cache.clear();
+                return data;
+            }) as unknown as Promise<Response>;
+    }
 
     const cache_key: string = generate_cache_key(endpoint, init?.body);
     const cached_data: unknown | undefined = cache.get<unknown>(cache_key);
