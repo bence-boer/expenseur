@@ -3,14 +3,15 @@
     import Navbar from '$lib/components/common/navbar.svelte';
     import { Toaster } from '$lib/components/ui/sonner';
     import { auth, ServiceTypes } from '$lib/service';
-    import { onMount } from 'svelte';
+    import { onMount, type Snippet } from 'svelte';
     import { browser } from '$app/environment';
 
     import '../app.css';
     import { promise } from '$lib/utils';
-    import { memory_cache } from '$lib/cache';
+    import { memory_cache, session_storage_cache } from '$lib/cache';
+    import { goto } from '$app/navigation';
     interface Props {
-        children?: import('svelte').Snippet;
+        children?: Snippet;
     }
 
     let { children }: Props = $props();
@@ -36,13 +37,32 @@
             if (loading_text.length > 17) loading_text = 'Authenticating';
         }, 300);
 
+    const source = () => {
+        const path: string = page.url.pathname;
+        const search: string = page.url.search;
+        if (['/', '/login', '/register'].includes(path)) return null;
+        return `${path}${search}`;
+    };
+
+    const navigate_to_login_with_redirect = () => {
+        const redirect: string = source();
+        if (redirect) session_storage_cache.set('login-redirect', redirect);
+        else session_storage_cache.clear('login-redirect');
+
+        goto('/login', { replaceState: true });
+    };
+
     onMount(() => {
         auth.session()
-            .then(resolve)
+            .then((session: ServiceTypes.Session) => {
+                const valid: boolean = session?.expires_at ? session.expires_at * 1000 > Number(new Date()) : false;
+
+                if (valid) resolve(session);
+                else navigate_to_login_with_redirect();
+            })
+            .catch(() => navigate_to_login_with_redirect())
             .catch(reject)
-            .finally(() => {
-                window.clearInterval(loading_text_interval);
-            });
+            .finally(() => window.clearInterval(loading_text_interval));
     });
 </script>
 

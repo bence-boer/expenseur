@@ -1,9 +1,9 @@
 import * as service from '$lib/service/service.ts';
-import * as auth from '$lib/service/auth.ts';
+import { client } from '$lib/service/utils.ts';
 
-export type Session = Awaited<ReturnType<typeof auth.session>>;
-export type LoginResponse = Awaited<ReturnType<typeof auth.login>>;
-export type RegisterResponse = Awaited<ReturnType<typeof auth.register>>;
+export type Session = Awaited<ReturnType<typeof client.api.auth.session.$post>>;
+export type LoginResponse = Awaited<ReturnType<typeof client.api.auth.login.$post>>;
+export type RegisterResponse = Awaited<ReturnType<typeof client.api.auth.register.$post>>;
 
 export type ItemDetails = Awaited<ReturnType<typeof service.get_item_details>>;
 export type Item = Awaited<ReturnType<typeof service.get_items>>[number];
