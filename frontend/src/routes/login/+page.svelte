@@ -8,8 +8,6 @@
     import { auth } from '$lib/service';
     import type { ServiceTypes } from '$lib/service';
 
-    const update_session = memory_cache.get('update-session-callback') as (value: Promise<ServiceTypes.Session>) => void;
-
     let email: string = $state('');
     let password: string = $state('');
 
@@ -21,8 +19,8 @@
     const login = () => {
         auth.login(email, password)
             .then((response: ServiceTypes.LoginResponse) => {
-                goto(session_storage_cache.get('login-redirect') ?? '/');
-                if (update_session) update_session(Promise.resolve(response.session));
+                const update_session = memory_cache.get('update-session-callback') as (value: Promise<ServiceTypes.Session>) => void;
+                update_session?.(Promise.resolve(response.session));
             })
             .catch((error: Error) => {
                 console.error('Login error:', error.message);

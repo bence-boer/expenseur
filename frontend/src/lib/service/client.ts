@@ -1,5 +1,5 @@
 import { PUBLIC_API_URL } from '$env/static/public';
-import { memory_cache } from '$lib/cache';
+import { clear_with_persist, memory_cache } from '$lib/cache';
 import type { LocalCache } from '$lib/types.ts';
 import type { API } from '@expenseur/backend';
 import { type ClientResponse, hc } from 'hono/client';
@@ -54,7 +54,7 @@ const custom_fetch = (endpoint: RequestInfo | URL, init?: RequestInit): Promise<
         return fetch(endpoint, init)
             .then((response) => {
                 const data = exctract_response_data(response);
-                cache.clear();
+                clear_with_persist(cache, ['update-session-callback']);
                 return data;
             }) as unknown as Promise<Response>;
     }

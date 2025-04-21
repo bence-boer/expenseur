@@ -21,12 +21,28 @@
     const unauthenticated_routes = ['login', 'register'];
 
     let loading_text = $state('Authenticating...');
+    let authenticated: boolean = $state(false);
 
     let { promise: data, resolve, reject } = promise<ServiceTypes.Session>();
     let session: Promise<ServiceTypes.Session> = $state(data);
 
     const update_session = (value: Promise<ServiceTypes.Session>) => {
         session = value;
+        session
+            .then((session: ServiceTypes.Session) => {
+                authenticated = session?.expires_at ? session.expires_at * 1000 > Number(new Date()) : false;
+
+                if (authenticated) {
+                    const redirect: string = session_storage_cache.get('login-redirect') ?? '/';
+                    session_storage_cache.clear('login-redirect');
+
+                    goto(redirect, { replaceState: true });
+                    resolve?.(session);
+                } else navigate_to_login_with_redirect();
+            })
+            .catch(navigate_to_login_with_redirect)
+            .catch(reject ?? void 0)
+            .finally(() => window.clearInterval(loading_text_interval));
     };
     memory_cache.set('update-session-callback', update_session);
 
@@ -40,29 +56,19 @@
     const source = () => {
         const path: string = page.url.pathname;
         const search: string = page.url.search;
-        if (['/', '/login', '/register'].includes(path)) return null;
+
+        if (/^\/?(login|register)\/?$/.test(path)) return '/';
         return `${path}${search}`;
     };
 
-    const navigate_to_login_with_redirect = () => {
-        const redirect: string = source();
-        if (redirect) session_storage_cache.set('login-redirect', redirect);
-        else session_storage_cache.clear('login-redirect');
-
+    const navigate_to_login_with_redirect = (error?: Error) => {
+        session_storage_cache.set('login-redirect', source());
         goto('/login', { replaceState: true });
+        resolve(undefined);
     };
 
     onMount(() => {
-        auth.session()
-            .then((session: ServiceTypes.Session) => {
-                const valid: boolean = session?.expires_at ? session.expires_at * 1000 > Number(new Date()) : false;
-
-                if (valid) resolve(session);
-                else navigate_to_login_with_redirect();
-            })
-            .catch(() => navigate_to_login_with_redirect())
-            .catch(reject)
-            .finally(() => window.clearInterval(loading_text_interval));
+        update_session(auth.session());
     });
 </script>
 
@@ -75,8 +81,6 @@
                 <h1 class="text-2xl font-bold md:text-4xl">{loading_text}</h1>
             </div>
         {:then data}
-            {@const authenticated = (data?.expires_at ?? 0) * 1000 > Number(new Date())}
-
             {#if authenticated || unauthenticated_routes.includes(route)}
                 {@render children?.()}
             {:else}

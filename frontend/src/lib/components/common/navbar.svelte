@@ -26,15 +26,11 @@
     const source = () => {
         const path: string = page.url.pathname;
         const search: string = page.url.search;
-        if (['/', '/login', '/register'].includes(path)) return null;
+        if (['/', '/login', '/register'].includes(path)) return '/';
         return `${path}${search}`;
     };
 
-    const save_login_redirect = () => {
-        const redirect: string = source();
-        if (redirect) session_storage_cache.set('login-redirect', redirect);
-        else session_storage_cache.clear('login-redirect');
-    };
+    const save_login_redirect = () => session_storage_cache.set('login-redirect', source());
 </script>
 
 <div class="px-4 py-4 drop-shadow-[0_35px_35px_var(--background)] md:px-8">

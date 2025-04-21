@@ -59,3 +59,11 @@ export const memory_cache: LocalCache<MemoryCacheKey> = {
         else storage.clear();
     },
 };
+
+export const clear_with_persist = <KEY extends string>(cache: LocalCache<KEY>, persist: KEY[]): void => {
+    const persistence: Map<KEY, unknown> = new Map<KEY, unknown>(persist.map((key) => [key, cache.get(key)]));
+    cache.clear();
+    persistence.forEach((value, key) => {
+        if (value ?? false) cache.set(key, value);
+    });
+};

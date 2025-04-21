@@ -10,7 +10,7 @@
     "tasks": {
         "serve": {
             "command": "echo 'No serve task defined'",
-            "dependencies": ["backend:serve:development", "frontend:serve:local"]
+            "dependencies": ["backend:serve:development", "frontend:serve:development"]
         },
         "backend:serve:production": "cd backend && deno task serve:production",
         "backend:serve:development": "cd backend && deno task serve:development",

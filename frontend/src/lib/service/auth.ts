@@ -1,5 +1,5 @@
 import { client } from '$lib/service/utils.ts';
-import { LoginResponse, RegisterResponse } from '$lib/service/types.ts';
+import type { LoginResponse, RegisterResponse } from '$lib/service/types.ts';
 
 export const session = () => client.api.auth.session.$post();
 export const refresh_session = (refresh_token: string) => client.api.auth['refresh-session'].$post({ json: { refresh_token } });
