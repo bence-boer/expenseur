@@ -1,22 +1,23 @@
 <script lang="ts">
     import { goto } from '$app/navigation';
+    import { memory_cache } from '$lib/cache';
     import * as Avatar from '$lib/components/ui/avatar/index.js';
     import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
     import { auth } from '$lib/service';
-    import type { SessionResponse } from '$lib/service/auth';
+    import type { ServiceTypes } from '$lib/service';
     import { LogOut, UserIcon } from '@lucide/svelte';
-
-    type Props = {
-        session: Promise<SessionResponse>;
-    };
-
-    let { session = $bindable() }: Props = $props();
+    import { toast } from 'svelte-sonner';
 
     const logout = () => {
-        auth.logout().then(() => {
-            session = Promise.resolve(null);
-            goto('/');
-        });
+        auth.logout()
+            .then(() => {
+                const update_session = memory_cache.get('update-session-callback') as (value: Promise<ServiceTypes.Session>) => void;
+                update_session?.(Promise.resolve(null));
+            })
+            .catch((error: Error) => {
+                console.error('Logout error:', error.message);
+                toast.error('Logout failed. Please try again.');
+            });
     };
 
     // TODO: Fetch user data

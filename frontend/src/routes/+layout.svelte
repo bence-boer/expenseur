@@ -27,8 +27,7 @@
     let session: Promise<ServiceTypes.Session> = $state(data);
 
     const update_session = (value: Promise<ServiceTypes.Session>) => {
-        session = value;
-        session
+        session = value
             .then((session: ServiceTypes.Session) => {
                 authenticated = session?.expires_at ? session.expires_at * 1000 > Number(new Date()) : false;
 
@@ -41,7 +40,6 @@
                 } else navigate_to_login_with_redirect();
             })
             .catch(navigate_to_login_with_redirect)
-            .catch(reject ?? void 0)
             .finally(() => window.clearInterval(loading_text_interval));
     };
     memory_cache.set('update-session-callback', update_session);
@@ -73,14 +71,14 @@
 </script>
 
 <div class="h-full flex flex-col selection:bg-purple-600 selection:font-bold selection:text-white">
-    <Navbar bind:session {route} />
+    <Navbar {authenticated} {route} />
 
     <div class="flex-grow flex flex-col gap-4 {non_scrollable ? 'overflow-y-hidden' : 'overflow-y-auto'} px-4 py-4 sm:container md:px-8">
         {#await session}
             <div class="flex h-full flex-col">
                 <h1 class="text-2xl font-bold md:text-4xl">{loading_text}</h1>
             </div>
-        {:then data}
+        {:then}
             {#if authenticated || unauthenticated_routes.includes(route)}
                 {@render children?.()}
             {:else}

@@ -9,11 +9,11 @@
     import ProfileMenu from './profile-menu.svelte';
 
     interface Props {
-        session: Promise<ServiceTypes.Session>;
+        authenticated: boolean;
         route: string;
     }
 
-    let { session = $bindable(), route }: Props = $props();
+    let { authenticated, route }: Props = $props();
 
     const routes: Route[] = [
         { name: 'Dashboard', path: '/' },
@@ -35,35 +35,40 @@
 
 <div class="px-4 py-4 drop-shadow-[0_35px_35px_var(--background)] md:px-8">
     <div class="flex items-center justify-between gap-2">
-        <span class="flex sm:hidden">
-            <HamburgerNavigation {routes} />
-        </span>
-        <div class="flex flex-none items-center gap-2 max-sm:hidden">
-            <img src={logo} alt="logo" class="h-8 w-8" />
-            <a href="/">
+        {#if authenticated}
+            <span class="flex sm:hidden">
+                <HamburgerNavigation {routes} />
+            </span>
+            <div class="flex flex-none items-center gap-2 max-sm:hidden">
+                <img src={logo} alt="logo" class="h-8 w-8" />
+                <a href="/">
+                    <span class="text-gradient text-xl font-bold">Expenseur</span>
+                </a>
+            </div>
+        {:else}
+            <div class="flex flex-none items-center gap-2">
+                <img src={logo} alt="logo" class="h-8 w-8" />
                 <span class="text-gradient text-xl font-bold">Expenseur</span>
-            </a>
-        </div>
+            </div>
+        {/if}
         <div class="flex flex-initial items-center overflow-x-auto">
-            {#await session then session_data}
-                {#if (session_data?.expires_at ?? 0) * 1000 > Number(new Date())}
-                    {#each routes as { name, path }}
-                        <Button variant="link" href={path} class="max-sm:hidden">{name}</Button>
-                    {/each}
-                    <span class="flex items-center pl-2">
-                        <ProfileMenu bind:session />
-                    </span>
-                {:else}
-                    <span class="flex gap-2">
-                        {#if route !== 'register'}
-                            <Button variant="ghost" href="/register" onclick={save_login_redirect}>Register</Button>
-                        {/if}
-                        {#if route !== 'login'}
-                            <Button variant="outline" href="/login" onclick={save_login_redirect}>Log In</Button>
-                        {/if}
-                    </span>
-                {/if}
-            {/await}
+            {#if authenticated}
+                {#each routes as { name, path }}
+                    <Button variant="link" href={path} class="max-sm:hidden">{name}</Button>
+                {/each}
+                <span class="flex items-center pl-2">
+                    <ProfileMenu />
+                </span>
+            {:else}
+                <span class="flex gap-2">
+                    {#if route !== 'register'}
+                        <Button variant="ghost" href="/register" onclick={save_login_redirect}>Register</Button>
+                    {/if}
+                    {#if route !== 'login'}
+                        <Button variant="outline" href="/login" onclick={save_login_redirect}>Log In</Button>
+                    {/if}
+                </span>
+            {/if}
         </div>
     </div>
 </div>

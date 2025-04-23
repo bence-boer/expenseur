@@ -8,6 +8,6 @@ export const logout = () => client.api.auth.logout.$post();
 export const register = (email: string, password: string) => client.api.auth.register.$post({ json: { email, password } }).then(schedule_refresh);
 
 const schedule_refresh = <RESPONSE extends LoginResponse | RegisterResponse>(response: RESPONSE) => {
-    setTimeout(() => refresh_session(response.session!.refresh_token), 1000 * response.session!.expires_in - 60000);
+    if (response.session) setTimeout(() => refresh_session(response.session!.refresh_token), 1000 * response.session.expires_in - 60000);
     return response;
 };
