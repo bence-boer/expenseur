@@ -82,7 +82,7 @@
         const errors: string[] = [];
 
         if (!item_id) errors.push('A Purchase should have an item chosen!');
-        if (!(quantity >= 0)) errors.push('A Purchase should have a qunatity specified!');
+        if (!(quantity >= 0)) errors.push('A Purchase should have a quantity specified!');
         if (!(price >= 0)) errors.push('A Purchase should have a price specified!');
 
         if (errors.length) {

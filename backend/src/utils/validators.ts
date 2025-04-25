@@ -57,6 +57,12 @@ export const purchase_validator = z.object({
     tag_ids: z.array(z.coerce.number().int()).optional().nullish(),
 }).array();
 
+export const ai_allowed_image_types = ['image/png', 'image/jpeg', 'image/webp', 'image/heic', 'image/heif'] as const;
+export const ai_images_validator = z.object({
+    image: z.array(z.number()).max(5 * 1024 * 1024).min(1),
+    mime: z.enum(ai_allowed_image_types),
+}).array().max(5);
+
 export const ai_purchase_prediction_schema = z.object({
     date: z.string().nullish(),
 
@@ -68,6 +74,7 @@ export const ai_purchase_prediction_schema = z.object({
         item_id: z.number().int().nullish(),
         price: z.number().nullish(),
         quantity: z.number().nullish(),
+        tags: z.array(z.number().int()).nullish(),
     }).array().nullish(),
 
     brands: z.object({

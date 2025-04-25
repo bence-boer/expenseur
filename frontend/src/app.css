@@ -115,7 +115,7 @@ input[type="color"]::-moz-color-swatch-wrapper {
 }
 
 input[type="file"] {
-    display: none;
+    opacity: 0;
 }
 
 input[type="file"]::file-selector-button {

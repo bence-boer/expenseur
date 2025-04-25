@@ -57,7 +57,6 @@ export type UpdateUnitPayload = Parameters<typeof service.update_unit>[0];
 
 export type Purchase = Awaited<ReturnType<typeof service.get_purchases>>[number];
 export type GetPurchasesParam = Parameters<typeof service.get_purchases>[0];
-export type CreatedPurchase = Awaited<ReturnType<typeof service.create_purchases>>[number];
 export type CreatePurchasesPayload = Parameters<typeof service.create_purchases>[0];
 export type DeletedPurchase = Awaited<ReturnType<typeof service.delete_purchase>>;
 export type DeletePurchaseParam = Parameters<typeof service.delete_purchase>[0];

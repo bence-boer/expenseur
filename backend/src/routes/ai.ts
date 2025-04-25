@@ -4,11 +4,12 @@ import { supabase } from '../../supabase/auth.middleware.ts';
 import { gemini, type MimeType, prompt } from '../utils/gemini.ts';
 import { encodeBase64 } from 'https://deno.land/std@0.224.0/encoding/base64.ts';
 import { PredictedPurchase } from '../types/DTO.ts';
-import { ai_purchase_prediction_schema } from '../utils/validators.ts';
+import { ai_images_validator, ai_purchase_prediction_schema } from '../utils/validators.ts';
+import { zValidator } from '@hono/zod-validator';
 
 const app = new Hono()
-    .post('/suggest_items', async (context: Context) => {
-        const { image, mime }: { image: number[]; mime: MimeType } = await context.req.json();
+    .post('/suggest_items', zValidator('json', ai_images_validator), async (context: Context) => {
+        const images: { image: number[]; mime: MimeType }[] = await context.req.json();
 
         const supabase_client = supabase(context);
 
@@ -18,6 +19,7 @@ const app = new Hono()
             { data: items, error: items_error },
             { data: units, error: units_error },
             { data: vendors, error: vendors_error },
+            { data: tags, error: tags_error },
             { data: purchases, error: purchases_error },
         ] = await Promise.all([
             supabase_client.from('brands').select('*'),
@@ -25,20 +27,21 @@ const app = new Hono()
             supabase_client.from('items').select('*'),
             supabase_client.from('units').select('*'),
             supabase_client.from('stores').select('*'),
+            supabase_client.from('tags').select('*'),
             supabase_client.from('latest_purchases').select('*'),
         ]);
 
-        const errors = [brands_error, categories_error, items_error, units_error, vendors_error, purchases_error].filter(Boolean);
+        const errors = [brands_error, categories_error, items_error, units_error, vendors_error, tags_error, purchases_error].filter(Boolean);
         if (errors.length) throw new HTTPException(500, { cause: errors });
 
         const response = await gemini.generateContent([
-            {
+            ...images.map(({ image, mime }) => ({
                 inlineData: {
                     data: encodeBase64(new Uint8Array(image)),
                     mimeType: mime,
                 },
-            },
-            prompt(brands, categories, items, units, vendors, purchases),
+            })),
+            prompt(brands, categories, items, units, vendors, purchases, tags),
         ]);
 
         const json: string = response.response.candidates?.[0].content.parts[0].text?.replace('```json', '').replaceAll('```', '') ?? '';

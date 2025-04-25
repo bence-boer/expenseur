@@ -61,7 +61,7 @@ export interface IntervalQuery extends PeriodQuery {
 }
 
 // AI suggestion types
-export interface AISuggestionQuery {
+export type AISuggestionQuery = {
     image: number[];
     mime: string;
-}
+}[];

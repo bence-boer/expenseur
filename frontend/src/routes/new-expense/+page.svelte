@@ -1,22 +1,20 @@
 <script lang="ts">
-    import { Button } from '$lib/components/ui/button';
-    import DatePicker from '$lib/components/ui-custom/date-picker/date-picker.svelte';
-    import { Input } from '$lib/components/ui/input';
-    import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
-    import { Separator } from '$lib/components/ui/separator';
-    import { currency_formatter, currency_parser, number_formatter, number_parser } from '$lib/consts';
-    import { service, ServiceTypes } from '$lib/service';
-    import { label_value_transform, sanitize_string } from '$lib/utils';
-    import { type DateValue, getLocalTimeZone, today } from '@internationalized/date';
-    import { Copy, Plus, WandSparkles, X } from '@lucide/svelte';
-    import { toast } from 'svelte-sonner';
-    import ComboBox from '$lib/components/ui-custom/combo-box/combo-box.svelte';
-    import { ItemMaintainDialog } from '$lib/components/common/item-maintain-dialog';
-    import type { LabelValue } from '$lib/types';
+    import { AiUploadDialog } from '$lib/components/common/ai-upload-dialog';
+    import { InfoCard } from '$lib/components/common/info-card';
     import PurchaseCard from '$lib/components/common/purchase-card/purchase-card.svelte';
     import { PurchaseMaintainDialog, type PurchaseView } from '$lib/components/common/purchase-maintain-dialog';
-    import { InfoCard } from '$lib/components/common/info-card';
-    import { Label } from '$lib/components/ui/label';
+    import ComboBox from '$lib/components/ui-custom/combo-box/combo-box.svelte';
+    import DatePicker from '$lib/components/ui-custom/date-picker/date-picker.svelte';
+    import { Button } from '$lib/components/ui/button';
+    import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
+    import { Separator } from '$lib/components/ui/separator';
+    import { currency_formatter, number_formatter } from '$lib/consts';
+    import { service, ServiceTypes } from '$lib/service';
+    import type { LabelValue } from '$lib/types';
+    import { label_value_transform, sanitize_string } from '$lib/utils';
+    import { type DateValue, getLocalTimeZone, parseDate, today } from '@internationalized/date';
+    import { Plus, Upload } from '@lucide/svelte';
+    import { toast } from 'svelte-sonner';
 
     type FormSchema = {
         date: string;
@@ -30,10 +28,12 @@
     let purchase_maintain_dialog_open: boolean = $state(false);
     let purchase_maintain_dialog_mode: 'CREATE' | 'UPDATE' = $state('CREATE');
 
+    let ai_upload_dialog_open: boolean = $state(false);
+
     let selectable_stores: LabelValue<string | number>[] = $state([]);
     let selected_store: number | undefined = $state();
 
-    let date: DateValue | undefined = $state(); // TODO: REFACTOR INTO SCHEMA OBJECT
+    let date: DateValue | undefined = $state();
 
     service.get_vendors().then((vendors) => (selectable_stores = vendors.map(label_value_transform<number>)));
 
@@ -139,31 +139,15 @@
             format: (value: number) => `${number_formatter.format(value)} ${unit}`
         }) as Intl.NumberFormat;
 
-    let response: string = $state();
-    let files: FileList = $state();
+    const open_ai_upload_dialog = () => {
+        ai_upload_dialog_open = true;
+    };
 
-    $effect(() => files?.length && send_ai_message());
-    const send_ai_message = () => {
-        const image: File = files?.[0];
-        if (!image) {
-            toast.error('Please select an image!');
-            return;
-        }
-        const mime = image.type;
-        if (!['image/png', 'image/jpeg', 'image/webp', 'image/heic', 'image/heif'].includes(mime)) {
-            toast.error('Please select an image of type PNG, JPEG, WEBP, HEIC or HEIF!');
-            return;
-        }
-
-        image
-            .arrayBuffer()
-            .then((buffer) => service.get_ai_suggestions({ image: [...new Uint8Array(buffer)], mime }))
-            .then((response) => {
-                date = response.date;
-                selected_store = response.store_id;
-                purchases = response.purchases;
-            })
-            .finally(() => (files = undefined));
+    const on_ai_upload_complete = (response: ServiceTypes.AISuggestion) => {
+        date = response.date ? parseDate(response.date) : undefined;
+        selected_store = response.store_id;
+        purchases = response.purchases;
+        ai_upload_dialog_open = false;
     };
 </script>
 
@@ -195,17 +179,10 @@
             Add Item
         </Button>
         <div class="relative flex-1 border border-primary rounded-md">
-            <Label for="image" class="flex items-center justify-center gap-2 cursor-pointer h-full">
-                <WandSparkles size={16} class="text-muted-foreground" />
+            <Button variant="ghost" onclick={open_ai_upload_dialog} class="flex items-center justify-center gap-2 cursor-pointer h-full w-full">
+                <Upload size={16} class="text-muted-foreground" />
                 Upload
-            </Label>
-            <Input
-                id="image"
-                class="absolute right-0 left-0 top-0 bottom-0"
-                type="file"
-                bind:files
-                accept="image/png, image/jpeg, image/webp, image/heic, image/heif"
-            />
+            </Button>
         </div>
     </div>
     <div class="flex items-center justify-between border border-primary bg-primary-foreground rounded-md p-1 pl-4">
@@ -220,3 +197,5 @@
     mode={purchase_maintain_dialog_mode}
     submit={on_purchase_submitted}
 />
+
+<AiUploadDialog bind:open={ai_upload_dialog_open} on_upload_complete={on_ai_upload_complete} />
