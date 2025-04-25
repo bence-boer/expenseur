@@ -11,8 +11,6 @@
     let password: string = $state('');
     let password_confirm: string = $state('');
 
-    const update_session = memory_cache.get('update-session-callback') as (value: Promise<ServiceTypes.Session>) => void;
-
     const back = () => {
         if (browser) goto('/');
     };

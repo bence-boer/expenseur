@@ -115,7 +115,8 @@
             item_id: purchase.item_id,
             price: purchase.price,
             quantity: purchase.quantity,
-            store_id: selected_store
+            store_id: selected_store,
+            tag_ids: purchase.tag_ids ?? null
         }));
 
         service

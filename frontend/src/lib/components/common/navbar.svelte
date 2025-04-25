@@ -9,7 +9,7 @@
     import ProfileMenu from './profile-menu.svelte';
 
     interface Props {
-        authenticated: boolean;
+        authenticated?: boolean;
         route: string;
     }
 
@@ -59,7 +59,7 @@
                 <span class="flex items-center pl-2">
                     <ProfileMenu />
                 </span>
-            {:else}
+            {:else if authenticated === false}
                 <span class="flex gap-2">
                     {#if route !== 'register'}
                         <Button variant="ghost" href="/register" onclick={save_login_redirect}>Register</Button>

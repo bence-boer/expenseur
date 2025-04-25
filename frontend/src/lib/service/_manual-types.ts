@@ -47,6 +47,7 @@ export interface Purchase {
     quantity: number;
     details?: string[] | null;
     user_id?: string;
+    tag_ids?: number[] | null;
 }
 
 // Query parameter types

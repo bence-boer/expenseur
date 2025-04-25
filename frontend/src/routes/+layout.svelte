@@ -21,21 +21,22 @@
     const unauthenticated_routes = ['login', 'register'];
 
     let loading_text = $state('Authenticating...');
-    let authenticated: boolean = $state(false);
+    let authenticated: boolean | undefined = $state();
 
     let { promise: data, resolve, reject } = promise<ServiceTypes.Session>();
     let session: Promise<ServiceTypes.Session> = $state(data);
 
     const update_session = (value: Promise<ServiceTypes.Session>) => {
+        authenticated = undefined;
         session = value
             .then((session: ServiceTypes.Session) => {
                 authenticated = session?.expires_at ? session.expires_at * 1000 > Number(new Date()) : false;
 
                 if (authenticated) {
-                    const redirect: string = session_storage_cache.get('login-redirect') ?? '/';
+                    const redirect: string = session_storage_cache.get('login-redirect');
                     session_storage_cache.clear('login-redirect');
 
-                    goto(redirect, { replaceState: true });
+                    if (redirect) goto(redirect, { replaceState: true });
                     resolve?.(session);
                 } else navigate_to_login_with_redirect();
             })

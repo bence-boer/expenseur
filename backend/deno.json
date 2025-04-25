@@ -11,7 +11,7 @@
     "tasks": {
         "serve:development": "deno run --watch --allow-all --env-file=.env.development server.ts",
         "serve:production": "deno run --allow-all --env-file=.env server.ts",
-        "generate-types": "echo y | npx supabase gen types typescript --project-id 'atmchajrexboccdgntma' --schema public > supabase/types.ts"
+        "generate-types": "echo y | supabase gen types typescript --project-id 'atmchajrexboccdgntma' --schema public > supabase/types.ts"
     },
     "compilerOptions": {
         "strict": true

@@ -2,7 +2,7 @@
     import { Button } from '$lib/components/ui/button';
     import { createSvelteTable, FlexRender, renderComponent } from '$lib/components/ui/data-table';
     import * as Table from '$lib/components/ui/table';
-    import { ArrowDown, ArrowUp, ChevronsUpDown } from '@lucide/svelte';
+    import { ArrowDown, ArrowUp, ArrowUpDown } from '@lucide/svelte';
     import type {
         ColumnDef,
         ColumnFiltersState,
@@ -138,12 +138,6 @@
             enableRowSelection: enable_selection
         })
     );
-
-    document.addEventListener('keypress', (event) => {
-        if (event.key === 'l') {
-            loading = !loading;
-        }
-    });
 </script>
 
 {#if loading}
@@ -174,7 +168,7 @@
                                                 {:else if header.column.getIsSorted() === 'desc'}
                                                     <ArrowDown class="opacity-40" />
                                                 {:else}
-                                                    <ChevronsUpDown class="opacity-40" />
+                                                    <ArrowUpDown class="opacity-40" />
                                                 {/if}
                                             {/if}
                                         </Button>

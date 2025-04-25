@@ -9,6 +9,7 @@ import items from './src/routes/items.ts';
 import profile from './src/routes/profile.ts';
 import purchases from './src/routes/purchases.ts';
 import spendings from './src/routes/spendings.ts';
+import tags from './src/routes/tags.ts';
 import units from './src/routes/units.ts';
 import vendors from './src/routes/vendors.ts';
 import { cors_middleware } from './src/utils/cors.middleware.ts';
@@ -32,6 +33,7 @@ const app = new Hono()
     .route('/profile', profile)
     .route('/purchases', purchases)
     .route('/spendings', spendings)
+    .route('/tags', tags)
     .route('/vendors', vendors)
     .route('/units', units);
 

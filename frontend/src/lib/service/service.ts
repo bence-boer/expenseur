@@ -24,6 +24,12 @@ export const create_category = (category: Category) => client.api.categories.$po
 export const update_category = (id: string, category: Partial<Category>) => client.api.categories[':id'].$patch({ param: { id }, json: category } as any);
 export const delete_category = (id: string) => client.api.categories[':id'].$delete({ param: { id } });
 
+// TAGS
+export const get_tags = () => client.api.tags.$get();
+export const create_tag = (tag: { name: string; color: string }) => client.api.tags.$post({ json: tag });
+export const update_tag = (id: string, tag: Partial<{ name: string; color: string }>) => client.api.tags[':id'].$patch({ param: { id }, json: tag } as any);
+export const delete_tag = (id: string) => client.api.tags[':id'].$delete({ param: { id } });
+
 // VENDORS
 export const get_vendors = () => client.api.vendors.$get();
 export const create_vendor = (vendor: Vendor) => client.api.vendors.$post({ json: vendor });
@@ -38,6 +44,7 @@ export const update_unit = (id: string, unit: Partial<Unit>) => client.api.units
 // PURCHASES
 export const get_purchases = (query: PeriodQuery) => client.api.purchases.$get({ query });
 export const create_purchases = (purchases: Purchase[]) => client.api.purchases.$post({ json: purchases });
+export const update_purchase = (id: string, purchase: Partial<Purchase>) => client.api.purchases[':id'].$patch({ param: { id }, json: purchase } as any);
 export const delete_purchase = (id: string) => client.api.purchases[':id'].$delete({ param: { id } });
 
 // AI SUGGESTIONS

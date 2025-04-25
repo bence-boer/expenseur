@@ -8,4 +8,5 @@ export type PurchaseView = {
     brand_name: string;
     quantity: number;
     price: number;
+    tag_ids: number[];
 };

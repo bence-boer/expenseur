@@ -1,12 +1,14 @@
 <script lang="ts">
+    import { DeleteDialog } from '$lib/components/common/delete-dialog';
     import { PeriodSelector, type Period } from '$lib/components/common/period-selector';
+    import Tag from '$lib/components/common/tag/tag.svelte';
     import { DataTable, DataTablePagination } from '$lib/components/ui-custom/data-table';
-    import type { ColumnDef, InitialTableState } from '@tanstack/table-core';
+    import { renderSnippet } from '$lib/components/ui/data-table';
     import { Separator } from '$lib/components/ui/separator';
     import { service, ServiceTypes } from '$lib/service';
     import { format_currency, format_date } from '$lib/utils';
+    import type { ColumnDef, InitialTableState } from '@tanstack/table-core';
     import { toast } from 'svelte-sonner';
-    import { DeleteDialog } from '$lib/components/common/delete-dialog';
 
     let purchases: ServiceTypes.Purchase[] = $state([]);
     let period: Period | undefined = $state();
@@ -36,6 +38,14 @@
         {
             accessorKey: 'category',
             header: 'Category'
+        },
+        {
+            accessorKey: 'tags',
+            header: 'Tags',
+            cell: (props) => {
+                const tags = props.getValue() as ServiceTypes.Tag[];
+                return tags.length ? renderSnippet(tags_cell, tags) : '-';
+            }
         },
         {
             accessorKey: 'quantity',
@@ -111,6 +121,12 @@
             });
     });
 </script>
+
+{#snippet tags_cell(tags: ServiceTypes.Tag[])}
+    {#each tags as tag}
+        <Tag {tag} />
+    {/each}
+{/snippet}
 
 <div class="sm:container sm:py-10">
     <h1 class="mb-4 flex justify-between">

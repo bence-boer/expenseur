@@ -10,6 +10,7 @@
     import { Input } from '../../ui-custom/input';
     import { ItemMaintainDialog } from '../item-maintain-dialog';
     import type { PurchaseView } from './types.ts';
+    import { TagSelector } from '$lib/components/common/tag-selector/index.ts';
 
     type Props = {
         open: boolean;
@@ -35,6 +36,7 @@
     let brand_id: number = $state(purchase?.brand_id);
     let quantity: number = $state(purchase?.quantity);
     let price: number = $state(purchase?.price);
+    let tag_ids: number[] = $state(purchase?.tag_ids ?? []);
 
     $effect(() => {
         if (purchase?.item_id) item_id = purchase?.item_id;
@@ -42,6 +44,7 @@
         if (purchase?.brand_id) brand_id = purchase?.brand_id;
         if (purchase?.quantity) quantity = purchase?.quantity;
         if (purchase?.price) price = purchase?.price;
+        if (purchase?.tag_ids) tag_ids = purchase?.tag_ids;
     });
 
     const reset = () => {
@@ -50,6 +53,7 @@
         brand_id = undefined;
         quantity = undefined;
         price = undefined;
+        tag_ids = [];
     };
 
     let disabled = $state(false);
@@ -96,7 +100,8 @@
             brand_id,
             brand_name: selectable_brands.find((brand) => brand.value === brand_id)?.label || '',
             quantity,
-            price
+            price,
+            tag_ids
         };
 
         submit(purchase)
@@ -160,15 +165,16 @@
         </Dialog.Header>
 
         <div class="flex flex-col gap-2">
-            <div class="flex flex-row">
+            <div class="flex flex-row items-center gap-2">
                 <ComboBox
                     data={selectable_items}
                     bind:value={item_id}
                     placeholder="Select item..."
                     create={create_item}
                     onchange={update_item_detail}
-                    class="sm:w-48"
+                    class="sm:w-48 flex-grow"
                 ></ComboBox>
+                <TagSelector bind:value={tag_ids} />
             </div>
             <ComboBox data={selectable_brands} bind:value={brand_id} placeholder="Select brand..." create={create_brand} class="sm:w-48"></ComboBox>
             <div class="flex flex-row flex-nowrap gap-2">

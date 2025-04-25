@@ -33,6 +33,14 @@ export type UpdateCategoryPayload = Parameters<typeof service.update_category>[0
 export type DeleteCategory = Awaited<ReturnType<typeof service.delete_category>>;
 export type DeleteCategoryParam = Parameters<typeof service.delete_category>[0];
 
+export type Tag = Awaited<ReturnType<typeof service.get_tags>>[number];
+export type CreateTagResponse = Awaited<ReturnType<typeof service.create_tag>>;
+export type CreateTagPayload = Parameters<typeof service.create_tag>[0];
+export type UpdatedTag = Awaited<ReturnType<typeof service.update_tag>>;
+export type UpdateTagPayload = Parameters<typeof service.update_tag>[0];
+export type DeleteTag = Awaited<ReturnType<typeof service.delete_tag>>;
+export type DeleteTagParam = Parameters<typeof service.delete_tag>[0];
+
 export type Vendor = Awaited<ReturnType<typeof service.get_vendors>>[number];
 export type CreateVendorResponse = Awaited<ReturnType<typeof service.create_vendor>>;
 export type CreateVendorPayload = Parameters<typeof service.create_vendor>[0];
