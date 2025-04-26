@@ -1,5 +1,2 @@
-export type { Frequency as Period } from './types.ts';
-export { default_frequency as default_period } from './consts.ts';
-import FrequencySelector from './frequency-selector.svelte';
-
-export { FrequencySelector };
+export type { Frequency } from './types.ts';
+export { default as FrequencySelector } from './frequency-selector.svelte';

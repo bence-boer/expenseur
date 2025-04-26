@@ -1,33 +1,24 @@
-import { type FrequencyWithLabel } from './types.ts';
+import { type Frequency } from './types.ts';
 
 export const frequencies = [
     {
+        label: 'Daily',
+        key: 'DAILY',
+        value: 1,
+    },
+    {
         label: 'Weekly',
         key: 'WEEKLY',
-        value: {
-            days: 7,
-        },
+        value: 7,
     },
     {
         label: 'Monthly',
         key: 'MONTHLY',
-        value: {
-            days: 30,
-        },
+        value: 30,
     },
     {
         label: 'Yearly',
         key: 'YEARLY',
-        value: {
-            days: 365,
-        },
+        value: 365,
     },
-] as const satisfies FrequencyWithLabel[];
-
-export const default_frequency: FrequencyWithLabel = {
-    label: 'None',
-    key: 'NONE',
-    value: {
-        days: 0,
-    },
-};
+] as const satisfies Frequency[];

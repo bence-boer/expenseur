@@ -76,12 +76,12 @@
 
     <div class="flex-grow flex flex-col gap-4 {non_scrollable ? 'overflow-y-hidden' : 'overflow-y-auto'}">
         {#await session}
-            <div class="flex h-full flex-col">
+            <div class="flex h-full flex-col p-4 md:px-8">
                 <h1 class="text-2xl font-bold md:text-4xl">{loading_text}</h1>
             </div>
         {:then}
             {#if authenticated || unauthenticated_routes.includes(route)}
-                <div class="flex-grow flex flex-col gap-4 px-4 py-4 sm:container sm:max-w-[768px] md:px-8">
+                <div class="flex-grow flex flex-col gap-4 p-4 sm:container sm:max-w-[768px] md:px-8">
                     {@render children?.()}
                 </div>
             {:else}

@@ -3,6 +3,7 @@
     import BarChart from '$lib/components/charts/bar-chart.svelte';
     import type { BarDataPoint } from '$lib/components/charts/types';
     import { ErrorCard } from '$lib/components/common/error-card';
+    import { FrequencySelector, type Frequency } from '$lib/components/common/frequency-selector';
     import { InfoCard } from '$lib/components/common/info-card';
     import { PeriodSelector, type Period } from '$lib/components/common/period-selector';
     import { Separator } from '$lib/components/ui/separator';
@@ -19,38 +20,49 @@
         return `${format_date(period.start.toString())} - ${format_date(period.end.toString())}`;
     });
 
+    let average: Frequency | undefined = $state();
+
     const select_period = (value: Period): void => {
         period = value;
+    };
+    const select_average = (value: Frequency): void => {
+        average = value;
     };
 
     type Data = {
         table?: (ServiceTypes.SpendingsByCategory & { change?: number })[];
         diagram?: BarDataPoint[];
+        summary_text?: string;
         total?: number;
         change?: number;
     };
 
-    const data_transform = (current: ServiceTypes.SpendingsByCategory[], previous: ServiceTypes.SpendingsByCategory[]): Data => ({
-        table: current.map((item) => ({
-            ...item,
-            change: Math.round((item.total / (previous.find(({ category }) => category === item.category)?.total || item.total) - 1) * 100)
-        })),
-        diagram: current.map(({ category, total, color }) => ({
-            label: category,
-            value: total,
-            color
-        })),
-        total: current.reduce((acc, { total }) => acc + total, 0),
-        change: Math.round((current.reduce((acc, { total }) => acc + total, 0) / previous.reduce((acc, { total }) => acc + total, 0) - 1) * 100)
-    });
+    const data_transform = (current: ServiceTypes.SpendingsByCategory[], previous: ServiceTypes.SpendingsByCategory[], average?: Frequency): Data => {
+        const factor = average ? average.value / period.days : 1;
+        return {
+            table: current.map((item) => ({
+                ...item,
+                total: item.total * factor,
+                change: Math.round((item.total / (previous.find(({ category }) => category === item.category)?.total || item.total) - 1) * 100)
+            })),
+            diagram: current.map(({ category, total, color }) => ({
+                label: category,
+                value: total * factor,
+                color
+            })),
+            summary_text: average ? `${average.label} average` : 'Total',
+            total: current.reduce((acc, { total }) => acc + total, 0) * factor,
+            change: Math.round((current.reduce((acc, { total }) => acc + total, 0) / previous.reduce((acc, { total }) => acc + total, 0) - 1) * 100)
+        };
+    };
 
-    const fetch_data = (period: Period): Promise<Data> =>
+    const fetch_data = (period: Period, average?: Frequency): Promise<Data> =>
         Promise.all([
             service.get_spendings_by_category({ start_date: period.start.toString(), end_date: period.end.toString() }),
             service.get_spendings_by_category({ start_date: period.previous_start.toString(), end_date: period.previous_end.toString() })
-        ]).then(([current, previous]) => data_transform(current, previous));
+        ]).then(([current, previous]) => data_transform(current, previous, average));
 
-    const data: Promise<Data> = $derived(period?.start && period?.end ? fetch_data(period) : Promise.resolve({}));
+    const data: Promise<Data> = $derived(period?.start && period?.end ? fetch_data(period, average) : Promise.resolve({}));
 
     const go_to_analytics = (category: string): void => {
         const search = new URLSearchParams({ category, start: period.start.toString(), end: period.end.toString() });
@@ -63,7 +75,10 @@
         <h1 class="text-2xl font-bold sm:text-4xl">Dashboard</h1>
         <span class="text-slate-400 text-xs">{period_label}</span>
     </div>
-    <PeriodSelector select={select_period} class="w-36" />
+    <div class="flex flex-col sm:flex-row items-start gap-2">
+        <PeriodSelector select={select_period} class="w-36" />
+        <FrequencySelector select={select_average} class="w-36" />
+    </div>
 </div>
 
 <Separator class="mb-2 sm:mb-6" />
@@ -101,7 +116,9 @@
                     {:else if less}
                         <ArrowDown size="1em" class="text-green-800" />
                     {/if}
-                    <span class={{ 'ml-6': same }}>Total</span>
+                    <span class={{ 'ml-6': same }}>
+                        {data.summary_text}
+                    </span>
                 </div>
                 <div class="flex items-center gap-4">
                     {format_currency_short(data.total)}

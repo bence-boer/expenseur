@@ -1,84 +1,44 @@
 <script lang="ts">
     import * as Select from '$lib/components/ui/select';
-    import { default_frequency, frequencies } from './consts';
-    import type { Frequency, FrequencyWithLabel } from './types';
     import { cn } from '$lib/utils';
-    import { Input } from '$lib/components/ui/input';
+    import { frequencies } from './consts';
+    import type { Frequency } from './types';
 
     interface Props {
         class?: string;
         select: (frequency: Frequency) => void;
-        default?: Frequency;
+        placeholder?: string;
     }
 
-    let { class: clazz = '', select, default: default_custom }: Props = $props();
+    let { class: clazz = '', select, placeholder = 'Average' }: Props = $props();
 
-    let custom_frequency: FrequencyWithLabel = $state({
+    let custom: Frequency = $state({
         key: 'CUSTOM',
-        value: { days: 0 },
+        value: 1,
         label: 'Custom'
     });
 
-    let custom_days: number = $state(0);
-
-    type FrequencyKey = (typeof frequencies)[number]['key'] | (typeof custom_frequency)['key'] | (typeof default_frequency)['key'];
-    const frequency_map: { [Key in FrequencyKey]: FrequencyWithLabel } = {
+    type FrequencyKey = (typeof frequencies)[number]['key'] | (typeof custom)['key'];
+    const frequency_map: { [Key in FrequencyKey]: Frequency } = {
         ...Object.fromEntries(frequencies.map((frequency) => [frequency.key, frequency])),
-        [custom_frequency.key]: custom_frequency,
-        [default_frequency.key]: default_frequency
+        [custom.key]: custom
     };
 
-    let open: boolean = $state(false);
+    let selected_key: FrequencyKey | undefined = $state(undefined);
+    let selected: Frequency | undefined = $derived(selected_key === custom?.key ? custom : frequency_map[selected_key]);
 
-    let selected: FrequencyWithLabel = $state(
-        default_custom ? frequencies.find((p) => p.value.days === default_custom.days) || { ...custom_frequency, value: default_custom } : default_frequency
-    );
-
-    let selected_key: FrequencyKey = $state(
-        default_custom ? frequencies.find((p) => p.value.days === default_custom.days)?.key || 'CUSTOM' : default_frequency.key
-    );
-
-    $effect(() => {
-        select(selected.value);
-    });
-
-    $effect(() => {
-        const key = selected_key;
-        if (key === 'CUSTOM') {
-            custom_frequency.value = { days: custom_days };
-            selected = custom_frequency;
-        } else {
-            selected = frequency_map[key];
-        }
-        select(selected.value);
-    });
-
-    function handle_custom_days_change(event: Event) {
-        const target = event.target as HTMLInputElement;
-        const value = parseInt(target.value) || 0;
-        custom_days = value;
-        if (selected_key === 'CUSTOM') {
-            custom_frequency.value = { days: value };
-            select(custom_frequency.value);
-        }
-    }
+    $effect(() => select(selected));
 </script>
 
 <Select.Root bind:value={selected_key} type="single">
-    <Select.Trigger class={cn('gap-1 w-auto', clazz)}>
-        {selected.label === 'Custom' ? `Custom (${custom_days} days)` : selected.label}
+    <Select.Trigger class={cn('gap-1 w-auto', clazz, selected_key ? 'text-primary' : 'text-muted-foreground')}>
+        {selected ? (selected.key === custom.key ? `Custom (${selected.value} days)` : selected.label) : placeholder}
     </Select.Trigger>
     <Select.Content>
-        <Select.Item value={default_frequency.key} label={default_frequency.label} />
+        <Select.Item value={undefined} label="None" class="text-muted-foreground" />
+        <Select.Separator />
         {#each frequencies as { label, key: value }}
             <Select.Item {value} {label} />
         {/each}
-        <Select.Item value={custom_frequency.key} class="flex flex-col p-2">
-            <div class="text-sm mb-2">Custom Days</div>
-            <div class="flex items-center gap-2">
-                <Input type="number" min="1" class="w-24" value={custom_days} onchange={handle_custom_days_change} />
-                <span class="text-sm">days</span>
-            </div>
-        </Select.Item>
     </Select.Content>
 </Select.Root>
