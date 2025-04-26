@@ -40,7 +40,9 @@ export const local_storage_cache: LocalCache<LocalStorageCacheKey> = {
     },
 };
 
-type MemoryCacheKey = 'update-session-callback';
+type MemoryCacheKey =
+    | 'update-session-callback'
+    | 'update-avatar-callback';
 const storage: Map<MemoryCacheKey, unknown> = new Map<MemoryCacheKey, unknown>();
 export const memory_cache: LocalCache<MemoryCacheKey> = {
     name: 'in-memory-cache',

@@ -1,10 +1,11 @@
 <script lang="ts">
-    import * as Dialog from '$lib/components/ui/dialog';
+    import { ColorPicker } from '$lib/components/ui-custom/color-picker';
     import { Button } from '$lib/components/ui/button';
+    import * as Dialog from '$lib/components/ui/dialog';
     import { service, ServiceTypes } from '$lib/service';
     import { toast } from 'svelte-sonner';
-    import { Label } from '../../ui/label';
     import { Input } from '../../ui-custom/input';
+    import { Label } from '../../ui/label';
 
     type Props = {
         open: boolean;
@@ -16,21 +17,19 @@
     let { open = $bindable(), mode, tag, on_tag_maintained }: Props = $props();
     $effect(() => {
         name = tag?.name ?? '';
-        color = tag?.color ?? '#FFFFFF';
+        color = tag?.color;
     });
     let name = $state(tag?.name);
-    let color = $state(tag?.color ?? '#FFFFFF');
+    let color = $state<string | undefined>(tag?.color);
     let disabled = $state(false);
-
-    let color_validator: RegExp = /^#[0-9A-Fa-f]{6}$/;
 
     const create = () => {
         if (!name) {
             toast.error('Name is required');
             return;
         }
-        if (!color_validator.test(color)) {
-            toast.error('Color is invalid (must be hex format, e.g., #RRGGBB)');
+        if (!color) {
+            toast.error('Color is required');
             return;
         }
 
@@ -56,8 +55,8 @@
             toast.error('Name is required');
             return;
         }
-        if (!color_validator.test(color)) {
-            toast.error('Color is invalid (must be hex format, e.g., #RRGGBB)');
+        if (!color) {
+            toast.error('Color is required');
             return;
         }
         if (!tag) {
@@ -92,10 +91,9 @@
             <Label for="name" class="text-right">Name</Label>
             <Input id="name" bind:value={name} {disabled} class="col-span-3" />
 
-            <Label for="color" class="text-right">Color</Label>
-            <div class="col-span-3 flex flex-row items-center gap-2">
-                <Input id="color" bind:value={color} {disabled} />
-                <input type="color" bind:value={color} {disabled} />
+            <Label for="color-picker" class="text-right">Color</Label>
+            <div class="col-span-3">
+                <ColorPicker id="color-picker" bind:value={color} {disabled} />
             </div>
         </div>
         <Dialog.Footer class="flex flex-row justify-center gap-2">

@@ -74,14 +74,16 @@
 <div class="h-full flex flex-col selection:bg-purple-600 selection:font-bold selection:text-white">
     <Navbar {authenticated} {route} />
 
-    <div class="flex-grow flex flex-col gap-4 {non_scrollable ? 'overflow-y-hidden' : 'overflow-y-auto'} px-4 py-4 sm:container md:px-8">
+    <div class="flex-grow flex flex-col gap-4 {non_scrollable ? 'overflow-y-hidden' : 'overflow-y-auto'}">
         {#await session}
             <div class="flex h-full flex-col">
                 <h1 class="text-2xl font-bold md:text-4xl">{loading_text}</h1>
             </div>
         {:then}
             {#if authenticated || unauthenticated_routes.includes(route)}
-                {@render children?.()}
+                <div class="flex-grow flex flex-col gap-4 px-4 py-4 sm:container sm:max-w-[768px] md:px-8">
+                    {@render children?.()}
+                </div>
             {:else}
                 <div class="flex h-full flex-col items-center justify-center">
                     <h1 class="text-2xl font-bold md:text-4xl">You are not authenticated</h1>

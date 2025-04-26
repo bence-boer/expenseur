@@ -13,7 +13,7 @@
     import type { LabelValue } from '$lib/types';
     import { label_value_transform, sanitize_string } from '$lib/utils';
     import { type DateValue, getLocalTimeZone, parseDate, today } from '@internationalized/date';
-    import { Plus, Upload } from '@lucide/svelte';
+    import { Plus, ScanText, Upload } from '@lucide/svelte';
     import { toast } from 'svelte-sonner';
 
     type FormSchema = {
@@ -173,17 +173,15 @@
     {/each}
 </ScrollArea>
 <div class="flex flex-col gap-2">
-    <div class="flex justify-stretch py-2">
+    <div class="flex justify-stretch py-2 gap-2">
+        <Button onclick={open_ai_upload_dialog} variant="outline" class="flex-1">
+            <ScanText size={16} class="text-muted-foreground" />
+            Scan
+        </Button>
         <Button onclick={create_purchase} variant="ghost" class="flex-1">
             <Plus class="text-muted-foreground" />
             Add Item
         </Button>
-        <div class="relative flex-1 border border-primary rounded-md">
-            <Button variant="ghost" onclick={open_ai_upload_dialog} class="flex items-center justify-center gap-2 cursor-pointer h-full w-full">
-                <Upload size={16} class="text-muted-foreground" />
-                Upload
-            </Button>
-        </div>
     </div>
     <div class="flex items-center justify-between border border-primary bg-primary-foreground rounded-md p-1 pl-4">
         <span>Total: {total}</span>

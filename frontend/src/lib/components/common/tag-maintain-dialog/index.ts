@@ -1,2 +1,1 @@
-import TagMaintainDialog from './tag-maintain-dialog.svelte';
-export { TagMaintainDialog };
+export { default as TagMaintainDialog } from './tag-maintain-dialog.svelte';

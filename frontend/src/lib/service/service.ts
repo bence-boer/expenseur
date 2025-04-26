@@ -1,5 +1,5 @@
 import { client } from '$lib/service/utils.ts';
-import type { AISuggestionQuery, Brand, Category, IntervalQuery, Item, PeriodQuery, Purchase, Unit, Vendor } from './_manual-types.ts';
+import type { Brand, Category, IntervalQuery, Item, PeriodQuery, Purchase, Unit, Vendor } from './_manual-types.ts';
 
 // ITEMS
 export const get_item_details = (id: string) => client.api.items[':id'].$get({ param: { id } });
@@ -48,4 +48,10 @@ export const update_purchase = (id: string, purchase: Partial<Purchase>) => clie
 export const delete_purchase = (id: string) => client.api.purchases[':id'].$delete({ param: { id } });
 
 // AI SUGGESTIONS
-export const get_ai_suggestions = (query: AISuggestionQuery) => client.api.ai.suggest_items.$post({ json: query });
+export const get_ai_suggestions = (images: File[]) => client.api.ai.suggest_items.$post({ form: { image: images[0] } });
+
+// PROFILE
+export const get_profile_data = () => client.api.profile.$get();
+export const get_avatar_url = () => client.api.profile.avatar.$get();
+export const upload_avatar = (avatar_file: File) => client.api.profile.avatar.$put({ form: { avatar: avatar_file } });
+export const delete_avatar = () => client.api.profile.avatar.$delete();

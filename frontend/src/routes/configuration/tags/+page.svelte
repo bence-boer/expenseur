@@ -56,7 +56,7 @@
             })
             .catch((error) => {
                 toast.error(`Failed to delete tag: ${tagName}`);
-                console.error('Delete tag error:', error); // Log error for debugging
+                console.error('Delete tag error:', error);
                 throw error;
             });
     };

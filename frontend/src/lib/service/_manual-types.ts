@@ -59,9 +59,3 @@ export interface PeriodQuery {
 export interface IntervalQuery extends PeriodQuery {
     days_interval: number;
 }
-
-// AI suggestion types
-export type AISuggestionQuery = {
-    image: number[];
-    mime: string;
-}[];

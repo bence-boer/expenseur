@@ -6,7 +6,8 @@
         "@google/generative-ai": "npm:@google/generative-ai@^0.22.0",
         "@hono/zod-validator": "npm:@hono/zod-validator@^0.4.2",
         "@supabase/ssr": "npm:@supabase/ssr@^0.5.2",
-        "@supabase/supabase-js": "npm:@supabase/supabase-js@^2.48.1"
+        "@supabase/supabase-js": "npm:@supabase/supabase-js@^2.48.1",
+        "sharp": "npm:sharp@^0.34.1"
     },
     "tasks": {
         "serve:development": "deno run --watch --allow-all --env-file=.env.development server.ts",

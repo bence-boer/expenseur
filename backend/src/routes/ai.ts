@@ -1,15 +1,14 @@
+import { zValidator } from '@hono/zod-validator';
 import { type Context, Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { supabase } from '../../supabase/auth.middleware.ts';
 import { gemini, type MimeType, prompt } from '../utils/gemini.ts';
-import { encodeBase64 } from 'https://deno.land/std@0.224.0/encoding/base64.ts';
-import { PredictedPurchase } from '../types/DTO.ts';
-import { ai_images_validator, ai_purchase_prediction_schema } from '../utils/validators.ts';
-import { zValidator } from '@hono/zod-validator';
+import { ai_images_form_validator, ai_purchase_prediction_schema } from '../utils/validators.ts';
+import { to_base64_string } from '../utils/files.ts';
 
 const app = new Hono()
-    .post('/suggest_items', zValidator('json', ai_images_validator), async (context: Context) => {
-        const images: { image: number[]; mime: MimeType }[] = await context.req.json();
+    .post('/suggest_items', zValidator('form', ai_images_form_validator), async (context: Context) => {
+        const { image } = context.req.valid('form' as any as never) as { image: File };
 
         const supabase_client = supabase(context);
 
@@ -34,13 +33,21 @@ const app = new Hono()
         const errors = [brands_error, categories_error, items_error, units_error, vendors_error, tags_error, purchases_error].filter(Boolean);
         if (errors.length) throw new HTTPException(500, { cause: errors });
 
+        // const image_parts = await Promise.all([image].map(async (file) => ({
+        //     inlineData: {
+        //         data: await to_base64(file),
+        //         mimeType: file.type as MimeType,
+        //     },
+        // })));
+
         const response = await gemini.generateContent([
-            ...images.map(({ image, mime }) => ({
+            // ...image_parts,
+            {
                 inlineData: {
-                    data: encodeBase64(new Uint8Array(image)),
-                    mimeType: mime,
+                    data: await to_base64_string(image),
+                    mimeType: image.type as MimeType,
                 },
-            })),
+            },
             prompt(brands, categories, items, units, vendors, purchases, tags),
         ]);
 

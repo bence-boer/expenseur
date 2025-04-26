@@ -1,14 +1,12 @@
 <script lang="ts">
-    import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '$lib/components/ui/dialog';
     import { Button } from '$lib/components/ui/button';
+    import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '$lib/components/ui/dialog';
     import { Input } from '$lib/components/ui/input';
-    import { ScrollArea } from '$lib/components/ui/scroll-area';
-    import { Plus, Upload, WandSparkles, X } from '@lucide/svelte';
-    import { service, type ServiceTypes } from '$lib/service';
-    import { toast } from 'svelte-sonner';
-    import { Progress } from '$lib/components/ui/progress';
     import { Label } from '$lib/components/ui/label';
-    import type { AISuggestionQuery } from '$lib/service/_manual-types';
+    import { ScrollArea } from '$lib/components/ui/scroll-area';
+    import { service, type ServiceTypes } from '$lib/service';
+    import { Plus, WandSparkles, X } from '@lucide/svelte';
+    import { toast } from 'svelte-sonner';
 
     type Props = {
         open: boolean;
@@ -70,23 +68,16 @@
         is_loading = true;
 
         try {
-            const payload: AISuggestionQuery = await Promise.all(
-                files.map(async (file) => {
-                    const buffer = await file.arrayBuffer();
-                    return { image: [...new Uint8Array(buffer)], mime: file.type };
-                })
-            );
-
-            const response = await service.get_ai_suggestions(payload);
+            const response = await service.get_ai_suggestions([files[0]]);
 
             on_upload_complete(response);
-            toast.success('Receipts processed successfully!');
+            toast.success('Receipt processed successfully!');
             files = [];
             previews = [];
             open = false;
         } catch (error: any) {
             console.error('AI Upload Error:', error);
-            toast.error(`Failed to process receipts: ${error.message || 'Unknown error'}`);
+            toast.error(`Failed to process receipt: ${error.message || 'Unknown error'}`);
         } finally {
             is_loading = false;
         }

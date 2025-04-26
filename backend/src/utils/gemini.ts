@@ -1,7 +1,7 @@
 import { type GenerativeModel, GoogleGenerativeAI } from '@google/generative-ai';
 import type { GeminiModel } from '../types/local.ts';
 import type { Tables } from '../../supabase/types.ts';
-import type { ai_allowed_image_types } from './validators.ts';
+import type { AI_ACCEPTED_IMAGE_TYPES } from './validators.ts';
 
 const GEMINI_API_KEY: string = Deno.env.get('GEMINI_API_KEY')!;
 const GEMINI_MODEL: GeminiModel = Deno.env.get('GEMINI_MODEL') as GeminiModel;
@@ -32,4 +32,4 @@ tags:${JSON.stringify(tags)},
 latest_purchases:${JSON.stringify(purchases)}`;
 };
 
-export type MimeType = typeof ai_allowed_image_types[number];
+export type MimeType = typeof AI_ACCEPTED_IMAGE_TYPES[number];

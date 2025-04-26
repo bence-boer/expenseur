@@ -57,11 +57,34 @@ export const purchase_validator = z.object({
     tag_ids: z.array(z.coerce.number().int()).optional().nullish(),
 }).array();
 
-export const ai_allowed_image_types = ['image/png', 'image/jpeg', 'image/webp', 'image/heic', 'image/heif'] as const;
-export const ai_images_validator = z.object({
-    image: z.array(z.number()).max(5 * 1024 * 1024).min(1),
-    mime: z.enum(ai_allowed_image_types),
-}).array().max(5);
+const MAX_AVATAR_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const AVATAR_ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+export const avatar_upload_validator = z.object({
+    avatar: z
+        .instanceof(File)
+        .refine((file) => file?.size <= MAX_AVATAR_FILE_SIZE, `Max image size is 5MB.`)
+        .refine(
+            (file) => AVATAR_ACCEPTED_IMAGE_TYPES.includes(file?.type),
+            'Only .jpg, .png and .webp images are accepted.',
+        ),
+});
+
+export const AI_ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/heic', 'image/heif'] as const;
+type AIMimeType = typeof AI_ACCEPTED_IMAGE_TYPES[number];
+export const ai_images_form_validator = z.object({
+    // images: z.array(
+    image: z
+        .instanceof(File, { message: 'Each item must be a file.' })
+        .refine((file) => file?.size <= MAX_AVATAR_FILE_SIZE, `Max image size is 5MB.`)
+        .refine(
+            (file) => AI_ACCEPTED_IMAGE_TYPES.includes(file?.type as AIMimeType),
+            'Only .jpg, .png, .webp, .heic and .heif images are accepted.',
+        ),
+    // )
+    //     .min(1, { message: 'At least one image is required.' })
+    //     .max(5, { message: 'Maximum 5 images allowed.' }),
+});
 
 export const ai_purchase_prediction_schema = z.object({
     date: z.string().nullish(),

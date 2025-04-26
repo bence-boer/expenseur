@@ -5,6 +5,8 @@ export type Session = Awaited<ReturnType<typeof client.api.auth.session.$post>>;
 export type LoginResponse = Awaited<ReturnType<typeof client.api.auth.login.$post>>;
 export type RegisterResponse = Awaited<ReturnType<typeof client.api.auth.register.$post>>;
 
+export type Profile = Awaited<ReturnType<typeof client.api.profile.$get>>;
+
 export type ItemDetails = Awaited<ReturnType<typeof service.get_item_details>>;
 export type Item = Awaited<ReturnType<typeof service.get_items>>[number];
 export type CreateItemResponse = Awaited<ReturnType<typeof service.create_item>>;
@@ -55,6 +57,7 @@ export type CreateUnitPayload = Parameters<typeof service.create_unit>[0];
 export type UpdatedUnit = Awaited<ReturnType<typeof service.update_unit>>;
 export type UpdateUnitPayload = Parameters<typeof service.update_unit>[0];
 
+// @ts-ignore deno-ts(2589)
 export type Purchase = Awaited<ReturnType<typeof service.get_purchases>>[number];
 export type GetPurchasesParam = Parameters<typeof service.get_purchases>[0];
 export type CreatePurchasesPayload = Parameters<typeof service.create_purchases>[0];
@@ -62,4 +65,7 @@ export type DeletedPurchase = Awaited<ReturnType<typeof service.delete_purchase>
 export type DeletePurchaseParam = Parameters<typeof service.delete_purchase>[0];
 
 export type AISuggestion = Awaited<ReturnType<typeof service.get_ai_suggestions>>;
-export type AISuggestionPayload = Parameters<typeof service.get_ai_suggestions>[0];
+
+export type ProfileData = Awaited<ReturnType<typeof service.get_profile_data>>;
+export type AvatarUrlResponse = Awaited<ReturnType<typeof service.get_avatar_url>>;
+export type UploadAvatarResponse = Awaited<ReturnType<typeof service.upload_avatar>>;

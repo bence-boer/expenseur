@@ -3,10 +3,14 @@
     import { memory_cache } from '$lib/cache';
     import * as Avatar from '$lib/components/ui/avatar/index.js';
     import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-    import { auth } from '$lib/service';
-    import type { ServiceTypes } from '$lib/service';
+    import { auth, service, type ServiceTypes } from '$lib/service';
     import { LogOut, UserIcon } from '@lucide/svelte';
+    import type { AvatarImageLoadingStatus } from 'bits-ui';
+    import { onMount } from 'svelte';
     import { toast } from 'svelte-sonner';
+
+    let avatar_url: string | undefined = $state();
+    let avatar_loading_status: AvatarImageLoadingStatus = $state('loading');
 
     const logout = () => {
         auth.logout()
@@ -20,21 +24,40 @@
             });
     };
 
-    // TODO: Fetch user data
+    const go_to_profile = () => {
+        goto('/profile');
+    };
+
+    const fetch_avatar = () => {
+        avatar_loading_status = 'loading';
+        service
+            .get_avatar_url()
+            .then((response) => {
+                avatar_url = response.signedUrl;
+                avatar_loading_status = 'loaded';
+            })
+            .catch((error) => {
+                console.error('Failed to load avatar for menu:', error);
+                avatar_loading_status = 'error';
+            });
+    };
+
+    onMount(fetch_avatar);
+    memory_cache.set('update-avatar-callback', fetch_avatar);
 </script>
 
 <DropdownMenu.Root>
     <DropdownMenu.Trigger>
-        <Avatar.Root class="h-8 w-8">
-            <Avatar.Image src="https://github.com/shadcn.png" alt="@shadcn" />
-            <Avatar.Fallback>_</Avatar.Fallback>
+        <Avatar.Root class="h-8 w-8" bind:loadingStatus={avatar_loading_status}>
+            <Avatar.Image src={avatar_url} alt="User Avatar" />
+            <Avatar.Fallback>U</Avatar.Fallback>
         </Avatar.Root>
     </DropdownMenu.Trigger>
     <DropdownMenu.Content>
         <DropdownMenu.Group>
             <DropdownMenu.Label class="text-center">My Account</DropdownMenu.Label>
             <DropdownMenu.Separator />
-            <DropdownMenu.Item class="gap-2">
+            <DropdownMenu.Item class="gap-2" onclick={go_to_profile}>
                 <UserIcon />
                 Profile
             </DropdownMenu.Item>

@@ -1,10 +1,11 @@
 <script lang="ts">
-    import * as Dialog from '$lib/components/ui/dialog';
+    import { ColorPicker } from '$lib/components/ui-custom/color-picker';
+    import { Input } from '$lib/components/ui-custom/input';
     import { Button } from '$lib/components/ui/button';
+    import * as Dialog from '$lib/components/ui/dialog';
+    import { Label } from '$lib/components/ui/label';
     import { service, ServiceTypes } from '$lib/service';
     import { toast } from 'svelte-sonner';
-    import { Label } from '../../ui/label';
-    import { Input } from '../../ui-custom/input';
 
     type Props = {
         open: boolean;
@@ -16,31 +17,19 @@
     let { open = $bindable(), mode, category, on_category_created }: Props = $props();
     $effect(() => {
         name = category?.name ?? '';
-        color = category?.color ?? '';
+        color = category?.color;
     });
     let name = $state(category?.name);
-    let color = $state(category?.color);
+    let color = $state<string | undefined>(category?.color);
     let disabled = $state(false);
-
-    let color_validator: RegExp = /^#[0-9A-Fa-f]{6}$/;
-    // svelte-ignore state_referenced_locally
-    let last_valid_color = color_validator.test(color) ? color : '#FFFFFF';
-    const format_color = (color: string) => {
-        const potential_valid_color = color.startsWith('#') ? color : `#${color}`;
-        if (color_validator.test(potential_valid_color)) {
-            last_valid_color = potential_valid_color;
-            return potential_valid_color;
-        }
-        return last_valid_color;
-    };
 
     const create = () => {
         if (!name) {
             toast.error('Name is required');
             return;
         }
-        if (!color_validator.test(color)) {
-            toast.error('Color is invalid');
+        if (!color) {
+            toast.error('Color is required');
             return;
         }
 
@@ -66,8 +55,12 @@
             toast.error('Name is required');
             return;
         }
-        if (!color_validator.test(color)) {
-            toast.error('Color is invalid');
+        if (!color) {
+            toast.error('Color is required');
+            return;
+        }
+        if (!category) {
+            toast.error('Cannot update without a category context');
             return;
         }
 
@@ -75,6 +68,7 @@
         service
             .update_category(category.id, { name, color })
             .then(() => {
+                on_category_created(category.id);
                 toast.success(`Category "${name}" updated successfully!`);
                 open = false;
             })
@@ -97,16 +91,15 @@
             <Label for="name" class="text-right">Name</Label>
             <Input id="name" bind:value={name} {disabled} class="col-span-3" />
 
-            <Label for="color" class="text-right">Color</Label>
-            <div class="col-span-3 flex flex-row items-center gap-2">
-                <Input id="color" bind:value={color} {disabled} />
-                <input type="color" bind:value={color} {disabled} />
+            <Label for="color-picker" class="text-right">Color</Label>
+            <div class="col-span-3">
+                <ColorPicker id="color-picker" bind:value={color} {disabled} />
             </div>
         </div>
         <Dialog.Footer class="flex flex-row justify-center gap-2">
             <Button variant="secondary" onclick={() => (open = false)}>Cancel</Button>
-            {#if mode === 'CREATE'}<Button variant="default" onclick={create}>Create</Button>{/if}
-            {#if mode === 'UPDATE'}<Button variant="default" onclick={update}>Update</Button>{/if}
+            {#if mode === 'CREATE'}<Button variant="default" onclick={create} {disabled}>Create</Button>{/if}
+            {#if mode === 'UPDATE'}<Button variant="default" onclick={update} {disabled}>Update</Button>{/if}
         </Dialog.Footer>
     </Dialog.Content>
 </Dialog.Root>
