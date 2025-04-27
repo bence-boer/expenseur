@@ -127,15 +127,15 @@
 {#if avatar_url_promise}
     {#await avatar_url_promise}
         <Card.Root>
-            <Card.Header class="items-start justify-start flex-row gap-4">
+            <Card.Header class="items-start justify-between flex-row gap-4 space-y-0">
                 <Skeleton class="h-24 w-24 rounded-full" />
-                <div class="flex flex-col gap-2 mt-0 w-24">
-                    <Skeleton class="h-10 w-full" />
-                    <Skeleton class="h-10 w-full" />
+                <div class="flex flex-col gap-2 mt-0">
+                    <Skeleton class="h-10 w-24" />
+                    <Skeleton class="h-10 w-24" />
                 </div>
             </Card.Header>
             <Card.Content class="flex flex-col gap-4">
-                <Skeleton class="h-8 w-1/2" />
+                <Skeleton class="h-8 w-full" />
             </Card.Content>
         </Card.Root>
     {:then}
@@ -171,10 +171,10 @@
                     {#if avatar_url}
                         <Button variant="outline" onclick={trigger_delete_avatar} disabled={!avatar_url || is_uploading || is_deleting}>
                             {#if is_deleting}
-                                Deleting...
+                                Removing...
                                 <Loader2 class="h-4 w-4 animate-spin" />
                             {:else}
-                                Delete
+                                Remove
                                 <Trash2 class="h-4 w-4" />
                             {/if}
                         </Button>

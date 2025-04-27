@@ -20,7 +20,7 @@ const app = new Hono()
         if (error) throw new HTTPException(500, error);
         return context.json(data);
     })
-    .post('/', zValidator('json', purchase_validator), async (context: Context) => {
+    .post('/', zValidator('json', purchase_validator.array()), async (context: Context) => {
         const payload: (TablesInsert<'purchases'> & { tag_ids?: number[] })[] = await context.req.json();
         const supabase_client = supabase(context);
         const user_id = session(context)!.user.id;
@@ -62,7 +62,7 @@ const app = new Hono()
 
         return context.body(null, 204);
     })
-    .patch('/:id', zValidator('param', id_validator), zValidator('json', purchase_validator.optional()), async (context: Context) => {
+    .patch('/:id', zValidator('param', id_validator), zValidator('json', purchase_validator.partial()), async (context: Context) => {
         const purchase_id = Number(context.req.param('id'));
         const payload: Partial<Tables<'purchases'> & { tag_ids?: number[] }> = await context.req.json();
         const supabase_client = supabase(context);
@@ -70,16 +70,20 @@ const app = new Hono()
 
         if (Object.keys(payload).length === 0) throw new HTTPException(400, { message: 'No data provided' });
 
-        const { tag_ids, ...purchas_data } = payload;
+        const { tag_ids, ...purchase_data } = payload;
 
-        if (Object.keys(purchas_data).length > 0) {
-            const { error: update_purchase_error } = await supabase_client
+        let purchase;
+        if (Object.keys(purchase_data).length > 0) {
+            const { data, error: update_purchase_error } = await supabase_client
                 .from('purchases')
-                .update(purchas_data)
+                .update(purchase_data)
                 .eq('id', purchase_id)
-                .eq('user_id', user_id);
+                .eq('user_id', user_id)
+                .select()
+                .single();
 
             if (update_purchase_error) throw new HTTPException(500, update_purchase_error);
+            purchase = data;
         }
 
         if (tag_ids !== undefined) {
@@ -106,7 +110,7 @@ const app = new Hono()
             }
         }
 
-        return context.body(null, 204);
+        return context.json({ ...purchase, tag_ids: payload.tag_ids }, 200);
     })
     .delete('/:id', zValidator('param', id_validator), async (context: Context) => {
         const purchase_id = Number(context.req.param('id'));

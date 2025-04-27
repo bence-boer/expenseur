@@ -64,7 +64,7 @@
 
     const data: Promise<Data> = $derived(period?.start && period?.end ? fetch_data(period, average) : Promise.resolve({}));
 
-    const go_to_analytics = (category: string): void => {
+    const go_to_analytics = (category?: string): void => {
         const search = new URLSearchParams({ category, start: period.start.toString(), end: period.end.toString() });
         goto(`/analytics?${search}`);
     };
@@ -138,8 +138,8 @@
                         </Table.Row>
                     </Table.Header>
                     <Table.Body>
-                        {#each data.table as { category, total, change: percent }, index}
-                            <Table.Row onclick={() => go_to_analytics(category)}>
+                        {#each data.table as { id, category, total, change: percent }, index}
+                            <Table.Row onclick={() => go_to_analytics(String(id))}>
                                 {@const more = percent > 0}
                                 {@const less = percent < 0}
                                 {@const same = percent === 0}

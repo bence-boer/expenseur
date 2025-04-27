@@ -47,17 +47,16 @@
     };
 
     const delete_tag = () => {
-        const tagName = tag_map.get(tag_to_delete)?.name ?? '';
         return service
             .delete_tag(String(tag_to_delete))
             .then(() => {
+                const name = tag_map.get(tag_to_delete).name;
+                toast.success(`Tag "${name}" deleted successfully!`);
                 fetch();
-                toast.success(`Tag "${tagName}" deleted successfully!`);
             })
             .catch((error) => {
-                toast.error(`Failed to delete tag: ${tagName}`);
+                toast.error('Failed to delete tag');
                 console.error('Delete tag error:', error);
-                throw error;
             });
     };
 </script>

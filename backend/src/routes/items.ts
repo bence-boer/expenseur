@@ -35,7 +35,7 @@ const app = new Hono()
         if (error) throw new HTTPException(500, error);
         return context.json(data);
     })
-    .patch('/:id', zValidator('param', id_validator), zValidator('json', item_validator.optional()), async (context: Context) => {
+    .patch('/:id', zValidator('param', id_validator), zValidator('json', item_validator.partial()), async (context: Context) => {
         const id = Number(context.req.param('id'));
         const item: TablesInsert<'items'> = await context.req.json();
 

@@ -107,7 +107,7 @@
         <ScrollArea class="max-h-[60vh]">
             <div class="grid grid-cols-1 gap-4 items-center justify-center w-full">
                 {#each previews as preview, index}
-                    <div class="relative aspect-[3/4] border rounded-md overflow-hidden group">
+                    <div class="relative border aspect-[3/4] sm:aspect-[5/3] rounded-md overflow-hidden group">
                         <img src={preview} alt="Receipt preview {index + 1}" class="object-contain w-full h-full bg-muted/10" />
                         <Button
                             variant="ghost"
@@ -121,7 +121,7 @@
                     </div>
                 {/each}
                 {#if files.length === 0}
-                    <div class="relative flex-1 aspect-[3/4] border border-dashed border-secondary rounded-md">
+                    <div class="relative flex-1 aspect-[3/4] sm:aspect-[5/3] border border-dashed border-secondary rounded-md">
                         <Label for="image" class="flex items-center justify-center gap-2 cursor-pointer h-full">
                             <Plus size={48} class="text-secondary" />
                         </Label>

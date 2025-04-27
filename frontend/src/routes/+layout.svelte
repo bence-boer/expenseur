@@ -1,15 +1,15 @@
 <script lang="ts">
+    import { browser } from '$app/environment';
     import { page } from '$app/state';
     import Navbar from '$lib/components/common/navbar.svelte';
     import { Toaster } from '$lib/components/ui/sonner';
     import { auth, ServiceTypes } from '$lib/service';
     import { onMount, type Snippet } from 'svelte';
-    import { browser } from '$app/environment';
 
-    import '../app.css';
-    import { promise } from '$lib/utils';
-    import { memory_cache, session_storage_cache } from '$lib/cache';
     import { goto } from '$app/navigation';
+    import { memory_cache, session_storage_cache } from '$lib/cache';
+    import { promise } from '$lib/utils';
+    import '../app.css';
     interface Props {
         children?: Snippet;
     }
@@ -36,7 +36,7 @@
                     const redirect: string = session_storage_cache.get('login-redirect');
                     session_storage_cache.clear('login-redirect');
 
-                    if (redirect) goto(redirect, { replaceState: true });
+                    if (unauthenticated_routes.includes(route)) goto(redirect ?? '/', { replaceState: true });
                     resolve?.(session);
                 } else navigate_to_login_with_redirect();
             })
@@ -81,7 +81,7 @@
             </div>
         {:then}
             {#if authenticated || unauthenticated_routes.includes(route)}
-                <div class="flex-grow flex flex-col gap-4 p-4 sm:container sm:max-w-[768px] md:px-8">
+                <div class="flex-grow flex flex-col gap-4 p-4 sm:container sm:max-w-[768px] md:px-8 {non_scrollable ? 'overflow-y-hidden' : 'overflow-y-auto'}">
                     {@render children?.()}
                 </div>
             {:else}

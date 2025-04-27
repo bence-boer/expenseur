@@ -47,11 +47,17 @@
     };
 
     const delete_item = () =>
-        service.delete_item(String(item_to_delete)).then(() => {
-            const name = item_map.get(item_to_delete).name;
-            toast.success(`Item "${name}" deleted successfully`);
-            fetch();
-        });
+        service
+            .delete_item(String(item_to_delete))
+            .then(() => {
+                const name = item_map.get(item_to_delete).name;
+                toast.success(`Item "${name}" deleted successfully`);
+                fetch();
+            })
+            .catch((error) => {
+                toast.error('Failed to delete item');
+                console.error('Delete item error:', error);
+            });
 </script>
 
 {#await items}

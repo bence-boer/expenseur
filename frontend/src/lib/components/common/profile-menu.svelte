@@ -7,20 +7,19 @@
     import { LogOut, UserIcon } from '@lucide/svelte';
     import type { AvatarImageLoadingStatus } from 'bits-ui';
     import { onMount } from 'svelte';
-    import { toast } from 'svelte-sonner';
 
     let avatar_url: string | undefined = $state();
     let avatar_loading_status: AvatarImageLoadingStatus = $state('loading');
 
     const logout = () => {
         auth.logout()
-            .then(() => {
-                const update_session = memory_cache.get('update-session-callback') as (value: Promise<ServiceTypes.Session>) => void;
-                update_session?.(Promise.resolve(null));
-            })
             .catch((error: Error) => {
                 console.error('Logout error:', error.message);
-                toast.error('Logout failed. Please try again.');
+            })
+            .finally(() => {
+                const update_session = memory_cache.get('update-session-callback') as (value: Promise<ServiceTypes.Session>) => void;
+                update_session?.(Promise.resolve(null));
+                goto('/');
             });
     };
 

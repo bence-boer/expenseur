@@ -1,8 +1,6 @@
 <script lang="ts" generics="TData extends {id: string | number}, TValue">
-    import { Button } from '$lib/components/ui/button';
     import { createSvelteTable, FlexRender, renderComponent } from '$lib/components/ui/data-table';
     import * as Table from '$lib/components/ui/table';
-    import { ArrowDown, ArrowUp, ArrowUpDown } from '@lucide/svelte';
     import type {
         ColumnDef,
         ColumnFiltersState,
@@ -19,6 +17,7 @@
     import DataTablePagination from './data-table-pagination.svelte';
     import DataTableSkeleton from './data-table-skeleton.svelte';
     import DataTableToolbar from './data-table-toolbar.svelte';
+    import DataTableHeader from './data-table-header.svelte';
 
     type DataTableProps<TData, TValue> = {
         data: TData[];
@@ -34,6 +33,7 @@
         enableRowSelection?: boolean;
         filtered_column?: keyof TData & string;
         delete_row?: (id: string | number) => Promise<void>;
+        edit_row?: (id: string | number) => Promise<void>;
     };
 
     let {
@@ -49,6 +49,7 @@
         loading = false,
         filtered_column,
         delete_row,
+        edit_row,
         ...restProps
     }: DataTableProps<TData, TValue> = $props();
 
@@ -79,7 +80,7 @@
 
     const actions_column: ColumnDef<TData, TValue> = {
         id: 'actions',
-        cell: ({ row }) => renderComponent(DataTableActions, { delete: () => delete_row(row.original.id) }),
+        cell: ({ row }) => renderComponent(DataTableActions, { delete: () => delete_row(row.original.id), edit: () => edit_row(row.original.id) }),
         enableSorting: false,
         enableHiding: false
     };
@@ -143,44 +144,13 @@
 {#if loading}
     <DataTableSkeleton />
 {:else}
-    <DataTableToolbar {table} {filtered_column} />
+    <!-- <DataTableToolbar {table} {filtered_column} /> -->
     <div class="relative w-full overflow-auto rounded-md border">
         <Table.Root class={className} {...restProps}>
             {#if caption}
                 <Table.Caption>{caption}</Table.Caption>
             {/if}
-            <Table.Header>
-                {#each table.getHeaderGroups() as headerGroup (headerGroup.id)}
-                    <Table.Row>
-                        {#each headerGroup.headers as header (header.id)}
-                            <Table.Head colspan={header.colSpan} class={header.column.getCanSort() ? 'cursor-pointer select-none px-0 py-0' : 'px-4 py-0'}>
-                                {#if !header.isPlaceholder}
-                                    {#if header.column.getCanSort()}
-                                        <Button
-                                            variant="ghost"
-                                            class="flex items-center gap-2 hover:bg-transparent active:bg-transparent"
-                                            onclick={() => header.column.getCanSort() && header.column.toggleSorting()}
-                                        >
-                                            <FlexRender content={header.column.columnDef.header} context={header.getContext()} />
-                                            {#if header.column.getCanSort()}
-                                                {#if header.column.getIsSorted() === 'asc'}
-                                                    <ArrowUp class="opacity-40" />
-                                                {:else if header.column.getIsSorted() === 'desc'}
-                                                    <ArrowDown class="opacity-40" />
-                                                {:else}
-                                                    <ArrowUpDown class="opacity-40" />
-                                                {/if}
-                                            {/if}
-                                        </Button>
-                                    {:else}
-                                        <FlexRender content={header.column.columnDef.header} context={header.getContext()} />
-                                    {/if}
-                                {/if}
-                            </Table.Head>
-                        {/each}
-                    </Table.Row>
-                {/each}
-            </Table.Header>
+            <DataTableHeader {table} />
             <Table.Body>
                 {#if table.getRowModel().rows?.length}
                     {#each table.getRowModel().rows as row (row.id)}

@@ -1,20 +1,34 @@
-<script lang="ts">
+<script lang="ts" generics="MODE extends 'CREATE' | 'UPDATE'">
     import { ColorPicker } from '$lib/components/ui-custom/color-picker';
+    import { Input } from '$lib/components/ui-custom/input';
     import { Button } from '$lib/components/ui/button';
     import * as Dialog from '$lib/components/ui/dialog';
+    import { Label } from '$lib/components/ui/label';
     import { service, ServiceTypes } from '$lib/service';
     import { toast } from 'svelte-sonner';
-    import { Input } from '../../ui-custom/input';
-    import { Label } from '../../ui/label';
 
     type Props = {
         open: boolean;
-        mode: 'CREATE' | 'UPDATE';
-        tag?: ServiceTypes.Tag;
+        mode: MODE;
+        tag?: MODE extends 'UPDATE' ? ServiceTypes.Tag : never;
         on_tag_maintained: (tag_id?: number) => void;
     };
 
     let { open = $bindable(), mode, tag, on_tag_maintained }: Props = $props();
+
+    type TextResource = {
+        [key in MODE]: {
+            title: string;
+            description: string;
+        };
+    };
+    const text: TextResource[MODE] = $derived(
+        {
+            CREATE: { title: 'Create Tag', description: 'Enter the details of the tag you want to create.' },
+            UPDATE: { title: 'Update Tag', description: 'Modify the details of the tag to update it.' }
+        }[mode]
+    );
+
     $effect(() => {
         name = tag?.name ?? '';
         color = tag?.color;
@@ -85,7 +99,8 @@
 <Dialog.Root bind:open>
     <Dialog.Content class="sm:max-w-[425px]" escapeKeydownBehavior="close" interactOutsideBehavior="close">
         <Dialog.Header>
-            <Dialog.Title>{mode === 'CREATE' ? 'Create Tag' : 'Update Tag'}</Dialog.Title>
+            <Dialog.Title>{text.title}</Dialog.Title>
+            <Dialog.Description>{text.description}</Dialog.Description>
         </Dialog.Header>
         <div class="grid grid-cols-4 items-center gap-4">
             <Label for="name" class="text-right">Name</Label>

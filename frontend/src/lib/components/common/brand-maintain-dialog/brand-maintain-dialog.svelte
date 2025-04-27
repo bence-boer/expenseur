@@ -17,6 +17,19 @@
 
     let { open = $bindable(false), name = $bindable(), on_brand_created, mode, brand }: Props = $props();
 
+    type TextResource = {
+        [key in MODE]: {
+            title: string;
+            description: string;
+        };
+    };
+    const text: TextResource[MODE] = $derived(
+        {
+            CREATE: { title: 'Create Brand', description: 'Enter the name of the brand you want to create.' },
+            UPDATE: { title: 'Update Brand', description: 'Modify the name of the brand to update it.' }
+        }[mode]
+    );
+
     let dialog_disabled = $state(false);
 
     const reset_form = () => {
@@ -86,8 +99,8 @@
         interactOutsideBehavior={dialog_disabled ? 'ignore' : 'close'}
     >
         <Dialog.Header>
-            <Dialog.Title>{mode === 'CREATE' ? 'Create Brand' : 'Update Brand'}</Dialog.Title>
-            <Dialog.Description>Enter the name of the brand you want to create.</Dialog.Description>
+            <Dialog.Title>{text.title}</Dialog.Title>
+            <Dialog.Description>{text.description}</Dialog.Description>
         </Dialog.Header>
         <div class="grid gap-4 py-4">
             <div class="grid grid-cols-4 items-center gap-4">

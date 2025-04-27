@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { browser } from '$app/environment';
     import { goto } from '$app/navigation';
     import { page } from '$app/state';
     import StackedAreaChart from '$lib/components/charts/stacked-area-chart.svelte';
@@ -8,36 +9,76 @@
     import PeriodSelector from '$lib/components/common/period-selector/period-selector.svelte';
     import { PurchaseDetailsDialog } from '$lib/components/common/purchase-details-dialog';
     import { PurchaseGroupCard, type PurchaseGroup } from '$lib/components/common/purchase-group';
-    import ComboBox from '$lib/components/ui-custom/combo-box/combo-box.svelte';
+    import { TagSelector } from '$lib/components/common/tag-selector';
     import { Button } from '$lib/components/ui/button';
+    import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
     import Skeleton from '$lib/components/ui/skeleton/skeleton.svelte';
     import { service, ServiceTypes } from '$lib/service';
     import type { LabelValue } from '$lib/types';
     import { day_difference, format_date } from '$lib/utils';
-    import { CalendarDate, parseDate } from '@internationalized/date';
-    import { DollarSign } from '@lucide/svelte';
+    import { parseDate } from '@internationalized/date';
+    import { ChevronsUpDown, DollarSign, FilterX } from '@lucide/svelte';
     import { untrack } from 'svelte';
 
-    const ALL: LabelValue<string> = { label: 'All', value: 'all' };
-    let category: string = $state(page.url.searchParams.get('category') || ALL.value);
-    let period: Period = $state();
+    let chart_width: number = $state();
 
-    let start: CalendarDate, end: CalendarDate;
-    const [start_string, end_string] = [page.url.searchParams.get('start'), page.url.searchParams.get('end')];
-    if (start_string && end_string) [start, end] = [parseDate(start_string), parseDate(end_string)];
-    let searched_period: Period = $state(start && end ? ({ start, end, days: day_difference(start, end) } as Period) : null);
+    let selected_categories: string[] = $state(page.url.searchParams.getAll('category') || []);
+    let selected_items: number[] = $state(page.url.searchParams.getAll('item').map(Number).filter(Boolean) || []);
+    let selected_tags: number[] = $state(page.url.searchParams.getAll('tag').map(Number).filter(Boolean) || []);
+
+    // svelte-ignore non_reactive_update
+    let initial_period: Period | null = null;
+    const initial_start_string_from_url = page.url.searchParams.get('start');
+    const initial_end_string_from_url = page.url.searchParams.get('end');
+    if (initial_start_string_from_url && initial_end_string_from_url) {
+        try {
+            const start = parseDate(initial_start_string_from_url);
+            const end = parseDate(initial_end_string_from_url);
+            initial_period = { start, end, days: day_difference(start, end), previous_start: undefined, previous_end: undefined };
+        } catch (e) {
+            console.warn('Invalid date format in URL', e);
+        }
+    }
+    let period: Period | null = $state(initial_period);
+    let searched_period: Period | null = $state(null);
 
     let spendings: ServiceTypes.SpendingsByCategoryInterval = $state();
-    let purchases: ServiceTypes.Purchase = $state();
-    let filtered_datasets: ServiceTypes.SpendingsByCategoryInterval = $derived.by(() => {
-        if (!spendings?.data?.length) return [];
-        if (category === 'all') return spendings.data;
-        return [spendings.data.find((dataset) => dataset.category === category)];
-    });
+    let purchases: ServiceTypes.Purchase[] = $state([]);
+    let all_categories: ServiceTypes.Category[] = $state([]);
+    let all_items: ServiceTypes.Item[] = $state([]);
+    let loading: boolean = $state(false);
+    let initial_load_done = $state(false);
 
-    let categories: LabelValue<string>[] = $derived(
-        spendings ? [ALL, ...spendings?.data?.map(({ category }) => ({ label: category, value: category }))] : [ALL]
-    );
+    let category_options: LabelValue<string>[] = $derived(all_categories.map((c) => ({ label: c.name, value: String(c.id) })));
+    let item_options: LabelValue<number>[] = $derived(all_items.map((item): LabelValue<number> => ({ label: item.name, value: item.id })));
+
+    let filtered_datasets: ServiceTypes.SpendingsByCategoryInterval['data'] = $derived.by(() => {
+        if (!spendings?.data?.length || !all_categories.length) return [];
+
+        let allowed_category_ids_from_purchases: Set<string> | null = null;
+
+        if ((selected_items.length > 0 || selected_tags.length > 0) && purchases?.length) {
+            allowed_category_ids_from_purchases = new Set<string>();
+            const filtered_purchases = purchases.filter((p) => {
+                const item_match = selected_items.length === 0 || selected_items.includes(p.item_id);
+                const tag_match = selected_tags.length === 0 || p.tags?.some(({ id }) => selected_tags.includes(id));
+                return item_match && tag_match;
+            });
+            filtered_purchases.forEach((p) => allowed_category_ids_from_purchases!.add(String(p.category_id)));
+        }
+
+        const category_name_to_id_map = new Map(all_categories.map((c) => [c.name, String(c.id)]));
+
+        return spendings.data.filter((dataset) => {
+            const category_id = category_name_to_id_map.get(dataset.category);
+            if (!category_id) return false;
+
+            const category_selected_match = selected_categories.length === 0 || selected_categories.includes(category_id);
+            const purchase_filter_match = allowed_category_ids_from_purchases === null || allowed_category_ids_from_purchases.has(category_id);
+
+            return category_selected_match && purchase_filter_match;
+        });
+    });
 
     let chart_data: LineChartData = $derived({
         column_labels: spendings?.dates?.map(format_date) ?? [],
@@ -50,69 +91,104 @@
     });
 
     let groups: PurchaseGroup[] = $derived.by(() => {
-        if (!purchases) return [];
-
+        if (!purchases?.length) return [];
         const map: Map<string, PurchaseGroup> = new Map();
         for (const purchase of purchases) {
-            if (category !== ALL.value && purchase.category !== category) continue;
-
+            if (selected_categories.length > 0 && !selected_categories.includes(String(purchase.category_id))) continue;
+            if (selected_items.length > 0 && !selected_items.includes(purchase.item_id)) continue;
+            if (selected_tags.length > 0 && !purchase.tags?.some(({ id }) => selected_tags.includes(id))) continue;
             const date: string = purchase.date;
             if (!map.has(date)) map.set(date, { date, total: 0, purchases: [] });
-
             const group: PurchaseGroup = map.get(date);
             group.total += purchase.price;
             group.purchases.push(purchase);
         }
-
         return Array.from(map.values()).sort((a, b) => b.date.localeCompare(a.date));
     });
-    let loading: boolean = $state(false);
 
-    const update_search = (start?: string, end?: string) => {
-        const search = new URLSearchParams(page.url.searchParams);
-        if (start && end) {
-            search.set('start', start);
-            search.set('end', end);
+    const build_search_params = (): URLSearchParams => {
+        const search = new URLSearchParams();
+        const current_period = period;
+        if (current_period?.start && current_period?.end) {
+            search.set('start', current_period.start.toString());
+            search.set('end', current_period.end.toString());
         }
-        if (category !== ALL.value) search.set('category', category);
-
-        goto(`?${search}`, { replaceState: true });
+        selected_categories.forEach((cat) => search.append('category', cat));
+        selected_items.forEach((item) => search.append('item', String(item)));
+        selected_tags.forEach((tag) => search.append('tag', String(tag)));
+        search.sort();
+        return search;
     };
 
-    const load_data = (start: string, end: string, period: number): void => {
+    const load_data = (period_to_load: Period): void => {
+        if (!period_to_load?.start || !period_to_load?.end || !browser) return;
+        const start_date = period_to_load.start.toString();
+        const end_date = period_to_load.end.toString();
+        const days_interval = Math.ceil(period_to_load.days / 5);
+
         loading = true;
-        const intervalled = service
-            .get_spendings_by_category_interval({
-                start_date: start,
-                end_date: end,
-                days_interval: period
-            })
-            .then((response) => {
-                spendings = { data: response.data.filter((dataset) => dataset.values.some(Boolean)), dates: response.dates };
-            });
+        const intervalled = service.get_spendings_by_category_interval({ start_date, end_date, days_interval }).then((response) => {
+            spendings = { data: response.data.filter((dataset) => dataset.values.some(Boolean)), dates: response.dates };
+        });
+        const detailed = service.get_purchases({ start_date, end_date }).then((response) => {
+            purchases = response;
+        });
+        Promise.allSettled([intervalled, detailed]).finally(() => {
+            loading = false;
+            searched_period = period_to_load;
+        });
+    };
 
-        const detailed = service
-            .get_purchases({
-                start_date: start,
-                end_date: end
-            })
-            .then((response) => {
-                purchases = response;
-            });
-
-        Promise.allSettled([intervalled, detailed]).then(() => (loading = false));
+    const load_filters_data = async () => {
+        if (!browser) return;
+        try {
+            const [categories, items] = await Promise.all([service.get_categories(), service.get_items()]);
+            all_categories = categories;
+            all_items = items;
+        } catch (error) {
+            console.error('Failed to load filter data:', error);
+        }
     };
 
     $effect(() => {
-        if (untrack(() => !loading) && period?.start && period?.end) load_data(period.start.toString(), period.end.toString(), Math.ceil(period.days / 5));
+        if (browser && !initial_load_done) {
+            load_filters_data();
+            const current_period = period;
+            if (current_period) {
+                load_data(current_period);
+            }
+            initial_load_done = true;
+        }
+    });
+
+    $effect(() => {
+        const current_period = period;
+        if (browser && initial_load_done && untrack(() => !loading) && current_period) {
+            if (current_period !== searched_period) {
+                load_data(current_period);
+            }
+        }
+    });
+
+    $effect(() => {
+        if (browser && initial_load_done) {
+            const _p = period;
+            const _sc = selected_categories;
+            const _si = selected_items;
+            const _st = selected_tags;
+
+            const new_search_params = build_search_params();
+            const current_search_params = new URLSearchParams(page.url.search);
+            current_search_params.sort();
+
+            if (new_search_params.toString() !== current_search_params.toString()) {
+                goto(`?${new_search_params.toString()}`, { replaceState: true, keepFocus: true, noScroll: true });
+            }
+        }
     });
 
     const select_period = (value: Period): void => {
         period = value;
-        const start = value.start.toString();
-        const end = value.end.toString();
-
-        update_search(start, end);
     };
 
     let purchase_details_dialog_open: boolean = $state(false);
@@ -122,30 +198,153 @@
         purchase_details = purchase;
         purchase_details_dialog_open = true;
     };
+
+    const toggle_selection = (arr: (string | number)[], value: string | number): (string | number)[] => {
+        const index = arr.indexOf(value);
+        if (index > -1) {
+            return arr.filter((_, i) => i !== index);
+        } else {
+            return [...arr, value];
+        }
+    };
+
+    const handle_category_select = (value: string) => {
+        selected_categories = toggle_selection(selected_categories, value) as string[];
+    };
+
+    const handle_item_select = (value: number) => {
+        selected_items = toggle_selection(selected_items, value) as number[];
+    };
+
+    const get_selected_labels = (options: LabelValue<string | number>[], selected_values: (string | number)[], mode: 'CATEGORIES' | 'ITEMS') => {
+        if (selected_values.length === 0) return mode === 'CATEGORIES' ? 'Categories' : 'Items';
+        if (selected_values.length === 1) return options.find((opt) => opt.value === selected_values[0])?.label || 'Unknown';
+        return `${selected_values.length} selected`;
+    };
+
+    const clear_filters = () => {
+        selected_categories = [];
+        selected_items = [];
+        selected_tags = [];
+    };
 </script>
 
-<div class="flex flex-row gap-4 justify-between">
+<div class="flex flex-row gap-4 justify-between items-center">
     <h1 class="text-2xl font-bold sm:text-4xl">Analytics</h1>
-    <PeriodSelector select={select_period} default={searched_period} class="w-36" />
+    <PeriodSelector select={select_period} default={initial_period} class="w-36" />
 </div>
 
-<ComboBox data={categories} bind:value={category} placeholder="Select category..." disabled={loading} onchange={update_search} />
+<div class="flex flex-row gap-2 items-center justify-stretch flex-nowrap">
+    <DropdownMenu.Root>
+        <DropdownMenu.Trigger disabled={loading} class="flex-1">
+            <Button variant="outline" class="w-full justify-between {selected_categories.length === 0 ? 'text-muted-foreground' : ''}">
+                {get_selected_labels(category_options, selected_categories, 'CATEGORIES')}
+                <ChevronsUpDown />
+            </Button>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content class="w-48" preventScroll={false}>
+            <DropdownMenu.Group>
+                <DropdownMenu.Label>Categories</DropdownMenu.Label>
+                <DropdownMenu.Separator />
+                <DropdownMenu.CheckboxItem
+                    checked={selected_categories.length === 0}
+                    onSelect={(e) => {
+                        e.preventDefault();
+                        selected_categories = [];
+                    }}
+                >
+                    All Categories
+                </DropdownMenu.CheckboxItem>
+                <DropdownMenu.Separator />
+                {#each category_options as option (option.value)}
+                    <DropdownMenu.CheckboxItem
+                        checked={selected_categories.includes(option.value)}
+                        onSelect={(e) => {
+                            e.preventDefault();
+                            handle_category_select(option.value);
+                        }}
+                    >
+                        {option.label}
+                    </DropdownMenu.CheckboxItem>
+                {/each}
+            </DropdownMenu.Group>
+        </DropdownMenu.Content>
+    </DropdownMenu.Root>
 
-<div class="flex-grow flex flex-col overflow-hidden gap-4">
-    {#if loading}
-        <Skeleton class="mt-4 h-full" />
+    <DropdownMenu.Root>
+        <DropdownMenu.Trigger disabled={loading} class="flex-1">
+            <Button variant="outline" class="w-full justify-between {selected_items.length === 0 ? 'text-muted-foreground' : ''}">
+                {get_selected_labels(item_options, selected_items, 'ITEMS')}
+                <ChevronsUpDown />
+            </Button>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content class="w-48 max-h-96" preventScroll={false}>
+            <DropdownMenu.Group>
+                <DropdownMenu.Label>Items</DropdownMenu.Label>
+                <DropdownMenu.Separator />
+                <DropdownMenu.CheckboxItem
+                    checked={selected_items.length === 0}
+                    onSelect={(e) => {
+                        e.preventDefault();
+                        selected_items = [];
+                    }}
+                >
+                    All Items
+                </DropdownMenu.CheckboxItem>
+                <DropdownMenu.Separator />
+                {#each item_options as option (option.value)}
+                    <DropdownMenu.CheckboxItem
+                        checked={selected_items.includes(option.value)}
+                        onSelect={(e) => {
+                            e.preventDefault();
+                            handle_item_select(option.value);
+                        }}
+                    >
+                        {option.label}
+                    </DropdownMenu.CheckboxItem>
+                {/each}
+            </DropdownMenu.Group>
+        </DropdownMenu.Content>
+    </DropdownMenu.Root>
+
+    <TagSelector bind:value={selected_tags} disabled={loading} />
+
+    <Button
+        variant="ghost"
+        size="icon"
+        onclick={clear_filters}
+        disabled={loading || (selected_categories.length === 0 && selected_items.length === 0 && selected_tags.length === 0)}
+    >
+        <FilterX />
+    </Button>
+</div>
+
+<div class="flex-grow flex flex-col overflow-hidden gap-4 pt-4" bind:offsetWidth={chart_width}>
+    {#if loading && !purchases?.length}
+        <Skeleton class="h-64" />
+        <Skeleton class="h-24" />
+        <Skeleton class="h-24" />
+    {:else if !period?.start || !period?.end}
+        <InfoCard>Please select a period to view analytics.</InfoCard>
     {:else}
         {#if chart_data.lines.length}
-            <StackedAreaChart data={chart_data} />
-        {:else}
-            <InfoCard>No chart data found for this category in the selected period</InfoCard>
+            <div class="mx-auto max-w-[600px] w-full">
+                <StackedAreaChart data={chart_data} width={Math.min(600, chart_width)} />
+            </div>
+        {:else if !loading}
+            <InfoCard>No chart data found for the selected filters in the chosen period.</InfoCard>
         {/if}
         <div class="overflow-y-auto flex-grow flex-shrink flex flex-col gap-2">
-            {#each groups as group}
-                <PurchaseGroupCard {group} ondetailsclick={open_purchase_details} />
-            {:else}
-                <InfoCard>No purchases found for this category in the selected period</InfoCard>
-            {/each}
+            {#if groups.length > 0}
+                {#each groups as group}
+                    <PurchaseGroupCard {group} ondetailsclick={open_purchase_details} />
+                {/each}
+            {:else if !loading}
+                <InfoCard>No purchases found for the selected filters in the chosen period.</InfoCard>
+            {/if}
+            {#if loading && purchases?.length > 0}
+                <Skeleton class="h-24" />
+            {/if}
         </div>
 
         <Button variant="outline" href="/new-expense" class="mt-auto">

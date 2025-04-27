@@ -55,7 +55,7 @@ export const purchase_validator = z.object({
     quantity: z.coerce.number(),
     store_id: z.coerce.number().int(),
     tag_ids: z.array(z.coerce.number().int()).optional().nullish(),
-}).array();
+});
 
 const MAX_AVATAR_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const AVATAR_ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];

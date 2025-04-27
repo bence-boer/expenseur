@@ -45,6 +45,7 @@
 
     const set = (key: PeriodKey) => {
         const next = period_map[key];
+        next.value.days = day_difference(next.value.start, next.value.end) + 1;
         selected = next;
         select(next.value);
         open = false;

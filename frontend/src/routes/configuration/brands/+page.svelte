@@ -8,6 +8,7 @@
     import { service, ServiceTypes } from '$lib/service';
     import { Edit, Plus, Trash } from '@lucide/svelte';
     import { onMount } from 'svelte';
+    import { toast } from 'svelte-sonner';
 
     let brands: Promise<ServiceTypes.Brand[]> = $state(new Promise(() => []));
     let brand_map: Map<number, ServiceTypes.Brand> = $state(new Map());
@@ -45,7 +46,18 @@
         maintain_dialog_open = true;
     };
 
-    const delete_brand = () => service.delete_brand(String(brand_to_delete));
+    const delete_brand = () =>
+        service
+            .delete_brand(String(brand_to_delete))
+            .then(() => {
+                const name = brand_map.get(brand_to_delete).name;
+                toast.success(`Brand "${name}" deleted successfully`);
+                fetch();
+            })
+            .catch((error) => {
+                toast.error('Failed to delete brand');
+                console.error('Delete brand error:', error);
+            });
 </script>
 
 {#await brands}

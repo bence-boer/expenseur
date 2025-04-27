@@ -8,6 +8,7 @@
     import { service, ServiceTypes } from '$lib/service';
     import { Edit, Plus, Trash } from '@lucide/svelte';
     import { onMount } from 'svelte';
+    import { toast } from 'svelte-sonner';
 
     let vendors: Promise<ServiceTypes.Vendor[]> = $state(new Promise(() => []));
     let vendor_map: Map<number, ServiceTypes.Vendor> = $state(new Map());
@@ -45,7 +46,18 @@
         maintain_dialog_open = true;
     };
 
-    const delete_vendor = () => service.delete_vendor(String(vendor_to_delete));
+    const delete_vendor = () =>
+        service
+            .delete_vendor(String(vendor_to_delete))
+            .then(() => {
+                const name = vendor_map.get(vendor_to_delete).name;
+                toast.success(`Vendor "${name}" deleted successfully`);
+                fetch();
+            })
+            .catch((error) => {
+                toast.error('Failed to delete vendor');
+                console.error('Delete vendor error:', error);
+            });
 </script>
 
 {#await vendors}
@@ -102,4 +114,4 @@
     delete={delete_vendor}
 />
 
-<VendorMaintainDialog bind:open={maintain_dialog_open} vendor={vendor_map.get(vendor_to_edit)} mode="UPDATE" on_vendor_created={fetch} />
+<VendorMaintainDialog bind:open={maintain_dialog_open} vendor={vendor_map.get(vendor_to_edit)} mode={maintain_dialog_mode} on_vendor_created={fetch} />

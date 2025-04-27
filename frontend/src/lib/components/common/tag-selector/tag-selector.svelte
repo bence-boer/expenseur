@@ -9,9 +9,11 @@
 
     type Props = {
         value: number[];
+        disabled?: boolean;
+        create?: boolean;
     };
 
-    let { value = $bindable() }: Props = $props();
+    let { value = $bindable(), disabled = false, create = false }: Props = $props();
 
     let all_tags: ServiceTypes.Tag[] = $state([]);
     let tag_map: Map<number, ServiceTypes.Tag> = $state(new Map());
@@ -55,25 +57,27 @@
 </script>
 
 <DropdownMenu.Root>
-    <DropdownMenu.Trigger>
-        <Button variant="outline" size="icon">
+    <DropdownMenu.Trigger {disabled}>
+        <Button variant="outline" size="icon" {disabled}>
             <Tag />
         </Button>
     </DropdownMenu.Trigger>
-    <DropdownMenu.Content class="w-56">
+    <DropdownMenu.Content class="w-36">
         <DropdownMenu.Group>
             <DropdownMenu.GroupHeading>Tags</DropdownMenu.GroupHeading>
             <DropdownMenu.Separator />
-            <DropdownMenu.Item
-                onSelect={(e) => {
-                    e.preventDefault();
-                    open_create_dialog();
-                }}
-                class="flex items-center gap-2"
-            >
-                <Plus class="size-4" />Create...
-            </DropdownMenu.Item>
-            <DropdownMenu.Separator />
+            {#if create}
+                <DropdownMenu.Item
+                    onSelect={(e) => {
+                        e.preventDefault();
+                        open_create_dialog();
+                    }}
+                    class="flex items-center gap-2"
+                >
+                    <Plus class="size-4" />Create...
+                </DropdownMenu.Item>
+                <DropdownMenu.Separator />
+            {/if}
             {#if all_tags.length === 0}
                 <DropdownMenu.Item disabled>No tags available</DropdownMenu.Item>
             {:else}
@@ -84,9 +88,10 @@
                             e.preventDefault();
                             toggle_tag(tag.id);
                         }}
+                        class="flex justify-between gap-2"
                     >
-                        <span class="inline-block h-3 w-3 rounded-sm mr-2" style="background-color: {tag.color};"></span>
                         {tag.name}
+                        <span class="inline-block h-2 w-2 rounded-full" style="background-color: {tag.color};"></span>
                     </DropdownMenu.CheckboxItem>
                 {/each}
             {/if}

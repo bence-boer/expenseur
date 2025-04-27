@@ -1,2 +1,1 @@
-import Tag from './tag.svelte';
-export { Tag };
+export { default as Tag } from './tag.svelte';

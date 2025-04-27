@@ -14,17 +14,19 @@
         type ChartData
     } from 'chart.js';
     import type { LineChartData } from './types';
+    import type { WithElementRef } from 'bits-ui';
+    import type { HTMLCanvasAttributes } from 'svelte/elements';
 
     ChartJS.register(Title, Tooltip, Legend, Filler, LineElement, LinearScale, PointElement, CategoryScale, LineController);
 
-    interface Props {
+    type Props = {
         data: LineChartData;
         title?: string;
         label_x?: string;
         label_y?: string;
-    }
+    } & WithElementRef<HTMLCanvasAttributes>;
 
-    let { data, title, label_x, label_y }: Props = $props();
+    let { data, title, label_x, label_y, ...restProps }: Props = $props();
 
     let canvas: HTMLCanvasElement | undefined = $state();
     let chart: ChartJS | undefined = $state();
@@ -42,8 +44,8 @@
     });
 
     const options: ChartOptions<'line'> = {
-        responsive: true,
-        aspectRatio: 4 / 3,
+        responsive: false,
+        aspectRatio: window.innerHeight > window.innerWidth ? 4 / 3 : 16 / 9,
         datasets: {
             line: {
                 fill: 'start',
@@ -101,4 +103,4 @@
     });
 </script>
 
-<canvas bind:this={canvas}></canvas>
+<canvas bind:this={canvas} {...restProps}></canvas>

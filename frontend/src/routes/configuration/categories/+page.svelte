@@ -8,6 +8,7 @@
     import { service, ServiceTypes } from '$lib/service';
     import { Edit, Plus, Trash } from '@lucide/svelte';
     import { onMount } from 'svelte';
+    import { toast } from 'svelte-sonner';
 
     let categories: Promise<ServiceTypes.Category[]> = $state(new Promise(() => []));
     let category_map: Map<number, ServiceTypes.Category> = $state(new Map());
@@ -45,7 +46,18 @@
         maintain_dialog_open = true;
     };
 
-    const delete_category = () => service.delete_category(String(category_to_delete));
+    const delete_category = () =>
+        service
+            .delete_category(String(category_to_delete))
+            .then(() => {
+                const name = category_map.get(category_to_delete).name;
+                toast.success(`Category "${name}" deleted successfully`);
+                fetch();
+            })
+            .catch((error) => {
+                toast.error('Failed to delete category');
+                console.error('Delete category error:', error);
+            });
 </script>
 
 {#await categories}

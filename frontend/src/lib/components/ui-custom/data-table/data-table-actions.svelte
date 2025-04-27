@@ -1,12 +1,13 @@
 <script lang="ts">
-    import { Ellipsis, Trash2 } from '@lucide/svelte';
     import { Button } from '$lib/components/ui/button';
     import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+    import { Edit, Ellipsis, Trash2 } from '@lucide/svelte';
 
     type Props = {
         delete: () => Promise<void>;
+        edit: () => Promise<void>;
     };
-    let { delete: delete_row }: Props = $props();
+    let { delete: delete_row, edit }: Props = $props();
 </script>
 
 <DropdownMenu.Root>
@@ -20,8 +21,12 @@
     </DropdownMenu.Trigger>
     <DropdownMenu.Content align="end">
         <DropdownMenu.Item onclick={delete_row} class="text-red-500">
-            <Trash2 class="mr-2 h-4 w-4" />
+            <Trash2 />
             Delete
+        </DropdownMenu.Item>
+        <DropdownMenu.Item onclick={edit}>
+            <Edit />
+            Edit
         </DropdownMenu.Item>
     </DropdownMenu.Content>
 </DropdownMenu.Root>

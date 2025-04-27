@@ -20,6 +20,19 @@
 
     let { open = $bindable(false), name = $bindable(), on_vendor_created, mode, vendor }: Props = $props();
 
+    type TextResource = {
+        [key in MODE]: {
+            title: string;
+            description: string;
+        };
+    };
+    const text: TextResource[MODE] = $derived(
+        {
+            CREATE: { title: 'Create Vendor', description: 'Enter the details of the vendor you want to create.' },
+            UPDATE: { title: 'Update Vendor', description: 'Modify the details of the vendor to update it.' }
+        }[mode]
+    );
+
     let dialog_disabled = $state(false);
 
     const reset_form = () => {

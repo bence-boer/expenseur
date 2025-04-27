@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" generics="MODE extends 'CREATE' | 'UPDATE'">
     import { ColorPicker } from '$lib/components/ui-custom/color-picker';
     import { Input } from '$lib/components/ui-custom/input';
     import { Button } from '$lib/components/ui/button';
@@ -9,12 +9,26 @@
 
     type Props = {
         open: boolean;
-        mode: 'CREATE' | 'UPDATE';
-        category?: ServiceTypes.Category;
+        mode: MODE;
+        category?: MODE extends 'UPDATE' ? ServiceTypes.Category : never;
         on_category_created: (category_id: number) => void;
     };
 
     let { open = $bindable(), mode, category, on_category_created }: Props = $props();
+
+    type TextResource = {
+        [key in MODE]: {
+            title: string;
+            description: string;
+        };
+    };
+    const text: TextResource[MODE] = $derived(
+        {
+            CREATE: { title: 'Create Category', description: 'Enter the details of the category you want to create.' },
+            UPDATE: { title: 'Update Category', description: 'Modify the details of the category to update it.' }
+        }[mode]
+    );
+
     $effect(() => {
         name = category?.name ?? '';
         color = category?.color;
@@ -85,7 +99,8 @@
 <Dialog.Root bind:open>
     <Dialog.Content class="sm:max-w-[425px]" escapeKeydownBehavior="close" interactOutsideBehavior="close">
         <Dialog.Header>
-            <Dialog.Title>{mode === 'CREATE' ? 'Create Category' : 'Update Category'}</Dialog.Title>
+            <Dialog.Title>{text.title}</Dialog.Title>
+            <Dialog.Description>{text.description}</Dialog.Description>
         </Dialog.Header>
         <div class="grid grid-cols-4 items-center gap-4">
             <Label for="name" class="text-right">Name</Label>

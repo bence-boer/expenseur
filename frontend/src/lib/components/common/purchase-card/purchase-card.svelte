@@ -5,31 +5,30 @@
     import { ChevronDown, Copy, EllipsisVertical, SquarePen, Trash } from '@lucide/svelte';
     import type { PurchaseView } from '../purchase-maintain-dialog';
     import { cn, format_currency } from '$lib/utils';
-    import { onMount } from 'svelte';
-    import { service } from '$lib/service';
     import { Badge } from '$lib/components/ui/badge';
+    import type { ServiceTypes } from '$lib/service';
+    import { Tag } from '$lib/components/common/tag';
 
     type Props = {
         purchase: PurchaseView;
+        all_tags?: ServiceTypes.Tag[];
         duplicate: () => void;
         delete: () => void;
         edit: () => void;
         class?: string;
     };
 
-    let { purchase, duplicate, delete: delete_purchase, edit, class: className }: Props = $props();
+    let { purchase, all_tags = [], duplicate, delete: delete_purchase, edit, class: className }: Props = $props();
 
-    let tags = $state([]);
     let tags_map = $derived(
-        tags.reduce((acc, tag) => {
-            acc[tag.id] = tag;
-            return acc;
-        }, {})
+        (all_tags ?? []).reduce(
+            (acc, tag) => {
+                acc[tag.id] = tag;
+                return acc;
+            },
+            {} as Record<number, ServiceTypes.Tag>
+        )
     );
-
-    service.get_tags().then((fetched_tags) => {
-        tags = fetched_tags;
-    });
 </script>
 
 <Collapsible.Root class={cn('bg-primary-foreground rounded-md p-4', className)}>
@@ -69,14 +68,18 @@
         <div class="flex flex-row justify-between px-2 text-muted-foreground">
             {#if purchase.brand_name}<span>{purchase.brand_name}</span>{/if}
             {#if purchase.quantity}<span>{purchase.quantity} {purchase.item_unit}</span>{/if}
-            {#if Object.keys(tags_map).length > 0}
+        </div>
+        {#if purchase.tag_ids?.length > 0}
+            <div class="flex flex-wrap gap-1 px-2 pt-2">
                 {#each purchase.tag_ids as tag_id}
                     {@const tag = tags_map[tag_id]}
-                    <Badge style={`background-color: ${tag?.color}`} variant="outline" class="text-xs">
-                        {tag?.name}
-                    </Badge>
+                    {#if tag}
+                        <Tag {tag} />
+                    {:else}
+                        <Badge variant="outline" class="text-xs bg-gray-300">Unknown Tag ({tag_id})</Badge>
+                    {/if}
                 {/each}
-            {/if}
-        </div>
+            </div>
+        {/if}
     </Collapsible.Content>
 </Collapsible.Root>

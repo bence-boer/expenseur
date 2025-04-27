@@ -1,6 +1,7 @@
 <script lang="ts">
     import { DeleteDialog } from '$lib/components/common/delete-dialog';
     import { PeriodSelector, type Period } from '$lib/components/common/period-selector';
+    import { PurchaseMaintainDialog, type PurchaseView } from '$lib/components/common/purchase-maintain-dialog';
     import Tag from '$lib/components/common/tag/tag.svelte';
     import { DataTable, DataTablePagination } from '$lib/components/ui-custom/data-table';
     import { renderSnippet } from '$lib/components/ui/data-table';
@@ -16,11 +17,12 @@
 
     const columns = [
         {
-            accessorKey: 'date',
+            accessorKey: '_date',
             header: 'Date',
             enableSorting: true,
             enableHiding: false,
-            size: 120
+            size: 120,
+            cell: (props) => renderSnippet(date_cell, props.getValue() as string)
         },
         {
             accessorKey: 'item',
@@ -28,7 +30,7 @@
             enableHiding: false
         },
         {
-            accessorKey: 'details',
+            accessorKey: '_details',
             header: 'Details'
         },
         {
@@ -44,7 +46,7 @@
             header: 'Tags',
             cell: (props) => {
                 const tags = props.getValue() as ServiceTypes.Tag[];
-                return tags.length ? renderSnippet(tags_cell, tags) : '-';
+                return tags?.length ? renderSnippet(tags_cell, tags) : '';
             }
         },
         {
@@ -68,16 +70,48 @@
 
     const initial_state = {
         columnVisibility: {
-            details: false,
-            brand: false,
-            category: false,
-            quantity: false,
-            store: false
+            // details: false,
+            // brand: false,
+            // category: false,
+            // quantity: false,
+            // store: false
         }
     } satisfies InitialTableState;
 
+    let maintain_dialog_open = $state(false);
+    let purchase_to_edit: PurchaseView = $state();
+
     let delete_dialog_open = $state(false);
     let delete_item_id = $state<number | undefined>(undefined);
+
+    const open_edit_dialog = (id: number): Promise<void> => {
+        const purchase = purchases.find((purchase) => purchase.id === id);
+        purchase_to_edit = {
+            ...purchase,
+            details: purchase.details?.length ? (purchase.details?.join(', ') as any) : undefined
+        };
+        maintain_dialog_open = true;
+        return Promise.resolve();
+    };
+
+    const update_purchase = async (purchase_to_update: ServiceTypes.Purchase): Promise<void> =>
+        service
+            .update_purchase(purchase_to_update.id, {
+                item_id: purchase_to_update.item_id,
+                tag_ids: purchase_to_update.tag_ids,
+                brand_id: purchase_to_update.brand_id,
+                quantity: purchase_to_update.quantity,
+                price: purchase_to_update.price,
+                details: purchase_to_update.details?.split(', ')
+            })
+            .then((updated_purchase) => {
+                const index = purchases.findIndex(({ id }) => id === purchase_to_update.id);
+                purchases = [...purchases.slice(0, index), purchase_to_update, ...purchases.slice(index + 1)];
+                toast.success('Purchase updated successfully');
+            })
+            .catch((error) => {
+                toast.error(error.message);
+            });
 
     const open_delete_dialog = (id: number): Promise<void> => {
         delete_item_id = id;
@@ -111,11 +145,11 @@
                 end_date: period.end.toString()
             })
             .then((data) => {
-                purchases = data.map((item) => ({
-                    ...item,
-                    date: format_date(item.date!),
-                    details: item.details?.length ? (item.details?.join(', ') as any) : '-',
-                    brand: item.brand ?? '-'
+                purchases = data.map((purchase) => ({
+                    ...purchase,
+                    _date: format_date(purchase.date!),
+                    _details: purchase.details?.length ? (purchase.details?.join(', ') as any) : '-',
+                    brand: purchase.brand ?? '-'
                 }));
                 loading = false;
             });
@@ -128,6 +162,10 @@
     {/each}
 {/snippet}
 
+{#snippet date_cell(date: string)}
+    <span class="text-nowrap">{date}</span>
+{/snippet}
+
 <div class="sm:container sm:py-10">
     <h1 class="mb-4 flex justify-between">
         <span class="text-2xl font-bold sm:text-4xl">Data</span>
@@ -135,7 +173,7 @@
     </h1>
 
     <div class="flex flex-col gap-2">
-        <DataTable data={purchases} {columns} {loading} {initial_state} delete_row={open_delete_dialog} filtered_column="item">
+        <DataTable data={purchases} {columns} {loading} {initial_state} delete_row={open_delete_dialog} edit_row={open_edit_dialog} filtered_column="item">
             <div slot="pagination" let:table>
                 <Separator />
                 <div class="py-2">
@@ -145,6 +183,8 @@
         </DataTable>
     </div>
 </div>
+
+<PurchaseMaintainDialog bind:open={maintain_dialog_open} purchase={purchase_to_edit} mode="UPDATE" submit={update_purchase} />
 
 <DeleteDialog bind:open={delete_dialog_open} title="Delete Expense" description="Are you sure you want to delete this Expense?" delete={delete_item}
 ></DeleteDialog>

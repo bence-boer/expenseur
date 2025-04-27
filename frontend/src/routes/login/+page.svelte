@@ -33,7 +33,7 @@
     <Card.Root class="w-72">
         <Card.Header>
             <Card.Title>Login</Card.Title>
-            <Card.Description>Log in to access database</Card.Description>
+            <Card.Description>Sign in to your account</Card.Description>
         </Card.Header>
         <Card.Content>
             <div class="mb-2">

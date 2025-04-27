@@ -20,6 +20,19 @@
 
     let { open = $bindable(false), name = $bindable(), on_item_created, mode, item }: Props = $props();
 
+    type TextResource = {
+        [key in MODE]: {
+            title: string;
+            description: string;
+        };
+    };
+    const text: TextResource[MODE] = $derived(
+        {
+            CREATE: { title: 'Create Item', description: 'Enter the details of the item you want to create.' },
+            UPDATE: { title: 'Update Item', description: 'Modify the details of the item to update it.' }
+        }[mode]
+    );
+
     let dialog_disabled = $state(false);
 
     let category: number = $state();
@@ -148,8 +161,8 @@
         interactOutsideBehavior={dialog_disabled ? 'ignore' : 'close'}
     >
         <Dialog.Header>
-            <Dialog.Title>{mode === 'CREATE' ? 'Create Item' : 'Update Item'}</Dialog.Title>
-            <Dialog.Description>Enter the details of the item you want to create.</Dialog.Description>
+            <Dialog.Title>{text.title}</Dialog.Title>
+            <Dialog.Description>{text.description}</Dialog.Description>
         </Dialog.Header>
         <div class="grid gap-4 py-4">
             <div class="grid grid-cols-4 items-center gap-4">
