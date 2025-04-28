@@ -5,8 +5,8 @@
     import { Input } from '$lib/components/ui-custom/input';
     import { Button } from '$lib/components/ui/button';
     import * as Card from '$lib/components/ui/card';
-    import { auth } from '$lib/service';
     import type { ServiceTypes } from '$lib/service';
+    import { auth } from '$lib/service';
 
     let email: string = $state('');
     let password: string = $state('');

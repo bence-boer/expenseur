@@ -1,8 +1,8 @@
 <script lang="ts">
     import { DeleteDialog } from '$lib/components/common/delete-dialog';
+    import { ExpenseMaintainDialog, type ExpenseView } from '$lib/components/common/expense-maintain-dialog';
     import { PeriodSelector, type Period } from '$lib/components/common/period-selector';
-    import { PurchaseMaintainDialog, type PurchaseView } from '$lib/components/common/purchase-maintain-dialog';
-    import Tag from '$lib/components/common/tag/tag.svelte';
+    import { Tag } from '$lib/components/common/tag';
     import { DataTable, DataTablePagination } from '$lib/components/ui-custom/data-table';
     import { renderSnippet } from '$lib/components/ui/data-table';
     import { Separator } from '$lib/components/ui/separator';
@@ -11,7 +11,7 @@
     import type { ColumnDef, InitialTableState } from '@tanstack/table-core';
     import { toast } from 'svelte-sonner';
 
-    let purchases: ServiceTypes.Purchase[] = $state([]);
+    let expenses: ServiceTypes.Expense[] = $state([]);
     let period: Period | undefined = $state();
     let loading: boolean = $state(true);
 
@@ -66,7 +66,7 @@
             accessorKey: 'store',
             header: 'Store'
         }
-    ] as const satisfies ColumnDef<ServiceTypes.Purchase>[];
+    ] as const satisfies ColumnDef<ServiceTypes.Expense>[];
 
     const initial_state = {
         columnVisibility: {
@@ -79,35 +79,35 @@
     } satisfies InitialTableState;
 
     let maintain_dialog_open = $state(false);
-    let purchase_to_edit: PurchaseView = $state();
+    let expense_to_edit: ExpenseView = $state();
 
     let delete_dialog_open = $state(false);
     let delete_item_id = $state<number | undefined>(undefined);
 
     const open_edit_dialog = (id: number): Promise<void> => {
-        const purchase = purchases.find((purchase) => purchase.id === id);
-        purchase_to_edit = {
-            ...purchase,
-            details: purchase.details?.length ? (purchase.details?.join(', ') as any) : undefined
+        const expense = expenses.find((expense) => expense.id === id);
+        expense_to_edit = {
+            ...expense,
+            details: expense.details?.length ? (expense.details?.join(', ') as any) : undefined
         };
         maintain_dialog_open = true;
         return Promise.resolve();
     };
 
-    const update_purchase = async (purchase_to_update: ServiceTypes.Purchase): Promise<void> =>
+    const update_expense = async (expense_to_update: ServiceTypes.Expense): Promise<void> =>
         service
-            .update_purchase(purchase_to_update.id, {
-                item_id: purchase_to_update.item_id,
-                tag_ids: purchase_to_update.tag_ids,
-                brand_id: purchase_to_update.brand_id,
-                quantity: purchase_to_update.quantity,
-                price: purchase_to_update.price,
-                details: purchase_to_update.details?.split(', ')
+            .update_expense(expense_to_update.id, {
+                item_id: expense_to_update.item_id,
+                tag_ids: expense_to_update.tag_ids,
+                brand_id: expense_to_update.brand_id,
+                quantity: expense_to_update.quantity,
+                price: expense_to_update.price,
+                details: expense_to_update.details?.split(', ')
             })
-            .then((updated_purchase) => {
-                const index = purchases.findIndex(({ id }) => id === purchase_to_update.id);
-                purchases = [...purchases.slice(0, index), purchase_to_update, ...purchases.slice(index + 1)];
-                toast.success('Purchase updated successfully');
+            .then((updated_expense) => {
+                const index = expenses.findIndex(({ id }) => id === expense_to_update.id);
+                expenses = [...expenses.slice(0, index), expense_to_update, ...expenses.slice(index + 1)];
+                toast.success('Expense updated successfully');
             })
             .catch((error) => {
                 toast.error(error.message);
@@ -121,10 +121,10 @@
 
     const delete_item = async (): Promise<void> => {
         return service
-            .delete_purchase(String(delete_item_id))
+            .delete_expense(String(delete_item_id))
             .then(() => {
                 toast.success('Item deleted successfully');
-                purchases = purchases!.filter((purchase) => purchase.id !== delete_item_id);
+                expenses = expenses!.filter((expense) => expense.id !== delete_item_id);
             })
             .catch((error) => {
                 toast.error(error.message);
@@ -140,16 +140,16 @@
 
         loading = true;
         service
-            .get_purchases({
+            .get_expenses({
                 start_date: period.start.toString(),
                 end_date: period.end.toString()
             })
             .then((data) => {
-                purchases = data.map((purchase) => ({
-                    ...purchase,
-                    _date: format_date(purchase.date!),
-                    _details: purchase.details?.length ? (purchase.details?.join(', ') as any) : '-',
-                    brand: purchase.brand ?? '-'
+                expenses = data.map((expense) => ({
+                    ...expense,
+                    _date: format_date(expense.date!),
+                    _details: expense.details?.length ? (expense.details?.join(', ') as any) : '-',
+                    brand: expense.brand ?? '-'
                 }));
                 loading = false;
             });
@@ -173,7 +173,7 @@
     </h1>
 
     <div class="flex flex-col gap-2">
-        <DataTable data={purchases} {columns} {loading} {initial_state} delete_row={open_delete_dialog} edit_row={open_edit_dialog} filtered_column="item">
+        <DataTable data={expenses} {columns} {loading} {initial_state} delete_row={open_delete_dialog} edit_row={open_edit_dialog} filtered_column="item">
             <div slot="pagination" let:table>
                 <Separator />
                 <div class="py-2">
@@ -184,7 +184,7 @@
     </div>
 </div>
 
-<PurchaseMaintainDialog bind:open={maintain_dialog_open} purchase={purchase_to_edit} mode="UPDATE" submit={update_purchase} />
+<ExpenseMaintainDialog bind:open={maintain_dialog_open} expense={expense_to_edit} mode="UPDATE" submit={update_expense} />
 
 <DeleteDialog
     bind:open={delete_dialog_open}

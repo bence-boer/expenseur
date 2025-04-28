@@ -1,2 +1,1 @@
-import BrandMaintainDialog from './brand-maintain-dialog.svelte';
-export { BrandMaintainDialog };
+export { default as BrandMaintainDialog } from './brand-maintain-dialog.svelte';

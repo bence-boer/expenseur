@@ -1,5 +1,7 @@
 <script lang="ts">
+    import { memory_cache } from '$lib/cache';
     import { DeleteDialog } from '$lib/components/common/delete-dialog';
+    import { ErrorCard } from '$lib/components/common/error-card';
     import * as Avatar from '$lib/components/ui/avatar';
     import { Button, buttonVariants } from '$lib/components/ui/button';
     import * as Card from '$lib/components/ui/card';
@@ -7,13 +9,11 @@
     import { Label } from '$lib/components/ui/label';
     import { Skeleton } from '$lib/components/ui/skeleton';
     import { service, type ServiceTypes } from '$lib/service';
-    import { toast } from 'svelte-sonner';
-    import { ErrorCard } from '$lib/components/common/error-card';
+    import { promise } from '$lib/utils';
     import { Edit, Image, Loader2, Trash2 } from '@lucide/svelte';
     import type { AvatarImageLoadingStatus } from 'bits-ui';
     import { onMount } from 'svelte';
-    import { promise } from '$lib/utils';
-    import { memory_cache } from '$lib/cache';
+    import { toast } from 'svelte-sonner';
 
     let avatar_url_promise: Promise<ServiceTypes.AvatarUrlResponse> | undefined = $state();
     let avatar_url: string | null | undefined = $state();

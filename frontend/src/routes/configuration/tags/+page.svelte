@@ -1,8 +1,8 @@
 <script lang="ts">
-    import { TagMaintainDialog } from '$lib/components/common/tag-maintain-dialog';
     import { DeleteDialog } from '$lib/components/common/delete-dialog';
-    import ErrorCard from '$lib/components/common/error-card/error-card.svelte';
+    import { ErrorCard } from '$lib/components/common/error-card';
     import { InfoCard } from '$lib/components/common/info-card';
+    import { TagMaintainDialog } from '$lib/components/common/tag-maintain-dialog';
     import { Button } from '$lib/components/ui/button';
     import { Skeleton } from '$lib/components/ui/skeleton';
     import { service, ServiceTypes } from '$lib/service';

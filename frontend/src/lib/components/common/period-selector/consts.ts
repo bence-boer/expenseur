@@ -1,6 +1,6 @@
+import { type PeriodWithLabel } from '$lib/components/common/period-selector/types.ts';
 import { TODAY } from '$lib/consts/index.ts';
 import { CalendarDate, endOfMonth, endOfYear, startOfMonth, startOfYear } from '@internationalized/date';
-import { type PeriodWithLabel } from '$lib/components/common/period-selector/types.ts';
 
 const [year, month] = [TODAY.year, TODAY.month];
 const [year_last_month, month_last_month] = month === 1 ? [year - 1, 12] : [year, month - 1];

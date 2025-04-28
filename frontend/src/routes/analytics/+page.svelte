@@ -4,15 +4,14 @@
     import { page } from '$app/state';
     import StackedAreaChart from '$lib/components/charts/stacked-area-chart.svelte';
     import type { LineChartData } from '$lib/components/charts/types';
+    import { ExpenseDetailsDialog } from '$lib/components/common/expense-details-dialog';
+    import { ExpenseGroupCard, type ExpenseGroup } from '$lib/components/common/expense-group';
     import { InfoCard } from '$lib/components/common/info-card';
-    import { type Period } from '$lib/components/common/period-selector';
-    import PeriodSelector from '$lib/components/common/period-selector/period-selector.svelte';
-    import { PurchaseDetailsDialog } from '$lib/components/common/purchase-details-dialog';
-    import { PurchaseGroupCard, type PurchaseGroup } from '$lib/components/common/purchase-group';
+    import { PeriodSelector, type Period } from '$lib/components/common/period-selector';
     import { TagSelector } from '$lib/components/common/tag-selector';
     import { Button } from '$lib/components/ui/button';
     import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-    import Skeleton from '$lib/components/ui/skeleton/skeleton.svelte';
+    import { Skeleton } from '$lib/components/ui/skeleton';
     import { service, ServiceTypes } from '$lib/service';
     import type { LabelValue } from '$lib/types';
     import { day_difference, format_date } from '$lib/utils';
@@ -43,7 +42,7 @@
     let searched_period: Period | null = $state(null);
 
     let spendings: ServiceTypes.SpendingsByCategoryInterval = $state();
-    let purchases: ServiceTypes.Purchase[] = $state([]);
+    let expenses: ServiceTypes.Expense[] = $state([]);
     let all_categories: ServiceTypes.Category[] = $state([]);
     let all_items: ServiceTypes.Item[] = $state([]);
     let loading: boolean = $state(false);
@@ -55,16 +54,16 @@
     let filtered_datasets: ServiceTypes.SpendingsByCategoryInterval['data'] = $derived.by(() => {
         if (!spendings?.data?.length || !all_categories.length) return [];
 
-        let allowed_category_ids_from_purchases: Set<string> | null = null;
+        let allowed_category_ids_from_expenses: Set<string> | null = null;
 
-        if ((selected_items.length > 0 || selected_tags.length > 0) && purchases?.length) {
-            allowed_category_ids_from_purchases = new Set<string>();
-            const filtered_purchases = purchases.filter((p) => {
+        if ((selected_items.length > 0 || selected_tags.length > 0) && expenses?.length) {
+            allowed_category_ids_from_expenses = new Set<string>();
+            const filtered_expenses = expenses.filter((p) => {
                 const item_match = selected_items.length === 0 || selected_items.includes(p.item_id);
                 const tag_match = selected_tags.length === 0 || p.tags?.some(({ id }) => selected_tags.includes(id));
                 return item_match && tag_match;
             });
-            filtered_purchases.forEach((p) => allowed_category_ids_from_purchases!.add(String(p.category_id)));
+            filtered_expenses.forEach((p) => allowed_category_ids_from_expenses!.add(String(p.category_id)));
         }
 
         const category_name_to_id_map = new Map(all_categories.map((c) => [c.name, String(c.id)]));
@@ -74,9 +73,9 @@
             if (!category_id) return false;
 
             const category_selected_match = selected_categories.length === 0 || selected_categories.includes(category_id);
-            const purchase_filter_match = allowed_category_ids_from_purchases === null || allowed_category_ids_from_purchases.has(category_id);
+            const expense_filter_match = allowed_category_ids_from_expenses === null || allowed_category_ids_from_expenses.has(category_id);
 
-            return category_selected_match && purchase_filter_match;
+            return category_selected_match && expense_filter_match;
         });
     });
 
@@ -90,18 +89,18 @@
         }))
     });
 
-    let groups: PurchaseGroup[] = $derived.by(() => {
-        if (!purchases?.length) return [];
-        const map: Map<string, PurchaseGroup> = new Map();
-        for (const purchase of purchases) {
-            if (selected_categories.length > 0 && !selected_categories.includes(String(purchase.category_id))) continue;
-            if (selected_items.length > 0 && !selected_items.includes(purchase.item_id)) continue;
-            if (selected_tags.length > 0 && !purchase.tags?.some(({ id }) => selected_tags.includes(id))) continue;
-            const date: string = purchase.date;
-            if (!map.has(date)) map.set(date, { date, total: 0, purchases: [] });
-            const group: PurchaseGroup = map.get(date);
-            group.total += purchase.price;
-            group.purchases.push(purchase);
+    let groups: ExpenseGroup[] = $derived.by(() => {
+        if (!expenses?.length) return [];
+        const map: Map<string, ExpenseGroup> = new Map();
+        for (const expense of expenses) {
+            if (selected_categories.length > 0 && !selected_categories.includes(String(expense.category_id))) continue;
+            if (selected_items.length > 0 && !selected_items.includes(expense.item_id)) continue;
+            if (selected_tags.length > 0 && !expense.tags?.some(({ id }) => selected_tags.includes(id))) continue;
+            const date: string = expense.date;
+            if (!map.has(date)) map.set(date, { date, total: 0, expenses: [] });
+            const group: ExpenseGroup = map.get(date);
+            group.total += expense.price;
+            group.expenses.push(expense);
         }
         return Array.from(map.values()).sort((a, b) => b.date.localeCompare(a.date));
     });
@@ -130,8 +129,8 @@
         const intervalled = service.get_spendings_by_category_interval({ start_date, end_date, days_interval }).then((response) => {
             spendings = { data: response.data.filter((dataset) => dataset.values.some(Boolean)), dates: response.dates };
         });
-        const detailed = service.get_purchases({ start_date, end_date }).then((response) => {
-            purchases = response;
+        const detailed = service.get_expenses({ start_date, end_date }).then((response) => {
+            expenses = response;
         });
         Promise.allSettled([intervalled, detailed]).finally(() => {
             loading = false;
@@ -191,12 +190,12 @@
         period = value;
     };
 
-    let purchase_details_dialog_open: boolean = $state(false);
-    let purchase_details: ServiceTypes.Purchase = $state({});
+    let expense_details_dialog_open: boolean = $state(false);
+    let expense_details: ServiceTypes.Expense = $state({});
 
-    const open_purchase_details = (purchase: ServiceTypes.Purchase): void => {
-        purchase_details = purchase;
-        purchase_details_dialog_open = true;
+    const open_expense_details = (expense: ServiceTypes.Expense): void => {
+        expense_details = expense;
+        expense_details_dialog_open = true;
     };
 
     const toggle_selection = (arr: (string | number)[], value: string | number): (string | number)[] => {
@@ -320,7 +319,7 @@
 </div>
 
 <div class="flex-grow flex flex-col overflow-hidden gap-4 pt-4" bind:offsetWidth={chart_width}>
-    {#if loading && !purchases?.length}
+    {#if loading && !expenses?.length}
         <Skeleton class="h-64" />
         <Skeleton class="h-24" />
         <Skeleton class="h-24" />
@@ -337,12 +336,12 @@
         <div class="overflow-y-auto flex-grow flex-shrink flex flex-col gap-2">
             {#if groups.length > 0}
                 {#each groups as group}
-                    <PurchaseGroupCard {group} ondetailsclick={open_purchase_details} />
+                    <ExpenseGroupCard {group} ondetailsclick={open_expense_details} />
                 {/each}
             {:else if !loading}
-                <InfoCard>No purchases found for the selected filters in the chosen period.</InfoCard>
+                <InfoCard>No expenses found for the selected filters in the chosen period.</InfoCard>
             {/if}
-            {#if loading && purchases?.length > 0}
+            {#if loading && expenses?.length > 0}
                 <Skeleton class="h-24" />
             {/if}
         </div>
@@ -354,4 +353,4 @@
     {/if}
 </div>
 
-<PurchaseDetailsDialog bind:open={purchase_details_dialog_open} purchase={purchase_details} />
+<ExpenseDetailsDialog bind:open={expense_details_dialog_open} expense={expense_details} />

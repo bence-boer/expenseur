@@ -1,7 +1,7 @@
 import { ServiceTypes } from '$lib/service/index.ts';
 
-export type PurchaseGroup = {
+export type ExpenseGroup = {
     date: string;
     total: number;
-    purchases: ServiceTypes.Purchase[];
+    expenses: ServiceTypes.Expense[];
 };

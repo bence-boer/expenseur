@@ -3,7 +3,6 @@
     import { session_storage_cache } from '$lib/cache';
     import { Button } from '$lib/components/ui/button';
     import logo from '$lib/resources/images/logo.svg';
-    import type { ServiceTypes } from '$lib/service';
     import type { Route } from '$lib/types';
     import HamburgerNavigation from './hamburger-navigation.svelte';
     import ProfileMenu from './profile-menu.svelte';

@@ -1,2 +1,1 @@
-import ErrorCard from './error-card.svelte';
-export { ErrorCard };
+export { default as ErrorCard } from './error-card.svelte';

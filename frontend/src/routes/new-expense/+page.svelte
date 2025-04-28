@@ -1,33 +1,33 @@
 <script lang="ts">
     import { AiUploadDialog } from '$lib/components/common/ai-upload-dialog';
+    import { ExpenseCard } from '$lib/components/common/expense-card';
+    import { ExpenseMaintainDialog, type ExpenseView } from '$lib/components/common/expense-maintain-dialog';
     import { InfoCard } from '$lib/components/common/info-card';
-    import PurchaseCard from '$lib/components/common/purchase-card/purchase-card.svelte';
-    import { PurchaseMaintainDialog, type PurchaseView } from '$lib/components/common/purchase-maintain-dialog';
     import ComboBox from '$lib/components/ui-custom/combo-box/combo-box.svelte';
     import DatePicker from '$lib/components/ui-custom/date-picker/date-picker.svelte';
     import { Button } from '$lib/components/ui/button';
     import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
     import { Separator } from '$lib/components/ui/separator';
-    import { currency_formatter, number_formatter } from '$lib/consts';
+    import { currency_formatter } from '$lib/consts';
     import { service, ServiceTypes } from '$lib/service';
     import type { LabelValue } from '$lib/types';
     import { format_currency, label_value_transform, sanitize_string } from '$lib/utils';
     import { type DateValue, getLocalTimeZone, parseDate, today } from '@internationalized/date';
-    import { Plus, ScanText, Upload } from '@lucide/svelte';
-    import { toast } from 'svelte-sonner';
+    import { Plus, ScanText } from '@lucide/svelte';
     import { onMount } from 'svelte';
+    import { toast } from 'svelte-sonner';
 
     type FormSchema = {
         date: string;
         store_id: number;
-        purchases: PurchaseView[];
+        expenses: ExpenseView[];
     };
 
-    let purchases: PurchaseView[] = $state([]);
-    let purchase_to_update: PurchaseView | undefined = $state();
-    let purchase_to_update_index: number = $state(-1);
-    let purchase_maintain_dialog_open: boolean = $state(false);
-    let purchase_maintain_dialog_mode: 'CREATE' | 'UPDATE' = $state('CREATE');
+    let expenses: ExpenseView[] = $state([]);
+    let expense_to_update: ExpenseView | undefined = $state();
+    let expense_to_update_index: number = $state(-1);
+    let expense_maintain_dialog_open: boolean = $state(false);
+    let expense_maintain_dialog_mode: 'CREATE' | 'UPDATE' = $state('CREATE');
     let ai_upload_dialog_open: boolean = $state(false);
     let date: DateValue | undefined = $state();
     let selected_store: number | undefined = $state();
@@ -48,8 +48,8 @@
     let new_stores: ServiceTypes.Vendor[] = $state([]);
     let new_tags: ServiceTypes.Tag[] = $state([]);
 
-    const total = $derived(currency_formatter.format(purchases.reduce((total, purchase) => total + purchase.price, 0)));
-    let on_purchase_submitted = $derived(purchase_maintain_dialog_mode === 'CREATE' ? on_new_purchase : on_purchase_edited);
+    const total = $derived(currency_formatter.format(expenses.reduce((total, expense) => total + expense.price, 0)));
+    let on_expense_submitted = $derived(expense_maintain_dialog_mode === 'CREATE' ? on_new_expense : on_expense_edited);
 
     onMount(() => {
         Promise.allSettled([
@@ -76,31 +76,31 @@
         });
     });
 
-    function create_purchase() {
-        purchase_to_update = undefined;
-        purchase_maintain_dialog_mode = 'CREATE';
-        purchase_maintain_dialog_open = true;
+    function create_expense() {
+        expense_to_update = undefined;
+        expense_maintain_dialog_mode = 'CREATE';
+        expense_maintain_dialog_open = true;
     }
 
-    async function on_new_purchase(purchase: PurchaseView) {
-        const temp_id = Math.min(0, ...purchases.map((p) => p.id)) - 1;
-        purchases = [...purchases, { ...purchase, id: temp_id }];
-        purchase_maintain_dialog_open = false;
+    async function on_new_expense(expense: ExpenseView) {
+        const temp_id = Math.min(0, ...expenses.map((p) => p.id)) - 1;
+        expenses = [...expenses, { ...expense, id: temp_id }];
+        expense_maintain_dialog_open = false;
     }
 
-    function edit_purchase(index: number) {
-        purchase_to_update = purchases[index];
-        purchase_to_update_index = index;
-        purchase_maintain_dialog_mode = 'UPDATE';
-        purchase_maintain_dialog_open = true;
+    function edit_expense(index: number) {
+        expense_to_update = expenses[index];
+        expense_to_update_index = index;
+        expense_maintain_dialog_mode = 'UPDATE';
+        expense_maintain_dialog_open = true;
     }
 
-    async function on_purchase_edited(purchase: PurchaseView) {
-        if (purchase_to_update_index === -1) return;
-        purchases = [...purchases.slice(0, purchase_to_update_index), purchase, ...purchases.slice(purchase_to_update_index + 1)];
-        purchase_maintain_dialog_open = false;
-        purchase_to_update_index = -1;
-        purchase_to_update = undefined;
+    async function on_expense_edited(expense: ExpenseView) {
+        if (expense_to_update_index === -1) return;
+        expenses = [...expenses.slice(0, expense_to_update_index), expense, ...expenses.slice(expense_to_update_index + 1)];
+        expense_maintain_dialog_open = false;
+        expense_to_update_index = -1;
+        expense_to_update = undefined;
     }
 
     async function create_store(label: string | null): Promise<number> {
@@ -136,15 +136,15 @@
             });
     }
 
-    function duplicate_purchase(index: number) {
-        const original_purchase = purchases[index];
-        const temp_id = Math.min(0, ...purchases.map((p) => p.id)) - 1;
-        purchases = [...purchases.slice(0, index + 1), { ...original_purchase, id: temp_id }, ...purchases.slice(index + 1)];
-        toast.success(`Item ${original_purchase.item_name} duplicated!`);
+    function duplicate_expense(index: number) {
+        const original_expense = expenses[index];
+        const temp_id = Math.min(0, ...expenses.map((p) => p.id)) - 1;
+        expenses = [...expenses.slice(0, index + 1), { ...original_expense, id: temp_id }, ...expenses.slice(index + 1)];
+        toast.success(`Item ${original_expense.item_name} duplicated!`);
     }
 
-    function delete_purchase(index: number) {
-        purchases = [...purchases.slice(0, index), ...purchases.slice(index + 1)];
+    function delete_expense(index: number) {
+        expenses = [...expenses.slice(0, index), ...expenses.slice(index + 1)];
     }
 
     async function handle_submit(event: Event) {
@@ -153,7 +153,7 @@
         const errors: string[] = [];
         if (!date) errors.push('Date is required!');
         if (selected_store === undefined || selected_store === null) errors.push('Store is required!');
-        if (purchases.length === 0) errors.push('At least one purchase item is required!');
+        if (expenses.length === 0) errors.push('At least one expense item is required!');
 
         if (errors.length > 0) {
             errors.forEach((message) => toast.error(message));
@@ -189,7 +189,7 @@
             await Promise.all(item_promises);
 
             const final_selected_store = selected_store! < 0 ? store_id_map.get(selected_store!)! : selected_store!;
-            const final_purchases = purchases.map((p) => ({
+            const final_expenses = expenses.map((p) => ({
                 item_id: p.item_id < 0 ? item_id_map.get(p.item_id)! : p.item_id,
                 brand_id: p.brand_id && p.brand_id < 0 ? brand_id_map.get(p.brand_id)! : p.brand_id,
                 tag_ids: p.tag_ids?.map((tid) => (tid < 0 ? tag_id_map.get(tid)! : tid)) ?? null,
@@ -199,25 +199,25 @@
             }));
 
             const formatted_date = date!.toString();
-            const data: ServiceTypes.CreatePurchasesPayload = final_purchases.map((purchase) => ({
-                brand_id: purchase.brand_id ?? null,
+            const data: ServiceTypes.CreateExpensesPayload = final_expenses.map((expense) => ({
+                brand_id: expense.brand_id ?? null,
                 date: formatted_date,
                 details:
-                    purchase.details
+                    expense.details
                         ?.split(', ')
                         .map((detail) => sanitize_string(detail))
                         .filter(Boolean) ?? null,
-                item_id: purchase.item_id,
-                price: purchase.price,
-                quantity: purchase.quantity,
+                item_id: expense.item_id,
+                price: expense.price,
+                quantity: expense.quantity,
                 store_id: final_selected_store,
-                tag_ids: purchase.tag_ids ?? null
+                tag_ids: expense.tag_ids ?? null
             }));
 
-            await service.create_purchases(data);
+            await service.create_expenses(data);
 
             const sum = total;
-            purchases = [];
+            expenses = [];
             date = undefined;
             selected_store = undefined;
             new_brands = [];
@@ -227,7 +227,7 @@
             new_stores = [];
             new_tags = [];
 
-            toast.success(`Purchase of ${format_currency(sum)} registered successfully!`);
+            toast.success(`Expense of ${format_currency(sum)} registered successfully!`);
             window.location.reload();
         } catch (error: any) {
             console.error('Submission Error:', error);
@@ -281,25 +281,25 @@
         date = response.date ? parseDate(response.date) : undefined;
         selected_store = response.store_id;
 
-        const ai_purchases = response.purchases ?? [];
-        purchases = ai_purchases.map((purchase, index) => {
-            const item = items_map.get(purchase.item_id ?? -1);
-            const brand = brands_map.get(purchase.brand_id ?? -1);
+        const ai_expenses = response.expenses ?? [];
+        expenses = ai_expenses.map((expense, index) => {
+            const item = items_map.get(expense.item_id ?? -1);
+            const brand = brands_map.get(expense.brand_id ?? -1);
             const unit = units_map.get(item?.unit_id ?? -1);
 
-            const purchase_tag_ids: number[] = [];
+            const expense_tag_ids: number[] = [];
 
             return {
                 id: -(index + 1),
-                item_id: purchase.item_id ?? 0,
-                item_name: item?.name ?? `Unknown Item (${purchase.item_id})`,
+                item_id: expense.item_id ?? 0,
+                item_name: item?.name ?? `Unknown Item (${expense.item_id})`,
                 item_unit: unit?.name ?? '',
-                details: purchase.details?.join(', ') ?? '',
-                brand_id: purchase.brand_id,
+                details: expense.details?.join(', ') ?? '',
+                brand_id: expense.brand_id,
                 brand_name: brand?.name ?? '',
-                quantity: purchase.quantity ?? 0,
-                price: purchase.price ?? 0,
-                tag_ids: purchase_tag_ids
+                quantity: expense.quantity ?? 0,
+                price: expense.price ?? 0,
+                tag_ids: expense_tag_ids
             };
         });
 
@@ -316,17 +316,17 @@
     <DatePicker bind:value={date} title="Pick date..." placeholder={today(getLocalTimeZone())} class="flex-1 sm:min-w-48 sm:max-w-64"></DatePicker>
 </div>
 <ScrollArea class="flex-auto gap-2" orientation="vertical">
-    {#each purchases as purchase, index (purchase.id)}
-        <PurchaseCard
+    {#each expenses as expense, index (expense.id)}
+        <ExpenseCard
             class="mb-2"
-            {purchase}
+            {expense}
             all_tags={[...tags_map.values()]}
-            duplicate={() => duplicate_purchase(index)}
-            delete={() => delete_purchase(index)}
-            edit={() => edit_purchase(index)}
+            duplicate={() => duplicate_expense(index)}
+            delete={() => delete_expense(index)}
+            edit={() => edit_expense(index)}
         />
     {:else}
-        <InfoCard>No Purchase logged for this Expense yet</InfoCard>
+        <InfoCard>No Expense logged for this Expense yet</InfoCard>
     {/each}
 </ScrollArea>
 <div class="flex flex-col gap-2">
@@ -335,7 +335,7 @@
             <ScanText size={16} class="text-muted-foreground" />
             Scan
         </Button>
-        <Button onclick={create_purchase} variant="ghost" class="flex-1">
+        <Button onclick={create_expense} variant="ghost" class="flex-1">
             <Plus class="text-muted-foreground" />
             Add Item
         </Button>
@@ -346,11 +346,11 @@
     </div>
 </div>
 
-<PurchaseMaintainDialog
-    bind:open={purchase_maintain_dialog_open}
-    purchase={purchase_to_update}
-    mode={purchase_maintain_dialog_mode}
-    submit={on_purchase_submitted}
+<ExpenseMaintainDialog
+    bind:open={expense_maintain_dialog_open}
+    expense={expense_to_update}
+    mode={expense_maintain_dialog_mode}
+    submit={on_expense_submitted}
     suggested_brands={new_brands}
     suggested_items={new_items.map((i) => ({ ...i, id: i.id, name: i.name }))}
     suggested_tags={new_tags}

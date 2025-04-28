@@ -1,5 +1,5 @@
 import { client } from '$lib/service/utils.ts';
-import type { Brand, Category, IntervalQuery, Item, PeriodQuery, Purchase, Unit, Vendor } from './_manual-types.ts';
+import type { Brand, Category, Expense, IntervalQuery, Item, PeriodQuery, Unit, Vendor } from './_manual-types.ts';
 
 // ITEMS
 export const get_item_details = (id: string) => client.api.items[':id'].$get({ param: { id } });
@@ -42,10 +42,10 @@ export const create_unit = (unit: Unit) => client.api.units.$post({ json: unit }
 export const update_unit = (id: string, unit: Partial<Unit>) => client.api.units[':id'].$patch({ param: { id }, json: unit } as any);
 
 // PURCHASES
-export const get_purchases = (query: PeriodQuery) => client.api.purchases.$get({ query });
-export const create_purchases = (purchases: Purchase[]) => client.api.purchases.$post({ json: purchases });
-export const update_purchase = (id: string, purchase: Partial<Purchase>) => client.api.purchases[':id'].$patch({ param: { id }, json: purchase } as any);
-export const delete_purchase = (id: string) => client.api.purchases[':id'].$delete({ param: { id } });
+export const get_expenses = (query: PeriodQuery) => client.api.purchases.$get({ query });
+export const create_expenses = (expenses: Expense[]) => client.api.purchases.$post({ json: expenses });
+export const update_expense = (id: string, expense: Partial<Expense>) => client.api.purchases[':id'].$patch({ param: { id }, json: expense } as any);
+export const delete_expense = (id: string) => client.api.purchases[':id'].$delete({ param: { id } });
 
 // AI SUGGESTIONS
 export const get_ai_suggestions = (images: File[]) => client.api.ai.suggest_items.$post({ form: { image: images[0] } });

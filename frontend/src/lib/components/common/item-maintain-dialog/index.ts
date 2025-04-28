@@ -1,2 +1,1 @@
-import ItemMaintainDialog from './item-maintain-dialog.svelte';
-export { ItemMaintainDialog };
+export { default as ItemMaintainDialog } from './item-maintain-dialog.svelte';

@@ -58,11 +58,11 @@ export type UpdatedUnit = Awaited<ReturnType<typeof service.update_unit>>;
 export type UpdateUnitPayload = Parameters<typeof service.update_unit>[0];
 
 // @ts-ignore deno-ts(2589)
-export type Purchase = Awaited<ReturnType<typeof service.get_purchases>>[number];
-export type GetPurchasesParam = Parameters<typeof service.get_purchases>[0];
-export type CreatePurchasesPayload = Parameters<typeof service.create_purchases>[0];
-export type DeletedPurchase = Awaited<ReturnType<typeof service.delete_purchase>>;
-export type DeletePurchaseParam = Parameters<typeof service.delete_purchase>[0];
+export type Expense = Awaited<ReturnType<typeof service.get_expenses>>[number];
+export type GetExpensesParam = Parameters<typeof service.get_expenses>[0];
+export type CreateExpensesPayload = Parameters<typeof service.create_expenses>[0];
+export type DeletedExpense = Awaited<ReturnType<typeof service.delete_expense>>;
+export type DeleteExpenseParam = Parameters<typeof service.delete_expense>[0];
 
 export type AISuggestion = Awaited<ReturnType<typeof service.get_ai_suggestions>>;
 

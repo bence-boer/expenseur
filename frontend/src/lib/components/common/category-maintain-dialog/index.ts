@@ -1,2 +1,1 @@
-import CategoryMaintainDialog from './category-maintain-dialog.svelte';
-export { CategoryMaintainDialog };
+export { default as CategoryMaintainDialog } from './category-maintain-dialog.svelte';

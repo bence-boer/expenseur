@@ -1,2 +1,1 @@
-import InfoCard from './info-card.svelte';
-export { InfoCard };
+export { default as InfoCard } from './info-card.svelte';

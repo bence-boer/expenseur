@@ -1,4 +1,5 @@
 <script lang="ts" generics="MODE extends 'CREATE' | 'UPDATE'">
+    import { ItemMaintainDialog } from '$lib/components/common/item-maintain-dialog';
     import { TagSelector } from '$lib/components/common/tag-selector/index.ts';
     import ComboBox from '$lib/components/ui-custom/combo-box/combo-box.svelte';
     import { Input } from '$lib/components/ui-custom/input';
@@ -9,14 +10,13 @@
     import type { LabelValue } from '$lib/types';
     import { label_value_transform, sanitize_string } from '$lib/utils';
     import { toast } from 'svelte-sonner';
-    import { ItemMaintainDialog } from '../item-maintain-dialog';
-    import type { PurchaseView } from './types.ts';
+    import type { ExpenseView } from './types.ts';
 
     type Props = {
         open: boolean;
         mode: MODE;
-        purchase?: MODE extends 'UPDATE' ? PurchaseView : never;
-        submit?: (purchase: PurchaseView) => Promise<void>;
+        expense?: MODE extends 'UPDATE' ? ExpenseView : never;
+        submit?: (expense: ExpenseView) => Promise<void>;
         suggested_brands?: ServiceTypes.Brand[];
         suggested_items?: ServiceTypes.Item[];
         suggested_tags?: ServiceTypes.Tag[];
@@ -27,7 +27,7 @@
     let {
         open = $bindable(),
         mode,
-        purchase,
+        expense,
         submit = void 0,
         suggested_brands = [],
         suggested_items = [],
@@ -44,8 +44,8 @@
     };
     const text: TextResource[MODE] = $derived(
         {
-            CREATE: { title: 'Create Purchase', description: 'Enter the details of the purchase you want to create.' },
-            UPDATE: { title: 'Update Purchase', description: 'Modify the details of the purchase to update it.' }
+            CREATE: { title: 'Create Expense', description: 'Enter the details of the expense you want to create.' },
+            UPDATE: { title: 'Update Expense', description: 'Modify the details of the expense to update it.' }
         }[mode]
     );
 
@@ -93,21 +93,21 @@
         });
     });
 
-    let item_id: number = $state(purchase?.item_id);
-    let details: string = $state(purchase?.details);
-    let brand_id: number = $state(purchase?.brand_id);
-    let quantity: number = $state(purchase?.quantity);
-    let price: number = $state(purchase?.price);
-    let tag_ids: number[] = $state(purchase?.tag_ids ?? []);
+    let item_id: number = $state(expense?.item_id);
+    let details: string = $state(expense?.details);
+    let brand_id: number = $state(expense?.brand_id);
+    let quantity: number = $state(expense?.quantity);
+    let price: number = $state(expense?.price);
+    let tag_ids: number[] = $state(expense?.tag_ids ?? []);
 
     $effect(() => {
-        item_id = purchase?.item_id;
-        details = purchase?.details;
-        brand_id = purchase?.brand_id;
-        quantity = purchase?.quantity;
-        price = purchase?.price;
-        tag_ids = purchase?.tag_ids ?? [];
-        if (purchase?.item_id) update_item_detail(purchase?.item_id);
+        item_id = expense?.item_id;
+        details = expense?.details;
+        brand_id = expense?.brand_id;
+        quantity = expense?.quantity;
+        price = expense?.price;
+        tag_ids = expense?.tag_ids ?? [];
+        if (expense?.item_id) update_item_detail(expense?.item_id);
     });
 
     const reset = () => {
@@ -179,12 +179,12 @@
         return suggested?.name ?? `Unknown (ID: ${id})`;
     };
 
-    const submit_purchase = () => {
+    const submit_expense = () => {
         const errors: string[] = [];
 
-        if (!item_id) errors.push('A Purchase should have an item chosen!');
-        if (!(quantity >= 0)) errors.push('A Purchase should have a quantity specified!');
-        if (!(price >= 0)) errors.push('A Purchase should have a price specified!');
+        if (!item_id) errors.push('A Expense should have an item chosen!');
+        if (!(quantity >= 0)) errors.push('A Expense should have a quantity specified!');
+        if (!(price >= 0)) errors.push('A Expense should have a price specified!');
 
         if (errors.length) {
             toast.error(errors.join('\n'));
@@ -197,8 +197,8 @@
         const brand_name = get_label_for_id(brand_id, selectable_brands, suggested_brands_map);
         const item_unit = item_details[item_id]?.unit || '';
 
-        const purchase_data: PurchaseView = {
-            id: mode === 'UPDATE' ? purchase?.id : -1,
+        const expense_data: ExpenseView = {
+            id: mode === 'UPDATE' ? expense?.id : -1,
             item_id,
             item_name,
             item_unit,
@@ -210,7 +210,7 @@
             tag_ids
         };
 
-        submit(purchase_data)
+        submit(expense_data)
             .then(() => {
                 open = false;
                 if (mode === 'CREATE') reset();
@@ -306,7 +306,7 @@
     $effect(() => {
         if (!open) {
             setTimeout(() => {
-                if (!open && (mode === 'CREATE' || !purchase)) reset();
+                if (!open && (mode === 'CREATE' || !expense)) reset();
             }, 150);
         } else {
             if (mode === 'CREATE') reset();
@@ -358,7 +358,7 @@
 
         <Dialog.Footer class="flex flex-row justify-stretch gap-2">
             <Button variant="outline" onclick={() => (open = false)} class="w-full" {disabled}>Cancel</Button>
-            <Button variant="default" onclick={submit_purchase} class="w-full" {disabled}>{mode === 'CREATE' ? 'Apply' : 'Update'}</Button>
+            <Button variant="default" onclick={submit_expense} class="w-full" {disabled}>{mode === 'CREATE' ? 'Apply' : 'Update'}</Button>
         </Dialog.Footer>
     </Dialog.Content>
 </Dialog.Root>

@@ -1,10 +1,10 @@
 <script lang="ts">
+    import DateRangePicker from '$lib/components/ui-custom/date-range-picker/date-range-picker.svelte';
     import * as Select from '$lib/components/ui/select';
+    import { cn, day_difference } from '$lib/utils';
     import { CalendarDate } from '@internationalized/date';
     import { default_period, periods } from './consts';
     import type { Period, PeriodWithLabel } from './types';
-    import { cn, day_difference } from '$lib/utils';
-    import DateRangePicker from '$lib/components/ui-custom/date-range-picker/date-range-picker.svelte';
 
     interface Props {
         class?: string;

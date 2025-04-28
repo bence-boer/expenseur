@@ -1,11 +1,11 @@
 <script lang="ts">
+    import { Button } from '$lib/components/ui/button';
     import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-    import { Button, buttonVariants } from '$lib/components/ui/button';
-    import { Tag, Plus } from '@lucide/svelte';
     import { service, ServiceTypes } from '$lib/service';
+    import { Plus, Tag } from '@lucide/svelte';
     import { onMount } from 'svelte';
-    import { TagMaintainDialog } from '../tag-maintain-dialog';
     import { toast } from 'svelte-sonner';
+    import { TagMaintainDialog } from '$lib/components/common/tag-maintain-dialog';
 
     type Props = {
         value: number[];

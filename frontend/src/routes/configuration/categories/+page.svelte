@@ -1,7 +1,7 @@
 <script lang="ts">
     import { CategoryMaintainDialog } from '$lib/components/common/category-maintain-dialog';
     import { DeleteDialog } from '$lib/components/common/delete-dialog';
-    import ErrorCard from '$lib/components/common/error-card/error-card.svelte';
+    import { ErrorCard } from '$lib/components/common/error-card';
     import { InfoCard } from '$lib/components/common/info-card';
     import { Button } from '$lib/components/ui/button';
     import { Skeleton } from '$lib/components/ui/skeleton';

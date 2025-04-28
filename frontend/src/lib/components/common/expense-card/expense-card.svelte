@@ -1,16 +1,16 @@
 <script lang="ts">
+    import type { ExpenseView } from '$lib/components/common/expense-maintain-dialog';
+    import { Tag } from '$lib/components/common/tag';
+    import { Badge } from '$lib/components/ui/badge';
     import * as Collapsible from '$lib/components/ui/collapsible';
     import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
     import Separator from '$lib/components/ui/separator/separator.svelte';
-    import { ChevronDown, Copy, EllipsisVertical, SquarePen, Trash } from '@lucide/svelte';
-    import type { PurchaseView } from '../purchase-maintain-dialog';
-    import { cn, format_currency } from '$lib/utils';
-    import { Badge } from '$lib/components/ui/badge';
     import type { ServiceTypes } from '$lib/service';
-    import { Tag } from '$lib/components/common/tag';
+    import { cn, format_currency } from '$lib/utils';
+    import { ChevronDown, Copy, EllipsisVertical, SquarePen, Trash } from '@lucide/svelte';
 
     type Props = {
-        purchase: PurchaseView;
+        expense: ExpenseView;
         all_tags?: ServiceTypes.Tag[];
         duplicate: () => void;
         delete: () => void;
@@ -18,7 +18,7 @@
         class?: string;
     };
 
-    let { purchase, all_tags = [], duplicate, delete: delete_purchase, edit, class: className }: Props = $props();
+    let { expense, all_tags = [], duplicate, delete: delete_expense, edit, class: className }: Props = $props();
 
     let tags_map = $derived(
         (all_tags ?? []).reduce(
@@ -47,31 +47,31 @@
                         <Copy class="text-muted-foreground" />
                         Duplicate
                     </DropdownMenu.Item>
-                    <DropdownMenu.Item onclick={delete_purchase} class="text-red-500">
+                    <DropdownMenu.Item onclick={delete_expense} class="text-red-500">
                         <Trash />
                         Delete
                     </DropdownMenu.Item>
                 </DropdownMenu.Content>
             </DropdownMenu.Root>
 
-            {purchase.item_name}
+            {expense.item_name}
         </div>
 
         <div class="flex flex-row gap-4 items-center">
-            {format_currency(purchase.price)}
+            {format_currency(expense.price)}
             <ChevronDown class="text-muted-foreground" size={16} />
         </div>
     </Collapsible.Trigger>
     <Collapsible.Content>
         <Separator class="my-4" />
-        <div class="px-2">{purchase.details}</div>
+        <div class="px-2">{expense.details}</div>
         <div class="flex flex-row justify-between px-2 text-muted-foreground">
-            {#if purchase.brand_name}<span>{purchase.brand_name}</span>{/if}
-            {#if purchase.quantity}<span>{purchase.quantity} {purchase.item_unit}</span>{/if}
+            {#if expense.brand_name}<span>{expense.brand_name}</span>{/if}
+            {#if expense.quantity}<span>{expense.quantity} {expense.item_unit}</span>{/if}
         </div>
-        {#if purchase.tag_ids?.length > 0}
+        {#if expense.tag_ids?.length > 0}
             <div class="flex flex-wrap gap-1 px-2 pt-2">
-                {#each purchase.tag_ids as tag_id}
+                {#each expense.tag_ids as tag_id}
                     {@const tag = tags_map[tag_id]}
                     {#if tag}
                         <Tag {tag} />

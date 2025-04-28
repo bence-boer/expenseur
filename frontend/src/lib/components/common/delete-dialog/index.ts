@@ -1,2 +1,1 @@
-import DeleteDialog from './delete-dialog.svelte';
-export { DeleteDialog };
+export { default as DeleteDialog } from './delete-dialog.svelte';

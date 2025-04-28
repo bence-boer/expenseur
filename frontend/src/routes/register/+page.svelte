@@ -1,11 +1,11 @@
 <script lang="ts">
+    import { browser } from '$app/environment';
     import { goto } from '$app/navigation';
+    import { memory_cache } from '$lib/cache';
+    import { Input } from '$lib/components/ui-custom/input';
     import { Button } from '$lib/components/ui/button';
     import * as Card from '$lib/components/ui/card';
-    import { Input } from '$lib/components/ui-custom/input';
-    import { browser } from '$app/environment';
     import { auth, ServiceTypes } from '$lib/service';
-    import { memory_cache, session_storage_cache } from '$lib/cache';
 
     let email: string = $state('');
     let password: string = $state('');

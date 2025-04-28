@@ -36,8 +36,8 @@ export interface Unit {
     user_id?: string;
 }
 
-// Purchase types
-export interface Purchase {
+// Expense types
+export interface Expense {
     id?: number;
     item_id: number;
     brand_id?: number | null;

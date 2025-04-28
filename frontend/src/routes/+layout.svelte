@@ -1,14 +1,13 @@
 <script lang="ts">
     import { browser } from '$app/environment';
+    import { goto } from '$app/navigation';
     import { page } from '$app/state';
+    import { memory_cache, session_storage_cache } from '$lib/cache';
     import Navbar from '$lib/components/common/navbar.svelte';
     import { Toaster } from '$lib/components/ui/sonner';
     import { auth, ServiceTypes } from '$lib/service';
-    import { onMount, type Snippet } from 'svelte';
-
-    import { goto } from '$app/navigation';
-    import { memory_cache, session_storage_cache } from '$lib/cache';
     import { promise } from '$lib/utils';
+    import { onMount, type Snippet } from 'svelte';
     import '../app.css';
     interface Props {
         children?: Snippet;

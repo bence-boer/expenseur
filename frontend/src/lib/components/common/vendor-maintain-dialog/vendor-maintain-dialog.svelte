@@ -1,13 +1,10 @@
 <script lang="ts" generics="MODE extends 'CREATE' | 'UPDATE'">
-    import ComboBox from '$lib/components/ui-custom/combo-box/combo-box.svelte';
     import { Input } from '$lib/components/ui-custom/input';
     import { Button } from '$lib/components/ui/button';
     import * as Dialog from '$lib/components/ui/dialog';
     import { Label } from '$lib/components/ui/label';
-    import { service } from '$lib/service';
     import type { ServiceTypes } from '$lib/service';
-    import type { LabelValue } from '$lib/types';
-    import { label_value_transform } from '$lib/utils';
+    import { service } from '$lib/service';
     import { toast } from 'svelte-sonner';
 
     type Props = {

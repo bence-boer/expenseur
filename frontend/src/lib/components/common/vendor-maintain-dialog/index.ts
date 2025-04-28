@@ -1,2 +1,1 @@
-import VendorMaintainDialog from './vendor-maintain-dialog.svelte';
-export { VendorMaintainDialog };
+export { default as VendorMaintainDialog } from './vendor-maintain-dialog.svelte';

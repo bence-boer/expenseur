@@ -1,4 +1,4 @@
-export type PurchaseView = {
+export type ExpenseView = {
     id: number;
     item_id: number;
     item_name: string;

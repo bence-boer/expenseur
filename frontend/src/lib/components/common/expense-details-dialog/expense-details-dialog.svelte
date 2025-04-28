@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { Badge } from '$lib/components/ui/badge';
+    import { ExpenseMaintainDialog, type ExpenseView } from '$lib/components/common/expense-maintain-dialog';
+    import { Tag } from '$lib/components/common/tag';
     import { Button } from '$lib/components/ui/button';
     import * as Dialog from '$lib/components/ui/dialog';
     import Separator from '$lib/components/ui/separator/separator.svelte';
@@ -8,57 +9,55 @@
     import { format_currency } from '$lib/utils';
     import { Edit, X } from '@lucide/svelte';
     import { toast } from 'svelte-sonner';
-    import { PurchaseMaintainDialog, type PurchaseView } from '../purchase-maintain-dialog';
-    import Tag from '../tag/tag.svelte';
 
     type Props = {
         open: boolean;
-        purchase?: ServiceTypes.Purchase;
-        on_purchase_updated?: () => void;
+        expense?: ServiceTypes.Expense;
+        on_expense_updated?: () => void;
     };
 
-    let { open = $bindable(), purchase, on_purchase_updated = () => {} }: Props = $props();
+    let { open = $bindable(), expense, on_expense_updated = () => {} }: Props = $props();
 
-    const format = $derived((value: number) => `${number_formatter.format(value)} ${purchase.unit}`);
+    const format = $derived((value: number) => `${number_formatter.format(value)} ${expense.unit}`);
 
     let maintain_dialog_open = $state(false);
     let maintain_dialog_mode: 'CREATE' | 'UPDATE' = $state('UPDATE');
 
     const open_edit_dialog = () => {
-        if (purchase) {
+        if (expense) {
             maintain_dialog_mode = 'UPDATE';
             maintain_dialog_open = true;
         } else {
-            console.error('Cannot edit purchase: Purchase data is missing.');
-            toast.error('Cannot edit purchase: Purchase data is missing.');
+            console.error('Cannot edit expense: Expense data is missing.');
+            toast.error('Cannot edit expense: Expense data is missing.');
         }
     };
 
-    const handle_purchase_updated = async (updated_purchase_data: PurchaseView) => {
-        if (!purchase) {
-            toast.error('Original purchase data not found for update.');
-            return Promise.reject('Original purchase data not found');
+    const handle_expense_updated = async (updated_expense_data: ExpenseView) => {
+        if (!expense) {
+            toast.error('Original expense data not found for update.');
+            return Promise.reject('Original expense data not found');
         }
         return service
-            .update_purchase(purchase.id, {
-                item_id: updated_purchase_data.item_id,
-                brand_id: updated_purchase_data.brand_id,
-                quantity: updated_purchase_data.quantity,
-                price: updated_purchase_data.price,
-                details: updated_purchase_data.details
+            .update_expense(expense.id, {
+                item_id: updated_expense_data.item_id,
+                brand_id: updated_expense_data.brand_id,
+                quantity: updated_expense_data.quantity,
+                price: updated_expense_data.price,
+                details: updated_expense_data.details
                     .split(', ')
                     .map((detail) => detail.trim())
                     .filter(Boolean),
-                tag_ids: updated_purchase_data.tag_ids
+                tag_ids: updated_expense_data.tag_ids
             })
             .then(() => {
-                toast.success('Purchase updated successfully!');
+                toast.success('Expense updated successfully!');
                 maintain_dialog_open = false;
                 open = false;
-                on_purchase_updated();
+                on_expense_updated();
             })
             .catch((error) => {
-                toast.error(`Failed to update purchase: ${error.message}`);
+                toast.error(`Failed to update expense: ${error.message}`);
                 throw error;
             });
     };
@@ -78,22 +77,22 @@
     <Dialog.Content class="sm:max-w-[425px]" escapeKeydownBehavior="close" interactOutsideBehavior="close">
         <Dialog.Header>
             <Dialog.Title class="text-left">
-                <div class="flex justify-between items-center">Purchase Details</div>
+                <div class="flex justify-between items-center">Expense Details</div>
             </Dialog.Title>
         </Dialog.Header>
 
         <Separator />
         <div class="flex flex-col overflow-hidden gap-2 py-2">
-            {@render dotted('Item', purchase.item)}
-            {@render dotted('Brand', purchase.brand)}
-            {@render dotted('Quantity', format(purchase.quantity))}
-            {@render dotted('Price', format_currency(purchase.price))}
-            {@render dotted('Details', purchase.details)}
+            {@render dotted('Item', expense.item)}
+            {@render dotted('Brand', expense.brand)}
+            {@render dotted('Quantity', format(expense.quantity))}
+            {@render dotted('Price', format_currency(expense.price))}
+            {@render dotted('Details', expense.details)}
         </div>
         <Separator />
-        {#if purchase.tags?.length}
+        {#if expense.tags?.length}
             <div class="flex w-full flex-wrap justify-start gap-2">
-                {#each purchase.tags as tag}
+                {#each expense.tags as tag}
                     <Tag {tag} />
                 {/each}
             </div>
@@ -112,4 +111,4 @@
     </Dialog.Content>
 </Dialog.Root>
 
-<PurchaseMaintainDialog bind:open={maintain_dialog_open} {purchase} mode={maintain_dialog_mode} submit={handle_purchase_updated} />
+<ExpenseMaintainDialog bind:open={maintain_dialog_open} {expense} mode={maintain_dialog_mode} submit={handle_expense_updated} />
