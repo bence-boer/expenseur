@@ -46,7 +46,7 @@ export const id_validator = z.object({
     id: z.coerce.number().int().positive(),
 });
 
-export const purchase_validator = z.object({
+export const expense_validator = z.object({
     brand_id: z.coerce.number().int().optional().nullish(),
     date: z.string().date(),
     details: z.string().array().optional().nullish(),
@@ -86,12 +86,12 @@ export const ai_images_form_validator = z.object({
     //     .max(5, { message: 'Maximum 5 images allowed.' }),
 });
 
-export const ai_purchase_prediction_schema = z.object({
+export const ai_expense_prediction_schema = z.object({
     date: z.string().nullish(),
 
     store_id: z.number().int().nullish(),
 
-    purchases: z.object({
+    expenses: z.object({
         brand_id: z.number().int().nullish(),
         details: z.string().array().nullish(),
         item_id: z.number().int().nullish(),

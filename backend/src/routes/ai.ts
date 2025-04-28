@@ -3,7 +3,7 @@ import { type Context, Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { supabase } from '../../supabase/auth.middleware.ts';
 import { gemini, type MimeType, prompt } from '../utils/gemini.ts';
-import { ai_images_form_validator, ai_purchase_prediction_schema } from '../utils/validators.ts';
+import { ai_expense_prediction_schema, ai_images_form_validator } from '../utils/validators.ts';
 import { to_base64_string } from '../utils/files.ts';
 
 const app = new Hono()
@@ -19,7 +19,7 @@ const app = new Hono()
             { data: units, error: units_error },
             { data: vendors, error: vendors_error },
             { data: tags, error: tags_error },
-            { data: purchases, error: purchases_error },
+            { data: expenses, error: expenses_error },
         ] = await Promise.all([
             supabase_client.from('brands').select('*'),
             supabase_client.from('categories').select('*'),
@@ -30,7 +30,7 @@ const app = new Hono()
             supabase_client.from('latest_purchases').select('*'),
         ]);
 
-        const errors = [brands_error, categories_error, items_error, units_error, vendors_error, tags_error, purchases_error].filter(Boolean);
+        const errors = [brands_error, categories_error, items_error, units_error, vendors_error, tags_error, expenses_error].filter(Boolean);
         if (errors.length) throw new HTTPException(500, { cause: errors });
 
         // const image_parts = await Promise.all([image].map(async (file) => ({
@@ -48,11 +48,11 @@ const app = new Hono()
                     mimeType: image.type as MimeType,
                 },
             },
-            prompt(brands, categories, items, units, vendors, purchases, tags),
+            prompt(brands, categories, items, units, vendors, expenses, tags),
         ]);
 
         const json: string = response.response.candidates?.[0].content.parts[0].text?.replace('```json', '').replaceAll('```', '') ?? '';
-        const { success, data, error } = ai_purchase_prediction_schema.safeParse(JSON.parse(json));
+        const { success, data, error } = ai_expense_prediction_schema.safeParse(JSON.parse(json));
 
         if (!success) {
             console.error('Error parsing response:', error);

@@ -1,6 +1,6 @@
 import type z from 'zod';
 import type { Tables, TablesInsert } from '../../supabase/types.ts';
-import type { ai_purchase_prediction_schema } from '../utils/validators.ts';
+import type { ai_expense_prediction_schema } from '../utils/validators.ts';
 
 export type SpendingsInInterval = {
     dates: string[];
@@ -11,7 +11,7 @@ export type SpendingsInInterval = {
     }[];
 };
 
-export type PurchaseCreatePayload = TablesInsert<'purchases'>[];
-export type PurchaseResponse = Tables<'all_tables_view'>[];
+export type ExpenseCreatePayload = TablesInsert<'expenses'>[];
+export type ExpenseResponse = Tables<'all_tables_view'>[];
 
-export type PredictedPurchase = z.infer<typeof ai_purchase_prediction_schema>;
+export type PredictedExpense = z.infer<typeof ai_expense_prediction_schema>;

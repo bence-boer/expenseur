@@ -41,11 +41,11 @@ export const get_units = () => client.api.units.$get();
 export const create_unit = (unit: Unit) => client.api.units.$post({ json: unit });
 export const update_unit = (id: string, unit: Partial<Unit>) => client.api.units[':id'].$patch({ param: { id }, json: unit } as any);
 
-// PURCHASES
-export const get_expenses = (query: PeriodQuery) => client.api.purchases.$get({ query });
-export const create_expenses = (expenses: Expense[]) => client.api.purchases.$post({ json: expenses });
-export const update_expense = (id: string, expense: Partial<Expense>) => client.api.purchases[':id'].$patch({ param: { id }, json: expense } as any);
-export const delete_expense = (id: string) => client.api.purchases[':id'].$delete({ param: { id } });
+// EXPENSES
+export const get_expenses = (query: PeriodQuery) => client.api.expenses.$get({ query });
+export const create_expenses = (expenses: Expense[]) => client.api.expenses.$post({ json: expenses });
+export const update_expense = (id: string, expense: Partial<Expense>) => client.api.expenses[':id'].$patch({ param: { id }, json: expense } as any);
+export const delete_expense = (id: string) => client.api.expenses[':id'].$delete({ param: { id } });
 
 // AI SUGGESTIONS
 export const get_ai_suggestions = (images: File[]) => client.api.ai.suggest_items.$post({ form: { image: images[0] } });
