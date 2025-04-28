@@ -110,7 +110,7 @@
 <DeleteDialog
     bind:open={delete_dialog_open}
     title="Delete Brand"
-    description="Are you sure you want to delete Brand: {brand_map.get(brand_to_delete).name}? This action cannot be undone."
+    description={`Are you sure you want to delete brand "${brand_map.get(brand_to_delete).name}"? The brand will also be removed from related expenses. This action cannot be undone.`}
     delete={delete_brand}
 />
 

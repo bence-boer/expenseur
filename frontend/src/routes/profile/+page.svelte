@@ -202,7 +202,7 @@
 
 <DeleteDialog
     bind:open={show_delete_confirm}
-    title="Delete Avatar?"
-    description="Are you sure you want to delete your avatar? This action cannot be undone."
+    title="Delete Profile Picture?"
+    description="Are you sure you want to remove your profile picture? This action cannot be undone."
     delete={confirm_delete_avatar}
 />

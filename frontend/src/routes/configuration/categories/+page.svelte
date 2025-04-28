@@ -109,7 +109,7 @@
 <DeleteDialog
     bind:open={delete_dialog_open}
     title="Delete category"
-    description="Are you sure you want to delete category: {category_map.get(category_to_delete).name}?"
+    description={`Are you sure you want to delete category "${category_map.get(category_to_delete).name}"? The category will also be removed from related expenses. This action cannot be undone.`}
     delete={delete_category}
 />
 

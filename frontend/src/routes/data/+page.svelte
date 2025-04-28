@@ -186,5 +186,9 @@
 
 <PurchaseMaintainDialog bind:open={maintain_dialog_open} purchase={purchase_to_edit} mode="UPDATE" submit={update_purchase} />
 
-<DeleteDialog bind:open={delete_dialog_open} title="Delete Expense" description="Are you sure you want to delete this Expense?" delete={delete_item}
+<DeleteDialog
+    bind:open={delete_dialog_open}
+    title="Delete Expense"
+    description="Are you sure you want to delete this Expense? This action cannot be undone."
+    delete={delete_item}
 ></DeleteDialog>

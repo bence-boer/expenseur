@@ -110,7 +110,7 @@
 <DeleteDialog
     bind:open={delete_dialog_open}
     title="Delete tag"
-    description="Are you sure you want to delete tag: {tag_map.get(tag_to_delete)?.name ?? ''}?"
+    description={`Are you sure you want to delete tag "${tag_map.get(tag_to_delete)?.name ?? ''}"? The tag will also be removed from related expenses. This action cannot be undone.`}
     delete={delete_tag}
 />
 

@@ -110,7 +110,7 @@
 <DeleteDialog
     bind:open={delete_dialog_open}
     title="Delete Vendor"
-    description="Are you sure you want to delete Vendor: {vendor_map.get(vendor_to_delete).name}? This action cannot be undone."
+    description={`Are you sure you want to delete vendor "${vendor_map.get(vendor_to_delete).name}"? The vendor will also be removed from related expenses. This action cannot be undone.`}
     delete={delete_vendor}
 />
 
