@@ -17,12 +17,6 @@
     import { onMount } from 'svelte';
     import { toast } from 'svelte-sonner';
 
-    type FormSchema = {
-        date: string;
-        store_id: number;
-        expenses: ExpenseView[];
-    };
-
     let expenses: ExpenseView[] = $state([]);
     let expense_to_update: ExpenseView | undefined = $state();
     let expense_to_update_index: number = $state(-1);
@@ -30,22 +24,22 @@
     let expense_maintain_dialog_mode: 'CREATE' | 'UPDATE' = $state('CREATE');
     let ai_upload_dialog_open: boolean = $state(false);
     let date: DateValue | undefined = $state();
-    let selected_store: number | undefined = $state();
+    let selected_vendor: number | undefined = $state();
 
     let items_map = $state(new Map<number, ServiceTypes.Item>());
     let brands_map = $state(new Map<number, ServiceTypes.Brand>());
     let categories_map = $state(new Map<number, ServiceTypes.Category>());
     let units_map = $state(new Map<number, ServiceTypes.Unit>());
     let tags_map = $state(new Map<number, ServiceTypes.Tag>());
-    let stores_map = $state(new Map<number, ServiceTypes.Vendor>());
+    let vendors_map = $state(new Map<number, ServiceTypes.Vendor>());
 
-    let selectable_stores: LabelValue<number>[] = $state([]);
+    let selectable_vendors: LabelValue<number>[] = $state([]);
 
     let new_brands: ServiceTypes.Brand[] = $state([]);
     let new_categories: ServiceTypes.Category[] = $state([]);
     let new_items: ServiceTypes.Item[] = $state([]);
     let new_units: ServiceTypes.Unit[] = $state([]);
-    let new_stores: ServiceTypes.Vendor[] = $state([]);
+    let new_vendors: ServiceTypes.Vendor[] = $state([]);
     let new_tags: ServiceTypes.Tag[] = $state([]);
 
     const total = $derived(currency_formatter.format(expenses.reduce((total, expense) => total + expense.price, 0)));
@@ -66,8 +60,8 @@
             if (units_res.status === 'fulfilled') units_map = new Map(units_res.value.map((u) => [u.id, u]));
             if (tags_res.status === 'fulfilled') tags_map = new Map(tags_res.value.map((t) => [t.id, t]));
             if (vendors_res.status === 'fulfilled') {
-                stores_map = new Map(vendors_res.value.map((v) => [v.id, v]));
-                selectable_stores = vendors_res.value.map(label_value_transform);
+                vendors_map = new Map(vendors_res.value.map((v) => [v.id, v]));
+                selectable_vendors = vendors_res.value.map(label_value_transform);
             }
 
             [items_res, brands_res, categories_res, units_res, tags_res, vendors_res].forEach((res) => {
@@ -103,30 +97,30 @@
         expense_to_update = undefined;
     }
 
-    async function create_store(label: string | null): Promise<number> {
+    async function create_vendor(label: string | null): Promise<number> {
         label = sanitize_string(label);
         if (!label) {
-            toast.error('Store name should contain characters other than whitespaces!');
+            toast.error('Vendor name should contain characters other than whitespaces!');
             return Promise.reject();
         }
 
-        const suggested = new_stores.find((s) => s.name === label && s.id < 0);
+        const suggested = new_vendors.find((s) => s.name === label && s.id < 0);
         if (suggested) {
-            toast.info(`Using suggested store: ${label}`);
-            if (!selectable_stores.some((s) => s.value === suggested.id)) {
-                selectable_stores = [...selectable_stores, { label, value: suggested.id }];
-                if (!stores_map.has(suggested.id)) {
-                    stores_map.set(suggested.id, suggested);
+            toast.info(`Using suggested vendor: ${label}`);
+            if (!selectable_vendors.some((s) => s.value === suggested.id)) {
+                selectable_vendors = [...selectable_vendors, { label, value: suggested.id }];
+                if (!vendors_map.has(suggested.id)) {
+                    vendors_map.set(suggested.id, suggested);
                 }
             }
             return Promise.resolve(suggested.id);
         }
 
-        return service.create_vendor({ name: label }).then((store) => {
-            stores_map.set(store.id, store);
-            selectable_stores = [...selectable_stores, { label, value: store.id }];
-            toast.success(`Store "${label}" created successfully!`);
-            return store.id;
+        return service.create_vendor({ name: label }).then((vendor) => {
+            vendors_map.set(vendor.id, vendor);
+            selectable_vendors = [...selectable_vendors, { label, value: vendor.id }];
+            toast.success(`Vendor "${label}" created successfully!`);
+            return vendor.id;
         });
     }
 
@@ -146,7 +140,7 @@
 
         const errors: string[] = [];
         if (!date) errors.push('Date is required!');
-        if (selected_store === undefined || selected_store === null) errors.push('Store is required!');
+        if (selected_vendor === undefined || selected_vendor === null) errors.push('Vendor is required!');
         if (expenses.length === 0) errors.push('At least one expense item is required!');
 
         if (errors.length > 0) {
@@ -158,7 +152,7 @@
             const category_id_map = new Map<number, number>();
             const unit_id_map = new Map<number, number>();
             const brand_id_map = new Map<number, number>();
-            const store_id_map = new Map<number, number>();
+            const vendor_id_map = new Map<number, number>();
             const tag_id_map = new Map<number, number>();
             const item_id_map = new Map<number, number>();
 
@@ -167,10 +161,12 @@
             );
             const unit_promises = new_units.map(({ id, ...unit }) => service.create_unit(unit).then((new_unit) => unit_id_map.set(id, new_unit.id)));
             const brand_promises = new_brands.map(({ id, ...brand }) => service.create_brand(brand).then((new_brand) => brand_id_map.set(id, new_brand.id)));
-            const store_promises = new_stores.map(({ id, ...store }) => service.create_vendor(store).then((new_store) => store_id_map.set(id, new_store.id)));
+            const vendor_promises = new_vendors.map(({ id, ...vendor }) =>
+                service.create_vendor(vendor).then((new_vendor) => vendor_id_map.set(id, new_vendor.id))
+            );
             const tag_promises = new_tags.map(({ id, ...tag }) => service.create_tag(tag).then((new_tag) => tag_id_map.set(id, new_tag.id)));
 
-            await Promise.all([...category_promises, ...unit_promises, ...brand_promises, ...store_promises, ...tag_promises]);
+            await Promise.all([...category_promises, ...unit_promises, ...brand_promises, ...vendor_promises, ...tag_promises]);
 
             const item_promises = new_items.map((item) => {
                 const payload: ServiceTypes.CreateItemPayload = {
@@ -182,7 +178,7 @@
             });
             await Promise.all(item_promises);
 
-            const final_selected_store = selected_store! < 0 ? store_id_map.get(selected_store!)! : selected_store!;
+            const final_selected_vendor = selected_vendor! < 0 ? vendor_id_map.get(selected_vendor!)! : selected_vendor!;
             const final_expenses = expenses.map((p) => ({
                 item_id: p.item_id < 0 ? item_id_map.get(p.item_id)! : p.item_id,
                 brand_id: p.brand_id && p.brand_id < 0 ? brand_id_map.get(p.brand_id)! : p.brand_id,
@@ -204,7 +200,7 @@
                 item_id: expense.item_id,
                 price: expense.price,
                 quantity: expense.quantity,
-                store_id: final_selected_store,
+                store_id: final_selected_vendor,
                 tag_ids: expense.tag_ids ?? null
             }));
 
@@ -213,12 +209,12 @@
             const sum = total;
             expenses = [];
             date = undefined;
-            selected_store = undefined;
+            selected_vendor = undefined;
             new_brands = [];
             new_categories = [];
             new_items = [];
             new_units = [];
-            new_stores = [];
+            new_vendors = [];
             new_tags = [];
 
             toast.success(`Expense of ${format_currency(sum)} registered successfully!`);
@@ -238,7 +234,7 @@
         new_categories = response.categories ?? [];
         new_items = response.items ?? [];
         new_units = response.units ?? [];
-        new_stores = response.stores ?? [];
+        new_vendors = response.vendors ?? [];
         new_tags = response.tags ?? [];
 
         new_brands.forEach((brand) => {
@@ -263,17 +259,17 @@
         new_tags.forEach((tag) => {
             if (!tags_map.has(tag.id)) tags_map.set(tag.id, tag);
         });
-        new_stores.forEach((store) => {
-            if (!stores_map.has(store.id)) {
-                stores_map.set(store.id, store);
-                if (!selectable_stores.some((ss) => ss.value === store.id)) {
-                    selectable_stores = [...selectable_stores, { label: store.name, value: store.id }];
+        new_vendors.forEach((vendor) => {
+            if (!vendors_map.has(vendor.id)) {
+                vendors_map.set(vendor.id, vendor);
+                if (!selectable_vendors.some((ss) => ss.value === vendor.id)) {
+                    selectable_vendors = [...selectable_vendors, { label: vendor.name, value: vendor.id }];
                 }
             }
         });
 
         date = response.date ? parseDate(response.date) : undefined;
-        selected_store = response.store_id;
+        selected_vendor = response.store_id;
 
         const ai_expenses = response.expenses ?? [];
         expenses = ai_expenses.map((expense, index) => {
@@ -306,7 +302,7 @@
 <Separator />
 
 <div class="flex flex-row flex-wrap gap-4">
-    <ComboBox data={selectable_stores} bind:value={selected_store} placeholder="Select store..." create={create_store} class="sm:w-48"></ComboBox>
+    <ComboBox data={selectable_vendors} bind:value={selected_vendor} placeholder="Select vendor..." create={create_vendor} class="sm:w-48"></ComboBox>
     <DatePicker bind:value={date} title="Pick date..." placeholder={today(getLocalTimeZone())} class="flex-1 sm:min-w-48 sm:max-w-64"></DatePicker>
 </div>
 <ScrollArea class="flex-auto gap-2" orientation="vertical">

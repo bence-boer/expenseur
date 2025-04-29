@@ -63,8 +63,8 @@
             enableHiding: false
         },
         {
-            accessorKey: 'store',
-            header: 'Store'
+            accessorKey: 'vendor',
+            header: 'Vendor'
         }
     ] as const satisfies ColumnDef<ServiceTypes.Expense>[];
 
@@ -74,7 +74,7 @@
             // brand: false,
             // category: false,
             // quantity: false,
-            // store: false
+            // vendor: false
         }
     } satisfies InitialTableState;
 

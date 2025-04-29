@@ -22,7 +22,7 @@ export interface Category {
     user_id?: string;
 }
 
-// Vendor (Store) types
+// Vendor types
 export interface Vendor {
     id?: number;
     name: string;
