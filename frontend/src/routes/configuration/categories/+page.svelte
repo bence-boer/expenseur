@@ -47,17 +47,11 @@
     };
 
     const delete_category = () =>
-        service
-            .delete_category(String(category_to_delete))
-            .then(() => {
-                const name = category_map.get(category_to_delete).name;
-                toast.success(`Category "${name}" deleted successfully`);
-                fetch();
-            })
-            .catch((error) => {
-                toast.error('Failed to delete category');
-                console.error('Delete category error:', error);
-            });
+        service.delete_category(String(category_to_delete)).then(() => {
+            const name = category_map.get(category_to_delete).name;
+            toast.success(`Category "${name}" deleted successfully`);
+            fetch();
+        });
 </script>
 
 {#await categories}

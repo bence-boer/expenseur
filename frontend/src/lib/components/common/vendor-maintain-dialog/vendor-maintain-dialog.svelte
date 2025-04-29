@@ -60,10 +60,6 @@
                 open = false;
                 reset_form();
             })
-            .catch((error) => {
-                toast.error(`Failed to create Vendor`);
-                throw error;
-            })
             .finally(() => {
                 dialog_disabled = false;
             });
@@ -81,10 +77,6 @@
                 toast.success(`Vendor "${name}" updated successfully!`);
                 open = false;
                 reset_form();
-            })
-            .catch((error) => {
-                toast.error(`Failed to update Vendor`);
-                throw error;
             })
             .finally(() => {
                 dialog_disabled = false;

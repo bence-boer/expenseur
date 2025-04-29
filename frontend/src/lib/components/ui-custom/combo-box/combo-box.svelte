@@ -68,9 +68,6 @@
 
                 if (changed) onchange(new_value);
             })
-            .catch((error) => {
-                console.error(error);
-            })
             .finally(() => {
                 disabled = false;
             });

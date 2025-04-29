@@ -55,10 +55,6 @@
                 toast.success(`Tag "${name}" created successfully!`);
                 open = false;
             })
-            .catch((error) => {
-                toast.error(`Failed to create Tag`);
-                throw error;
-            })
             .finally(() => {
                 disabled = false;
             });
@@ -85,10 +81,6 @@
                 on_tag_maintained();
                 toast.success(`Tag "${name}" updated successfully!`);
                 open = false;
-            })
-            .catch((error) => {
-                toast.error(`Failed to update Tag`);
-                throw error;
             })
             .finally(() => {
                 disabled = false;

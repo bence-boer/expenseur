@@ -108,9 +108,6 @@
                 const index = expenses.findIndex(({ id }) => id === expense_to_update.id);
                 expenses = [...expenses.slice(0, index), expense_to_update, ...expenses.slice(index + 1)];
                 toast.success('Expense updated successfully');
-            })
-            .catch((error) => {
-                toast.error(error.message);
             });
 
     const open_delete_dialog = (id: number): Promise<void> => {
@@ -120,15 +117,10 @@
     };
 
     const delete_item = async (): Promise<void> => {
-        return service
-            .delete_expense(String(delete_item_id))
-            .then(() => {
-                toast.success('Item deleted successfully');
-                expenses = expenses!.filter((expense) => expense.id !== delete_item_id);
-            })
-            .catch((error) => {
-                toast.error(error.message);
-            });
+        return service.delete_expense(String(delete_item_id)).then(() => {
+            toast.success('Item deleted successfully');
+            expenses = expenses!.filter((expense) => expense.id !== delete_item_id);
+        });
     };
 
     const select_period = (value: Period): void => {

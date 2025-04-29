@@ -38,7 +38,6 @@
                 avatar_loading_status = 'loaded';
             })
             .catch((error) => {
-                console.error('Failed to load avatar:', error);
                 avatar_loading_status = 'error';
             });
     };
@@ -111,10 +110,7 @@
                 profile = data;
                 resolve(data);
             })
-            .catch((error) => {
-                console.error('Failed to load profile data:', error);
-                reject(error);
-            });
+            .catch(reject);
 
     onMount(() => {
         fetch_avatar();

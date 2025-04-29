@@ -1,16 +1,14 @@
 import { PUBLIC_API_URL } from '$env/static/public';
-import { clear_with_persist, memory_cache } from '$lib/cache';
+import { clear_with_persist, memory_cache } from '$lib/cache.ts';
 import type { LocalCache } from '$lib/types.ts';
 import type { API } from '@expenseur/backend';
 import { type ClientResponse, hc } from 'hono/client';
 import type { HcOptions } from 'hono/client/types';
-import { type ZodError } from 'zod';
+import { toast } from 'svelte-sonner';
 
 const API_URL: string = PUBLIC_API_URL;
 
 const cache: LocalCache<string> = memory_cache as LocalCache<string>;
-
-type ErrorResponse = { success: false; error: ZodError } | { error: string };
 
 type UnwrapClientResponse<T> = T extends (...args: infer A) => Promise<ClientResponse<infer U>>
     ? (input?: A[0], options?: HcOptions) => Promise<U extends null ? void : U>
@@ -33,11 +31,16 @@ export const generate_cache_key = (path: RequestInfo | URL, input?: unknown): st
 
 const exctract_response_data = <Data = unknown>(response: Response): Promise<Data> => {
     if (!response.ok) {
-        return response.json()
-            .catch(() => Promise.reject(`Request failed with status ${response.status} ${response.statusText}`))
-            .then((error_response: ErrorResponse) => {
-                const error_data: unknown = ('error' in error_response) ? error_response.error : `Request failed with status ${response.status}`;
-                return Promise.reject(error_data);
+        return response.text()
+            .catch(() => {
+                toast.error('An error occurred while processing the response.');
+                console.error('Error reading response text:', response);
+                return Promise.reject('An error occurred while processing the response.');
+            })
+            .then((message: string) => {
+                toast.error(message);
+                console.error('Error response:', response, message);
+                return Promise.reject(message);
             });
     }
 
@@ -52,6 +55,11 @@ const exctract_response_data = <Data = unknown>(response: Response): Promise<Dat
 const custom_fetch = (endpoint: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     if (init?.method !== 'GET') {
         return fetch(endpoint, init)
+            .catch((error) => {
+                toast.error('Error processing request.');
+                console.error('Error while trying to fetch:', error);
+                return Promise.reject(error);
+            })
             .then((response) => {
                 const data = exctract_response_data(response);
                 clear_with_persist(cache, ['update-session-callback']);

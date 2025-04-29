@@ -33,10 +33,9 @@
                 const update_session = memory_cache.get('update-session-callback') as (value: Promise<ServiceTypes.Session>) => void;
                 update_session?.(Promise.resolve(response.session));
             })
-            .catch((error) => {
-                console.error('Registration error:', error.message);
+            .catch((error: string) => {
                 failed = true;
-                error_message = 'Registration failed';
+                error_message = error;
             });
     };
 </script>
@@ -58,9 +57,7 @@
                 <Input type="password" placeholder="Password (confirmation)" class="w-full" bind:value={password_confirm} />
             </div>
             <div class="h-2 text-right text-xs text-red-500">
-                {#if failed}
-                    {error_message}
-                {/if}
+                {#if failed}{error_message}{/if}
             </div>
         </Card.Content>
         <Card.Footer class="justify-end gap-2">

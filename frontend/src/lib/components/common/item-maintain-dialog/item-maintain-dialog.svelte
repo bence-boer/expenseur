@@ -64,10 +64,6 @@
                 categories = [...categories, { label, value: data.id }];
                 return data.id;
             })
-            .catch((error) => {
-                toast.error(error.message);
-                throw error;
-            })
             .finally(() => {
                 dialog_disabled = false;
             });
@@ -80,10 +76,6 @@
             .then((data) => {
                 units = [...units, { label, value: data.id }];
                 return data.id;
-            })
-            .catch((error) => {
-                toast.error(error.message);
-                throw error;
             })
             .finally(() => {
                 dialog_disabled = false;
@@ -122,10 +114,6 @@
                 open = false;
                 reset_form();
             })
-            .catch((error) => {
-                toast.error(`Failed to create Item`);
-                throw error;
-            })
             .finally(() => {
                 dialog_disabled = false;
             });
@@ -143,10 +131,6 @@
                 toast.success(`Item "${name}" updated successfully!`);
                 open = false;
                 reset_form();
-            })
-            .catch((error) => {
-                toast.error(`Failed to update Item`);
-                throw error;
             })
             .finally(() => {
                 dialog_disabled = false;

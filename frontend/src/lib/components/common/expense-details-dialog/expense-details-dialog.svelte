@@ -55,10 +55,6 @@
                 maintain_dialog_open = false;
                 open = false;
                 on_expense_updated();
-            })
-            .catch((error) => {
-                toast.error(`Failed to update expense: ${error.message}`);
-                throw error;
             });
     };
 </script>

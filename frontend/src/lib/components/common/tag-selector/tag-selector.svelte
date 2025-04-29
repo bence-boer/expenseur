@@ -20,16 +20,10 @@
     let maintain_dialog_open = $state(false);
 
     const fetch_tags = () => {
-        service
-            .get_tags()
-            .then((tags) => {
-                all_tags = tags;
-                tag_map = new Map(tags.map((tag) => [tag.id, tag]));
-            })
-            .catch((err) => {
-                toast.error('Failed to fetch tags');
-                console.error(err);
-            });
+        service.get_tags().then((tags) => {
+            all_tags = tags;
+            tag_map = new Map(tags.map((tag) => [tag.id, tag]));
+        });
     };
 
     onMount(fetch_tags);

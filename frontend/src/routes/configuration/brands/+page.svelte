@@ -47,17 +47,11 @@
     };
 
     const delete_brand = () =>
-        service
-            .delete_brand(String(brand_to_delete))
-            .then(() => {
-                const name = brand_map.get(brand_to_delete).name;
-                toast.success(`Brand "${name}" deleted successfully`);
-                fetch();
-            })
-            .catch((error) => {
-                toast.error('Failed to delete brand');
-                console.error('Delete brand error:', error);
-            });
+        service.delete_brand(String(brand_to_delete)).then(() => {
+            const name = brand_map.get(brand_to_delete).name;
+            toast.success(`Brand "${name}" deleted successfully`);
+            fetch();
+        });
 </script>
 
 {#await brands}

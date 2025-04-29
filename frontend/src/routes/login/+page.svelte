@@ -15,15 +15,17 @@
         if (browser) goto(session_storage_cache.get('login-redirect') ?? '/');
     };
 
-    let failed = $state(false);
+    let failed: boolean = $state(false);
+    let error_message: string = $state('Login failed');
+
     const login = () => {
         auth.login(email, password)
             .then((response: ServiceTypes.LoginResponse) => {
                 const update_session = memory_cache.get('update-session-callback') as (value: Promise<ServiceTypes.Session>) => void;
                 update_session?.(Promise.resolve(response.session));
             })
-            .catch((error: Error) => {
-                console.error('Login error:', error.message);
+            .catch((error: string) => {
+                error_message = error;
                 failed = true;
             });
     };
@@ -43,9 +45,7 @@
                 <Input type="password" placeholder="Password" class="w-full" bind:value={password} />
             </div>
             <div class="size h-2 text-right text-xs text-red-500">
-                {#if failed}
-                    Login failed
-                {/if}
+                {#if failed}{error_message}{/if}
             </div>
         </Card.Content>
         <Card.Footer class="justify-end gap-2">

@@ -122,18 +122,12 @@
             return Promise.resolve(suggested.id);
         }
 
-        return service
-            .create_vendor({ name: label })
-            .then((store) => {
-                stores_map.set(store.id, store);
-                selectable_stores = [...selectable_stores, { label, value: store.id }];
-                toast.success(`Store "${label}" created successfully!`);
-                return store.id;
-            })
-            .catch((error) => {
-                toast.error(error.message);
-                throw error;
-            });
+        return service.create_vendor({ name: label }).then((store) => {
+            stores_map.set(store.id, store);
+            selectable_stores = [...selectable_stores, { label, value: store.id }];
+            toast.success(`Store "${label}" created successfully!`);
+            return store.id;
+        });
     }
 
     function duplicate_expense(index: number) {

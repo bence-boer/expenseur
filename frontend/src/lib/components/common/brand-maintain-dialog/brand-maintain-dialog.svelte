@@ -60,10 +60,6 @@
                 open = false;
                 reset_form();
             })
-            .catch((error) => {
-                toast.error(`Failed to create Brand`);
-                throw error;
-            })
             .finally(() => {
                 dialog_disabled = false;
             });
@@ -81,10 +77,6 @@
                 toast.success(`Brand "${name}" updated successfully!`);
                 open = false;
                 reset_form();
-            })
-            .catch((error) => {
-                toast.error(`Failed to update Brand`);
-                throw error;
             })
             .finally(() => {
                 dialog_disabled = false;

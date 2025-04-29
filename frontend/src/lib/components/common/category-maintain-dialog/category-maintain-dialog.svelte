@@ -55,10 +55,6 @@
                 toast.success(`Category "${name}" created successfully!`);
                 open = false;
             })
-            .catch((error) => {
-                toast.error(`Failed to create Category`);
-                throw error;
-            })
             .finally(() => {
                 disabled = false;
             });
@@ -85,10 +81,6 @@
                 on_category_created(category.id);
                 toast.success(`Category "${name}" updated successfully!`);
                 open = false;
-            })
-            .catch((error) => {
-                toast.error(`Failed to update Category`);
-                throw error;
             })
             .finally(() => {
                 disabled = false;

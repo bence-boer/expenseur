@@ -158,9 +158,8 @@
                     item_details[id] = details;
                     formatters[id] = formatter_for_unit(details.unit);
                 })
-                .catch((err) => {
-                    toast.error(`Failed to fetch item details: ${err.message}`);
-                    item_details[id] = { name: `Error Fetching (${id})`, unit: '', category: '' };
+                .catch(() => {
+                    item_details[id] = { name: `#error`, unit: '', category: '' };
                     formatters[id] = number_formatter;
                 });
         }
@@ -215,9 +214,6 @@
                 open = false;
                 if (mode === 'CREATE') reset();
             })
-            .catch((error) => {
-                toast.error(error.message);
-            })
             .finally(() => {
                 disabled = false;
             });
@@ -258,10 +254,7 @@
                             update_item_detail(created_item_id);
                             resolve(created_item_id);
                         })
-                        .catch((err) => {
-                            toast.error(`Failed to refresh items after creation: ${err.message}`);
-                            reject(err);
-                        });
+                        .catch(reject);
                 } else {
                     reject(new Error('Item creation failed or was cancelled.'));
                 }
@@ -285,22 +278,16 @@
             return Promise.resolve(suggested.id);
         }
 
-        return service
-            .create_brand({ name: label })
-            .then((brand) => {
-                const new_brand_entry = { id: brand.id, name: label };
-                selectable_brands = merge_with_suggested(
-                    [new_brand_entry],
-                    selectable_brands.map((lv) => ({ id: lv.value, name: lv.label })),
-                    label_value_transform
-                );
-                toast.success(`Brand "${label}" created successfully!`);
-                return brand.id;
-            })
-            .catch((error) => {
-                toast.error(error.message);
-                throw error;
-            });
+        return service.create_brand({ name: label }).then((brand) => {
+            const new_brand_entry = { id: brand.id, name: label };
+            selectable_brands = merge_with_suggested(
+                [new_brand_entry],
+                selectable_brands.map((lv) => ({ id: lv.value, name: lv.label })),
+                label_value_transform
+            );
+            toast.success(`Brand "${label}" created successfully!`);
+            return brand.id;
+        });
     };
 
     $effect(() => {

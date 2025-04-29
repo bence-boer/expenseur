@@ -30,9 +30,7 @@ const app = new Hono()
         return context.json(data, 200);
     })
     .post('/logout', async (context: Context) => {
-        const { error } = await supabase(context).auth.signOut();
-
-        if (error) throw new HTTPException(500, { message: 'Logout failed', cause: error });
+        await supabase(context).auth.signOut();
         return context.body(null, 204);
     })
     .post('/register', zValidator('json', user_validator), async (context: Context) => {

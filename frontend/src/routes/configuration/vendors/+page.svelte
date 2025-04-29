@@ -47,17 +47,11 @@
     };
 
     const delete_vendor = () =>
-        service
-            .delete_vendor(String(vendor_to_delete))
-            .then(() => {
-                const name = vendor_map.get(vendor_to_delete).name;
-                toast.success(`Vendor "${name}" deleted successfully`);
-                fetch();
-            })
-            .catch((error) => {
-                toast.error('Failed to delete vendor');
-                console.error('Delete vendor error:', error);
-            });
+        service.delete_vendor(String(vendor_to_delete)).then(() => {
+            const name = vendor_map.get(vendor_to_delete).name;
+            toast.success(`Vendor "${name}" deleted successfully`);
+            fetch();
+        });
 </script>
 
 {#await vendors}
