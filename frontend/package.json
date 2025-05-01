@@ -1,0 +1,38 @@
+{
+    "name": "frontend",
+    "private": true,
+    "version": "0.0.1",
+    "type": "module",
+    "scripts": {
+        "dev": "vite dev",
+        "clean": "rimraf build",
+        "prebuild": "npm run clean",
+        "build": "vite build",
+        "release": "npm run build && firebase deploy",
+        "preview": "vite preview",
+        "prepare": "svelte-kit sync || echo ''",
+        "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+        "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+    },
+    "devDependencies": {
+        "@internationalized/date": "^3.7.0",
+        "@lucide/svelte": "^0.509.0",
+        "@sveltejs/adapter-static": "^3.0.8",
+        "@sveltejs/kit": "2.21.2",
+        "@sveltejs/vite-plugin-svelte": "^5.0.0",
+        "autoprefixer": "^10.4.20",
+        "bits-ui": "^1.4.7",
+        "clsx": "^2.1.1",
+        "mode-watcher": "1.0.7",
+        "svelte": "^5.30.1",
+        "svelte-check": "4.2.1",
+        "svelte-sonner": "1.0.1",
+        "tailwind-merge": "^3.0.2",
+        "tailwind-variants": "^0.3.1",
+        "tailwindcss": "^3.4.17",
+        "tailwindcss-animate": "^1.0.7",
+        "typescript": "^5.8.2",
+        "vite": "^6.3.5",
+        "zod": "^3.24.2"
+    }
+}

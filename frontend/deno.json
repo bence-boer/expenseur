@@ -1,0 +1,42 @@
+{
+    "version": "0.1.0",
+    "tasks": {
+        "serve": "vite dev --open --mode production",
+        "serve:development": "vite dev --open --mode development"
+    },
+    "imports": {
+        "chart.js": "npm:chart.js@^4.4.8",
+        "clsx": "npm:clsx@^2.1.1",
+        "svelte-radix": "npm:svelte-radix@^2.0.1",
+        "tailwind-merge": "npm:tailwind-merge@^3.0.2",
+        "tailwind-variants": "npm:tailwind-variants@^0.3.1",
+        "tailwindcss-animate": "npm:tailwindcss-animate@^1.0.7",
+        "@tanstack/table-core": "npm:@tanstack/table-core@^8.21.3",
+        "jwt-decode": "npm:jwt-decode@^4.0.0",
+
+        "$lib": "./src/lib",
+        "$lib/": "./src/lib/",
+        "$test": "./test",
+        "$test/": "./test/",
+        "$env/static/public": "./.svelte-kit/ambient.d.ts",
+        "$env/static/private": "./.svelte-kit/ambient.d.ts",
+        "$env/dynamic/public": "./.svelte-kit/ambient.d.ts",
+        "$env/dynamic/private": "./.svelte-kit/ambient.d.ts",
+        "$app/forms": "../node_modules/@sveltejs/kit/types/index.d.ts",
+        "$app/environment": "../node_modules/@sveltejs/kit/types/index.d.ts",
+        "$app/navigation": "../node_modules/@sveltejs/kit/types/index.d.ts",
+        "$app/server": "../node_modules/@sveltejs/kit/types/index.d.ts",
+        "$app/stores": "../node_modules/@sveltejs/kit/types/index.d.ts",
+        "$app/state": "../node_modules/@sveltejs/kit/types/index.d.ts"
+    },
+    "compilerOptions": {
+        "allowJs": true,
+        "checkJs": true,
+        "strict": true
+    },
+    "fmt": {
+        "exclude": [
+            "./src/components/ui/"
+        ]
+    }
+}
